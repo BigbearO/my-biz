@@ -1,0 +1,5 @@
+my:
+  sdk:
+    ai:
+      emptyMessagesLimit: 30
+      apiVersion: v1
