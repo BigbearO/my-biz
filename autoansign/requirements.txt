@@ -1,0 +1,2 @@
+setuptools~=78.1.0
+airtest_mobileauto>=2.1.7.1
