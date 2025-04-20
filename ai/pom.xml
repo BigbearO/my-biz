@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.pig4cloud</groupId>
+        <artifactId>pig</artifactId>
+        <version>3.8.3</version>
+    </parent>
+    <groupId>com.bigbear</groupId>
+    <artifactId>ai</artifactId>
+    <description>1</description>
+    <packaging>pom</packaging>
+    <properties>
+        <langchain.version>1.0.0-beta3</langchain.version>
+        <last.langchain.version>0.36.2</last.langchain.version>
+        <sensitive.version>0.23.0</sensitive.version>
+    </properties>
+    <!--项目子模块-->
+    <modules>
+        <module>ai-api</module>
+        <module>ai-biz</module>
+    </modules>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>dev.langchain4j</groupId>
+                <artifactId>langchain4j-dashscope-spring-boot-starter</artifactId>
+                <version>${last.langchain.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dev.langchain4j</groupId>
+                <artifactId>langchain4j-community-dashscope</artifactId>
+                <version>${langchain.version}</version>
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/dev.langchain4j/langchain4j-mcp -->
+            <dependency>
+                <groupId>dev.langchain4j</groupId>
+                <artifactId>langchain4j-mcp</artifactId>
+                <version>${langchain.version}</version>
+            </dependency>
+            <!--            <dependency>-->
+            <!--                <groupId>dev.langchain4j</groupId>-->
+            <!--                <artifactId>langchain4j-bom</artifactId>-->
+            <!--                <version>${langchain.version}</version>-->
+            <!--                <type>pom</type>-->
+            <!--                <scope>import</scope>-->
+            <!--            </dependency>-->
+        </dependencies>
+    </dependencyManagement>
+</project>
