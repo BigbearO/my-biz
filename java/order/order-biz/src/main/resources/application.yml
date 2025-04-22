@@ -1,5 +1,5 @@
 server:
-  port: 7001
+  port: 8001
 
 spring:
   application:
@@ -9,16 +9,16 @@ spring:
       username: @nacos.username@
       password: @nacos.password@
       discovery:
-        server-addr: ${NACOS_HOST:order-register}:${NACOS_PORT:8848}
+        server-addr: ${NACOS_HOST:192.168.50.250}:${NACOS_PORT:8848}
       config:
         server-addr: ${spring.cloud.nacos.discovery.server-addr}
   config:
     import:
-      - nacos:application-@profiles.active@.yml
-      - nacos:${spring.application.name}-@profiles.active@.yml
+      - nacos:application.yml
+      - nacos:${spring.application.name}.yml
   datasource:  # 示例数据源配置，注意修改也可配置至 nacos
     type: com.zaxxer.hikari.HikariDataSource
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
-    password: root
-    url: jdbc:mysql://order-mysql:3306/order?characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Asia/Shanghai
+    password: 123456
+    url: jdbc:mysql://192.168.50.250:3305/bigbear-biz?characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Asia/Shanghai

@@ -1,10 +1,8 @@
-package com.xxs.order.entity.po;
+package com.bigbear.order.entity.po;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
-
-import com.pig4cloud.pig.common.mybatis.base.BaseEntity;
+import com.baomidou.mybatisplus.annotation.*;
+import com.baomidou.mybatisplus.extension.activerecord.Model;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -22,7 +20,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @TableName(value = "`trade_order`",autoResultMap = true)
-public class OrderPO extends BaseEntity {
+public class OrderPO extends Model<OrderPO>  {
     @Serial
     private static final long serialVersionUID = -4519388197851305825L;
 
@@ -40,6 +38,19 @@ public class OrderPO extends BaseEntity {
     /** 用户id */
     private String userId;
 
+    /**
+     * 创建时间
+     */
+    @Schema(description = "创建时间")
+    @TableField(fill = FieldFill.INSERT)
+    private LocalDateTime createTime;
+
+    /**
+     * 修改时间
+     */
+    @Schema(description = "修改时间")
+    @TableField(fill = FieldFill.UPDATE)
+    private LocalDateTime updateTime;
 
     /**
      * 订单类型
@@ -60,15 +71,11 @@ public class OrderPO extends BaseEntity {
     /** 取消时间 */
     private LocalDateTime cancelTime;
 
-    /** 操作用户，应该使用update-by字段，但是框架当前对于app用户自动填充是anonymous */
-    private String cancelUser;
-
     /**
      * 订单状态
      *
-     * @see
      */
-    private Integer orderStatus;
+    private Integer status;
 
     /**
      * 支付时间
@@ -89,30 +96,10 @@ public class OrderPO extends BaseEntity {
      */
     private BigDecimal payAmount = BigDecimal.ZERO;
 
-    /** 物流表主键，若无需发货，值为0 */
-    private Long logisticsId;
-
-    /** 收货人姓名 */
-    private String consigneeName;
-
-    /** 收货人电话 */
-    private String consigneePhone;
-
-    /** 收货地址 */
-    private String consigneeAddress;
-
-    /** 发货时间：new */
-    private LocalDateTime deliveryTime;
-
     /**
      * 订单备注
      */
     private String remark;
-
-    /**
-     * 支付总积分
-     */
-    private BigDecimal payTotalPoints;
 
     /** 运费 */
     private BigDecimal freightFee = BigDecimal.ZERO;

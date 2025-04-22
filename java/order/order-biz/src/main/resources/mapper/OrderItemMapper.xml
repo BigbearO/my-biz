@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.bigbear.order.mapper.OrderItemMapper">
+
+  <resultMap id="orderItemPOMap" type="com.bigbear.order.entity.po.OrderItemPO">
+        <id property="id" column="id"/>
+        <result property="orderId" column="order_id"/>
+        <result property="logisticsId" column="logistics_id"/>
+        <result property="consigneeName" column="consignee_name"/>
+        <result property="consigneePhone" column="consignee_phone"/>
+        <result property="consigneeAddress" column="consignee_address"/>
+        <result property="deliveryTime" column="delivery_time"/>
+        <result property="commodityId" column="commodity_id"/>
+        <result property="commodityName" column="commodity_name"/>
+        <result property="commodityCoverUrl" column="commodity_cover_url"/>
+        <result property="commodityPrice" column="commodity_price"/>
+        <result property="commodityPoints" column="commodity_points"/>
+        <result property="commodityQuantity" column="commodity_quantity"/>
+        <result property="discountAmount" column="discount_amount"/>
+        <result property="subtotal" column="subtotal"/>
+        <result property="extraData" column="extra_data" typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+
+  </resultMap>
+</mapper>

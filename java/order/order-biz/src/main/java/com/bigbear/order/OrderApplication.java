@@ -1,4 +1,4 @@
-package com.xxs.order;
+package com.bigbear.order;
 
 
 import com.pig4cloud.pig.common.security.annotation.EnablePigResourceServer;

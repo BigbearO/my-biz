@@ -1,18 +1,17 @@
-package com.xxs.order.entity.po;
+package com.bigbear.order.entity.po;
 
 import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
+import com.baomidou.mybatisplus.extension.activerecord.Model;
 import com.baomidou.mybatisplus.extension.handlers.FastjsonTypeHandler;
-import com.pig4cloud.pig.common.mybatis.base.BaseEntity;
+import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serial;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 /**
  * 订单项表
@@ -24,7 +23,7 @@ import java.math.BigDecimal;
 @Setter
 @TableName(value = "order_item", autoResultMap = true)
 @Schema(description = "订单项表")
-public class OrderItemPO extends BaseEntity {
+public class OrderItemPO extends Model<OrderItemPO> {
     @Serial
     private static final long serialVersionUID = 2149579684542820765L;
 
@@ -35,6 +34,22 @@ public class OrderItemPO extends BaseEntity {
     /** 订单表主键 */
     private Long orderId;
 
+
+    /** 物流表主键，若无需发货，值为0 */
+    private Long logisticsId;
+
+    /** 收货人姓名 */
+    private String consigneeName;
+
+    /** 收货人电话 */
+    private String consigneePhone;
+
+    /** 收货地址 */
+    private String consigneeAddress;
+
+    /** 发货时间：new */
+    private LocalDateTime deliveryTime;
+
     /** 商品ID */
     private Long commodityId;
 
@@ -43,6 +58,19 @@ public class OrderItemPO extends BaseEntity {
 
     /** 商品封面 */
     private String commodityCoverUrl;
+    /**
+     * 创建时间
+     */
+    @Schema(description = "创建时间")
+    @TableField(fill = FieldFill.INSERT)
+    private LocalDateTime createTime;
+
+    /**
+     * 修改时间
+     */
+    @Schema(description = "修改时间")
+    @TableField(fill = FieldFill.UPDATE)
+    private LocalDateTime updateTime;
 
     /** 购买单个商品的价格 */
     private BigDecimal commodityPrice = BigDecimal.ZERO;
@@ -60,6 +88,7 @@ public class OrderItemPO extends BaseEntity {
     private BigDecimal subtotal = BigDecimal.ZERO;
 
     /** 额外信息   */
-    @TableField(typeHandler = FastjsonTypeHandler.class)
+    @TableField(typeHandler = JacksonTypeHandler.class)
     private JSONObject extraData;
+
 }
