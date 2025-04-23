@@ -3,7 +3,7 @@
 
 <mapper namespace="com.bigbear.order.mapper.AccountMapper">
 
-  <resultMap id="accountMap" type="com.bigbear.order.entity.po.AccountPO">
+  <resultMap id="accountMap" type="com.bigbear.order.infrastructure.entity.po.AccountPO">
         <id property="id" column="id"/>
         <result property="userAccount" column="user_account"/>
         <result property="credential" column="credential"/>

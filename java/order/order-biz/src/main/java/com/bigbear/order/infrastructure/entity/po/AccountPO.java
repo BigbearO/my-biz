@@ -1,4 +1,4 @@
-package com.bigbear.order.entity.po;
+package com.bigbear.order.infrastructure.entity.po;
 
 import com.baomidou.mybatisplus.annotation.*;
 import com.baomidou.mybatisplus.extension.activerecord.Model;

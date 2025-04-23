@@ -3,7 +3,7 @@
 
 <mapper namespace="com.bigbear.order.mapper.OrderItemMapper">
 
-  <resultMap id="orderItemPOMap" type="com.bigbear.order.entity.po.OrderItemPO">
+  <resultMap id="orderItemPOMap" type="com.bigbear.order.infrastructure.entity.po.OrderItemPO">
         <id property="id" column="id"/>
         <result property="orderId" column="order_id"/>
         <result property="logisticsId" column="logistics_id"/>

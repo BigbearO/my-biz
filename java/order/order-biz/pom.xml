@@ -14,6 +14,9 @@
     <packaging>jar</packaging>
 
     <description>order 业务模块</description>
+    <properties>
+        <rocketmq.version>2.2.3</rocketmq.version>
+    </properties>
 
 
     <dependencies>
@@ -23,6 +26,13 @@
             <artifactId>order-api</artifactId>
             <version>3.8.3</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.pig4cloud.plugin</groupId>
+            <artifactId>rocketmq-spring-boot3-starter</artifactId>
+            <version>${rocketmq.version}</version>
+        </dependency>
+
         <!--选配: orm 模块-->
         <dependency>
             <groupId>com.baomidou</groupId>

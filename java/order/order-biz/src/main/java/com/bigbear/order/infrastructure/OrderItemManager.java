@@ -1,7 +1,7 @@
-package com.bigbear.order.manager;
+package com.bigbear.order.infrastructure;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.bigbear.order.entity.po.OrderItemPO;
+import com.bigbear.order.infrastructure.entity.po.OrderItemPO;
 
 public interface OrderItemManager extends IService<OrderItemPO> {
 
