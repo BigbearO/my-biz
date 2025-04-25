@@ -45,26 +45,21 @@ public class OrderService {
                 log.info("no data");
                 break;
             }
-
             ++pageNo;
-
             doTask(res.getRecords());
-
-
         } while (res.hasNext());
 
     }
 
     void doTask(List<AccountPO> dataList) {
-        // data 就是账号，根据这个来处理
+
 //        根据不同type,发送到不同队列里面
-
         for (AccountPO accountPO : dataList) {
-
             try {
                 GameTaskSender gameTaskSender = getGameTaskSender(accountPO.getType());
+                gameTaskSender.send2Auto(accountPO,accountPO.getType());
             } catch (Exception e) {
-
+                log.warn("自动任务发送失败,账号{}，游戏{}",accountPO.getUserAccount(),accountPO.getType());
             }
 
         }
@@ -75,15 +70,12 @@ public class OrderService {
 
         if (gameTaskSenderServiceMap == null) {
             synchronized (GameTaskSender.class) {
-
                 if (gameTaskSenderServiceMap == null) {
                     Collection<GameTaskSender> beans = SpringUtil.getBeansOfType(GameTaskSender.class).values();
                     gameTaskSenderServiceMap = beans.stream().collect(Collectors.toMap(GameTaskSender::type, gameTaskSender -> gameTaskSender, (v1, v2) -> v2));
                 }
             }
-
         }
-
 
         return gameTaskSenderServiceMap.get(type);
     }

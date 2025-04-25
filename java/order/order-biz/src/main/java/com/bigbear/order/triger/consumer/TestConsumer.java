@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-@RocketMQMessageListener(topic = "test-topic-1", consumerGroup = "test-group")
+@RocketMQMessageListener(topic = "games", selectorExpression="0",consumerGroup = "auto-games")
 public class TestConsumer implements RocketMQListener<String> {
     public void onMessage(String message) {
         log.info("received message: {}", message);

@@ -17,11 +17,6 @@ public class GameTaskSender4YuanShen extends GameTaskSender {
         return "";
     }
 
-    @Override
-    public void send(String queue,Object data) {
-        //todo 使用其他json
-        rocketMQTemplate.convertAndSend(queue, JSONObject.toJSONString(data));
-    }
 
     @Override
     public Integer type() {
