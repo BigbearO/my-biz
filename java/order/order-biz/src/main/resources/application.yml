@@ -25,6 +25,6 @@ spring:
 
 
 rocketmq:
-  name-server: 192.168.0.12:9876
+  name-server: 192.168.50.77:9876
   producer:
-    group: test-group
+    group: auto-games

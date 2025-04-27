@@ -1,29 +1,34 @@
 package com.bigbear.order.triger.controller;
 
-import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.ArrayUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-
+import com.bigbear.order.infrastructure.OrderManager;
+import com.bigbear.order.infrastructure.entity.dto.OrderImportDTO;
+import com.bigbear.order.infrastructure.entity.po.OrderPO;
+import com.bigbear.order.service.OrderService;
+import com.pig4cloud.pig.common.core.exception.ErrorCodes;
+import com.pig4cloud.pig.common.core.util.MsgUtils;
 import com.pig4cloud.pig.common.core.util.R;
 import com.pig4cloud.pig.common.log.annotation.SysLog;
 import com.pig4cloud.pig.common.security.annotation.HasPermission;
-import com.pig4cloud.plugin.excel.annotation.ResponseExcel;
 import com.pig4cloud.plugin.excel.annotation.RequestExcel;
-import com.bigbear.order.infrastructure.entity.po.OrderPO;
-import com.bigbear.order.infrastructure.OrderManager;
-
+import com.pig4cloud.plugin.excel.annotation.ResponseExcel;
+import com.pig4cloud.plugin.excel.vo.ErrorMessage;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.HttpHeaders;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import io.swagger.v3.oas.annotations.Operation;
-import lombok.RequiredArgsConstructor;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * 订单表
@@ -39,6 +44,8 @@ import java.util.List;
 public class orderController {
 
     private final OrderManager orderManager;
+
+    private final OrderService orderService;
 
     /**
      * 分页查询
@@ -78,6 +85,22 @@ public class orderController {
     @HasPermission("order_order_add")
     public R save(@RequestBody OrderPO order) {
         return R.ok(orderManager.save(order));
+    }
+
+
+    @Operation(summary = "新增订单表" , description = "新增订单表" )
+    @SysLog("新增订单表" )
+    @PostMapping("/importExcel")
+    @HasPermission("order_order_add")
+    public R importByExcel(@RequestExcel List<OrderImportDTO> orderList, BindingResult bindingResult) {
+
+
+        List<ErrorMessage> errorMessageList = orderService.importByExcel(orderList, bindingResult);
+        if (CollUtil.isNotEmpty(errorMessageList)) {
+            return R.failed(errorMessageList);
+        }
+
+        return R.ok();
     }
 
     /**

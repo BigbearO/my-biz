@@ -15,7 +15,7 @@
 
     <description>order 业务模块</description>
     <properties>
-        <rocketmq.version>2.2.3</rocketmq.version>
+        <rocketmq-spring-boot-starter-version>2.3.1</rocketmq-spring-boot-starter-version>
     </properties>
 
 
@@ -28,9 +28,9 @@
         </dependency>
 
         <dependency>
-            <groupId>com.pig4cloud.plugin</groupId>
-            <artifactId>rocketmq-spring-boot3-starter</artifactId>
-            <version>${rocketmq.version}</version>
+            <groupId>org.apache.rocketmq</groupId>
+            <artifactId>rocketmq-spring-boot-starter</artifactId>
+            <version>${rocketmq-spring-boot-starter-version}</version>
         </dependency>
 
         <!--选配: orm 模块-->
