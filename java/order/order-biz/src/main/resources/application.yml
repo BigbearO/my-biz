@@ -28,3 +28,12 @@ rocketmq:
   name-server: 192.168.50.77:9876
   producer:
     group: auto-games
+    send-message-timeout: 3000
+    max-message-size: 40960
+  consumer:
+    group: auto-games
+    pull-batch-size: 5
+
+#  rocketmq.producer.retry-times-when-send-failed=3
+#  rocketmq.producer.retry-times-when-send-async-failed=2
+

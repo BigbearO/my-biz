@@ -23,6 +23,9 @@ def receive_callback(receive_result_future, consumer):
   for msg in messages:
     try:
       # consume message in other thread, don't block the async receive thread
+      print(123)
+      body_data = str(msg.body, encoding = "utf-8")
+      print(body_data)
       consume_executor.submit(consume_message, consumer=consumer, message=msg)
     except Exception as exception:
       print(f"receive message raise exception: {exception}")
@@ -36,7 +39,7 @@ def shutdown_callback(is_exception, consumer):
 
 
 if __name__ == '__main__':
-  endpoints = "192.168.50.77:9873"
+  endpoints = "192.168.50.77:8081"
   credentials = Credentials()
   # if auth enable
   # credentials = Credentials("ak", "sk")
@@ -55,7 +58,7 @@ if __name__ == '__main__':
       simple_consumer.subscribe(topic, FilterExpression("0"))
       while True:
         try:
-          time.sleep(1)
+          time.sleep(6)
           # max message num for each long polling and message invisible duration after it is received
           future = simple_consumer.receive_async(32, 15)
           future.add_done_callback(

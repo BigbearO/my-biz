@@ -1,2 +1,3 @@
 setuptools~=78.1.0
 airtest_mobileauto>=2.1.7.1
+rocketmq-python-client>=5.0.5

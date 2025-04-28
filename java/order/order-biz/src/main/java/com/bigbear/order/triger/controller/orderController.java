@@ -14,13 +14,16 @@ import com.pig4cloud.pig.common.core.util.MsgUtils;
 import com.pig4cloud.pig.common.core.util.R;
 import com.pig4cloud.pig.common.log.annotation.SysLog;
 import com.pig4cloud.pig.common.security.annotation.HasPermission;
+import com.pig4cloud.pig.common.security.annotation.Inner;
 import com.pig4cloud.plugin.excel.annotation.RequestExcel;
 import com.pig4cloud.plugin.excel.annotation.ResponseExcel;
 import com.pig4cloud.plugin.excel.vo.ErrorMessage;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
+import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.HttpHeaders;
 import org.springframework.validation.BindingResult;
@@ -47,14 +50,26 @@ public class orderController {
 
     private final OrderService orderService;
 
+    @Resource
+    protected RocketMQTemplate rocketMQTemplate;
+
+    @Inner(value = false)
+    @GetMapping("/test")
+    public R test() {
+        rocketMQTemplate.convertAndSend("games:0","111");
+        return R.ok();
+    }
+
+
     /**
      * 分页查询
-     * @param page 分页对象
+     *
+     * @param page  分页对象
      * @param order 订单表
      * @return
      */
-    @Operation(summary = "分页查询" , description = "分页查询" )
-    @GetMapping("/page" )
+    @Operation(summary = "分页查询", description = "分页查询")
+    @GetMapping("/page")
     @HasPermission("order_order_view")
     public R getorderPage(@ParameterObject Page page, @ParameterObject OrderPO order) {
         LambdaQueryWrapper<OrderPO> wrapper = Wrappers.lambdaQuery();
@@ -64,23 +79,26 @@ public class orderController {
 
     /**
      * 通过条件查询订单表
+     *
      * @param order 查询条件
      * @return R  对象列表
      */
-    @Operation(summary = "通过条件查询" , description = "通过条件查询对象" )
-    @GetMapping("/details" )
+    @Operation(summary = "通过条件查询", description = "通过条件查询对象")
+    @GetMapping("/details")
     @HasPermission("order_order_view")
     public R getDetails(@ParameterObject OrderPO order) {
         return R.ok(orderManager.list(Wrappers.query(order)));
     }
 
+
     /**
      * 新增订单表
+     *
      * @param order 订单表
      * @return R
      */
-    @Operation(summary = "新增订单表" , description = "新增订单表" )
-    @SysLog("新增订单表" )
+    @Operation(summary = "新增订单表", description = "新增订单表")
+    @SysLog("新增订单表")
     @PostMapping
     @HasPermission("order_order_add")
     public R save(@RequestBody OrderPO order) {
@@ -88,12 +106,12 @@ public class orderController {
     }
 
 
-    @Operation(summary = "新增订单表" , description = "新增订单表" )
-    @SysLog("新增订单表" )
+    @Operation(summary = "新增订单表", description = "新增订单表")
+    @SysLog("新增订单表")
     @PostMapping("/importExcel")
     @HasPermission("order_order_add")
-    public R importByExcel(@RequestExcel List<OrderImportDTO> orderList, BindingResult bindingResult) {
-
+    public R importByExcel(@RequestExcel List<OrderImportDTO> orderList,
+        BindingResult bindingResult) {
 
         List<ErrorMessage> errorMessageList = orderService.importByExcel(orderList, bindingResult);
         if (CollUtil.isNotEmpty(errorMessageList)) {
@@ -105,11 +123,12 @@ public class orderController {
 
     /**
      * 修改订单表
+     *
      * @param order 订单表
      * @return R
      */
-    @Operation(summary = "修改订单表" , description = "修改订单表" )
-    @SysLog("修改订单表" )
+    @Operation(summary = "修改订单表", description = "修改订单表")
+    @SysLog("修改订单表")
     @PutMapping
     @HasPermission("order_order_edit")
     public R updateById(@RequestBody OrderPO order) {
@@ -118,11 +137,12 @@ public class orderController {
 
     /**
      * 通过id删除订单表
+     *
      * @param ids id列表
      * @return R
      */
-    @Operation(summary = "通过id删除订单表" , description = "通过id删除订单表" )
-    @SysLog("通过id删除订单表" )
+    @Operation(summary = "通过id删除订单表", description = "通过id删除订单表")
+    @SysLog("通过id删除订单表")
     @DeleteMapping
     @HasPermission("order_order_del")
     public R removeById(@RequestBody Long[] ids) {
@@ -132,26 +152,17 @@ public class orderController {
 
     /**
      * 导出excel 表格
+     *
      * @param order 查询条件
-   	 * @param ids 导出指定ID
+     * @param ids   导出指定ID
      * @return excel 文件流
      */
     @ResponseExcel
     @GetMapping("/export")
     @HasPermission("order_order_export")
-    public List<OrderPO> exportExcel(OrderPO order,Long[] ids) {
-        return orderManager.list(Wrappers.lambdaQuery(order).in(ArrayUtil.isNotEmpty(ids), OrderPO::getId, ids));
-    }
-
-    /**
-     * 导入excel 表
-     * @param orderList 对象实体列表
-     * @param bindingResult 错误信息列表
-     * @return ok fail
-     */
-    @PostMapping("/import")
-    @HasPermission("order_order_export")
-    public R importExcel(@RequestExcel List<OrderPO> orderList, BindingResult bindingResult) {
-        return R.ok(orderManager.saveBatch(orderList));
+    public List<OrderPO> exportExcel(OrderPO order, Long[] ids) {
+        return orderManager.list(
+            Wrappers.lambdaQuery(order).in(ArrayUtil.isNotEmpty(ids), OrderPO::getId, ids));
     }
 }
+
