@@ -77,6 +77,8 @@ public class OrderPO extends Model<OrderPO>  {
      */
     private Integer status;
 
+    private Integer gameType;
+
     /**
      * 支付时间
      */
@@ -94,7 +96,7 @@ public class OrderPO extends Model<OrderPO>  {
      * 支付金额，单位 分
      * 积分减免和优惠卷减免扣除后，最终支付价格
      */
-    private BigDecimal payAmount = BigDecimal.ZERO;
+    private BigDecimal payAmount ;
 
     /**
      * 订单备注
@@ -102,7 +104,7 @@ public class OrderPO extends Model<OrderPO>  {
     private String remark;
 
     /** 运费 */
-    private BigDecimal freightFee = BigDecimal.ZERO;
+    private BigDecimal freightFee ;
 
     /** 退款状态 */
     private Integer refundStatus;
@@ -112,4 +114,6 @@ public class OrderPO extends Model<OrderPO>  {
 
     /** 退款渠道：系统退款，微信退款，支付宝退款 */
     private String refundChannel;
+
+    private Integer days;
 }

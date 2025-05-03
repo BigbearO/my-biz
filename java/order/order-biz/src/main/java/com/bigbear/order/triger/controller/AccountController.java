@@ -11,7 +11,7 @@ import com.pig4cloud.pig.common.security.annotation.HasPermission;
 import com.pig4cloud.plugin.excel.annotation.ResponseExcel;
 import com.pig4cloud.plugin.excel.annotation.RequestExcel;
 import com.bigbear.order.infrastructure.entity.po.AccountPO;
-import com.bigbear.order.infrastructure.AccountManager;
+import com.bigbear.order.infrastructure.repository.AccountManager;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springdoc.core.annotations.ParameterObject;

@@ -16,6 +16,9 @@
     <description>order 业务模块</description>
     <properties>
         <rocketmq-spring-boot-starter-version>2.3.1</rocketmq-spring-boot-starter-version>
+<!--      怎么获取boot-dependency中的版本-->
+        <biz-lombok.version>1.18.36</biz-lombok.version>
+        <mapstruct.version>1.5.5.Final</mapstruct.version>
     </properties>
 
 
@@ -77,6 +80,21 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-undertow</artifactId>
         </dependency>
+
+        <!-- MapStruct核心依赖 -->
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+            <version>${mapstruct.version}</version>
+        </dependency>
+
+        <!-- 注解处理器（必须） -->
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct-processor</artifactId>
+            <version>${mapstruct.version}</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <profiles>
@@ -99,7 +117,31 @@
                         <groupId>io.fabric8</groupId>
                         <artifactId>docker-maven-plugin</artifactId>
                     </plugin>
+                  <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <configuration>
+                      <annotationProcessorPaths>
+                        <path>
+                          <groupId>org.projectlombok</groupId>
+                          <artifactId>lombok</artifactId>
+                          <version>${biz-lombok.version}</version>
+                        </path>
+                        <path>
+                          <groupId>org.mapstruct</groupId>
+                          <artifactId>mapstruct-processor</artifactId>
+                          <version>${mapstruct.version}</version>
+                        </path>
+                          <path>
+                              <groupId>org.projectlombok</groupId>
+                              <artifactId>lombok-mapstruct-binding</artifactId>
+                              <version>0.2.0</version>
+                          </path>
+                      </annotationProcessorPaths>
+                    </configuration>
+                  </plugin>
                 </plugins>
+
             </build>
         </profile>
     </profiles>

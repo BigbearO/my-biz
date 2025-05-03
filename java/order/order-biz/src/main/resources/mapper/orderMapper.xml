@@ -17,7 +17,7 @@
         <result property="payAmount" column="pay_amount"/>
         <result property="remark" column="remark"/>
         <result property="freightFee" column="freight_fee"/>
-        <result property="refundStatus" column="refund_status"/>
+
         <result property="refundTime" column="refund_time"/>
         <result property="refundChannel" column="refund_channel"/>
   </resultMap>

@@ -1,16 +1,16 @@
 package com.bigbear.order.triger.controller;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ArrayUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.bigbear.order.infrastructure.OrderManager;
+import com.bigbear.order.infrastructure.entity.dto.OrderExcelDTO;
+import com.bigbear.order.infrastructure.repository.OrderManager;
 import com.bigbear.order.infrastructure.entity.dto.OrderImportDTO;
 import com.bigbear.order.infrastructure.entity.po.OrderPO;
 import com.bigbear.order.service.OrderService;
-import com.pig4cloud.pig.common.core.exception.ErrorCodes;
-import com.pig4cloud.pig.common.core.util.MsgUtils;
 import com.pig4cloud.pig.common.core.util.R;
 import com.pig4cloud.pig.common.log.annotation.SysLog;
 import com.pig4cloud.pig.common.security.annotation.HasPermission;
@@ -22,6 +22,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springdoc.core.annotations.ParameterObject;
@@ -29,9 +30,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * 订单表
@@ -106,11 +105,11 @@ public class orderController {
     }
 
 
-    @Operation(summary = "新增订单表", description = "新增订单表")
+    @Operation(summary = "excel导入订单表", description = "新增订单表")
     @SysLog("新增订单表")
-    @PostMapping("/importExcel")
+    @PostMapping("/import")
     @HasPermission("order_order_add")
-    public R importByExcel(@RequestExcel List<OrderImportDTO> orderList,
+    public R importByExcel(@RequestExcel List<OrderExcelDTO> orderList,
         BindingResult bindingResult) {
 
         List<ErrorMessage> errorMessageList = orderService.importByExcel(orderList, bindingResult);
@@ -160,9 +159,14 @@ public class orderController {
     @ResponseExcel
     @GetMapping("/export")
     @HasPermission("order_order_export")
-    public List<OrderPO> exportExcel(OrderPO order, Long[] ids) {
-        return orderManager.list(
+    public List<OrderExcelDTO> exportExcel(OrderPO order, Long[] ids) {
+        //todo 优化一下
+        List<OrderPO> list = orderManager.list(
             Wrappers.lambdaQuery(order).in(ArrayUtil.isNotEmpty(ids), OrderPO::getId, ids));
+        List<OrderExcelDTO> collect = list.stream()
+            .map(orderPO -> BeanUtil.copyProperties(orderPO, OrderExcelDTO.class)
+            ).collect(Collectors.toList());
+        return  collect;
     }
 }
 

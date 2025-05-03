@@ -1,9 +1,9 @@
-package com.bigbear.order.infrastructure.impl;
+package com.bigbear.order.infrastructure.repository.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.bigbear.order.infrastructure.entity.po.AccountPO;
 import com.bigbear.order.mapper.AccountMapper;
-import com.bigbear.order.infrastructure.AccountManager;
+import com.bigbear.order.infrastructure.repository.AccountManager;
 import org.springframework.stereotype.Service;
 
 /**

@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 //import com.pig4cloud.common.core.util.TenantTable;
 import java.time.LocalDateTime;
+import lombok.experimental.Accessors;
 
 /**
  * 游戏账号表
@@ -15,10 +16,10 @@ import java.time.LocalDateTime;
  * @date 2025-04-22 21:33:23
  */
 @Data
-//@TenantTable
 @TableName("account")
 @EqualsAndHashCode(callSuper = true)
 @Schema(description = "游戏账号表")
+@Accessors(chain = true)
 public class AccountPO extends Model<AccountPO> {
 
 
