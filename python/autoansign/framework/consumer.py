@@ -1,11 +1,16 @@
 import functools
 import time
 from concurrent.futures.thread import ThreadPoolExecutor
-
+import multiprocessing
 from rocketmq import ClientConfiguration, Credentials, SimpleConsumer, \
   FilterExpression
 
-consume_executor = ThreadPoolExecutor(max_workers=2,
+
+
+core_count = multiprocessing.cpu_count()
+#   todo 暂定当前cpu线程数
+thread_count = core_count if core_count <= 1 else (core_count)
+consume_executor = ThreadPoolExecutor(max_workers=thread_count,
                                       thread_name_prefix="consume-message")
 
 
