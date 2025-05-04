@@ -8,7 +8,6 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bigbear.order.infrastructure.entity.dto.OrderExcelDTO;
 import com.bigbear.order.infrastructure.repository.OrderManager;
-import com.bigbear.order.infrastructure.entity.dto.OrderImportDTO;
 import com.bigbear.order.infrastructure.entity.po.OrderPO;
 import com.bigbear.order.service.OrderService;
 import com.pig4cloud.pig.common.core.util.R;
@@ -43,7 +42,7 @@ import java.util.List;
 @RequestMapping("/order" )
 @Tag(description = "order" , name = "订单表管理" )
 @SecurityRequirement(name = HttpHeaders.AUTHORIZATION)
-public class orderController {
+public class OrderController {
 
     private final OrderManager orderManager;
 
@@ -70,8 +69,8 @@ public class orderController {
     @Operation(summary = "分页查询", description = "分页查询")
     @GetMapping("/page")
     @HasPermission("order_order_view")
-    public R getorderPage(@ParameterObject Page page, @ParameterObject OrderPO order) {
-        LambdaQueryWrapper<OrderPO> wrapper = Wrappers.lambdaQuery();
+    public R getOrderPage(@ParameterObject Page page, @ParameterObject OrderPO order) {
+        LambdaQueryWrapper<OrderPO> wrapper = Wrappers.lambdaQuery(order);
         return R.ok(orderManager.page(page, wrapper));
     }
 
