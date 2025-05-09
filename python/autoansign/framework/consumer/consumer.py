@@ -5,11 +5,12 @@ import multiprocessing
 from rocketmq import ClientConfiguration, Credentials, SimpleConsumer, \
   FilterExpression
 
+#   todo 线程池数量暂定为当前cpu线程数
 
-
+#  线程池相关
 core_count = multiprocessing.cpu_count()
-#   todo 暂定当前cpu线程数
-thread_count = core_count if core_count <= 1 else (core_count)
+rate = 1
+thread_count = core_count if core_count <= 1 else (core_count // rate)
 consume_executor = ThreadPoolExecutor(max_workers=thread_count,
                                       thread_name_prefix="consume-message")
 
@@ -29,7 +30,7 @@ def receive_callback(receive_result_future, consumer):
     try:
       # consume message in other thread, don't block the async receive thread
       print(123)
-      body_data = str(msg.body, encoding = "utf-8")
+      body_data = str(msg.body, encoding="utf-8")
       print(body_data)
       consume_executor.submit(consume_message, consumer=consumer, message=msg)
     except Exception as exception:
@@ -41,6 +42,7 @@ def shutdown_callback(is_exception, consumer):
   if is_exception:
     # 异常退出可以发警报
     print("111")
+
 
 
 if __name__ == '__main__':

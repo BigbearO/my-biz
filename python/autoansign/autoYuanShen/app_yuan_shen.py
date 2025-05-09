@@ -2,17 +2,19 @@ from airtest_mobileauto.control import *
 
 
 class AppYuanShen:
-    def __init__(self):
+    # todo 模拟器url,(用node,totalNode,url列表展示)
+    def __init__(self,mynode,totalnode,):
         self.prefix = self.__class__.__name__  # 类的名字
         # device
+        # node就是kv 去获取这个设备的url地址
         self.mynode = Settings.mynode
         self.totalnode = Settings.totalnode
         self.LINK = Settings.LINK_dict[Settings.mynode]
-        self.移动端 = deviceOB(mynode=self.mynode, totalnode=self.totalnode, LINK=self.LINK)
-        self.设备类型 = self.移动端.设备类型
+        self.mobile = deviceOB(mynode=self.mynode, totalnode=self.totalnode, LINK=self.LINK)
+        self.设备类型 = self.mobile.设备类型
         self.APPID = "com.alicloud.databox"
-        self.APPOB = appOB(APPID=self.APPID, big=True, device=self.移动端)
-        self.Tool = DQWheel(var_dict_file=f"{self.移动端.设备类型}.var_dict_{self.prefix}.yaml",
+        self.APPOB = appOB(APPID=self.APPID, big=True, device=self.mobile)
+        self.Tool = DQWheel(var_dict_file=f"{self.mobile.设备类型}.var_dict_{self.prefix}.yaml",
                             mynode=self.mynode, totalnode=self.totalnode)
         #
         self.dayFILE = f"{self.prefix}.txt"
@@ -23,7 +25,7 @@ class AppYuanShen:
         self.APPOB.big = False
         #
         self.looptime = 1
-        self.成功次数 = 0
+        self.success_count = 0
 
     #
 
@@ -34,7 +36,7 @@ class AppYuanShen:
 
     def run(self, times=0):
         if not connect_status():
-            self.移动端.连接设备()
+            self.mobile.连接设备()
         if times == 0:
             self.today = self.Tool.time_getweek()
             self.yesterday = (self.today - 1) % 7
@@ -78,7 +80,7 @@ class AppYuanShen:
         if times % 3 == 2:
             # 强制点击开屏广告
             sleep(2)
-            self.Tool.touch_record_pos(record_pos=开屏广告.record_pos, resolution=self.移动端.resolution,
+            self.Tool.touch_record_pos(record_pos=开屏广告.record_pos, resolution=self.mobile.resolution,
                                        keystr=self.prefix + "开屏广告")
             sleep(2)
         # 打开程序
@@ -112,10 +114,10 @@ class AppYuanShen:
         # 下面是特色部分
         # 检测是否有领取按钮，有的话，领取之后再循环一次检测是否有领取成功按钮
         if self.Tool.existsTHENtouch(领取按钮, self.prefix + "领取按钮", savepos=True):
-            self.成功次数 = self.成功次数 + 1
-            TimeECHO(f"{self.prefix}.....成功次数{self.成功次数}....")
+            self.success_count = self.success_count + 1
+            TimeECHO(f"{self.prefix}.....成功次数{self.success_count}....")
             self.yesterday = self.today
-            if self.成功次数 < self.looptime:
+            if self.success_count < self.looptime:
                 return self.run(times=0)
         else:
             TimeECHO(f"{self.prefix}检测不到领取按钮")
@@ -144,10 +146,10 @@ class AppYuanShen:
             if leftmin > 0:
                 TimeECHO("剩余%d分钟进入新的一天" % (leftmin))
                 self.APPOB.关闭APP()
-                self.移动端.重启重连设备(leftmin * 60)
+                self.mobile.重启重连设备(leftmin * 60)
                 continue
             times = times + 1
             TimeECHO("=" * 10)
-            self.成功次数 = 0
+            self.success_count = 0
             self.run()
 
