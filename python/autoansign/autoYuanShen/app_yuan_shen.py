@@ -2,7 +2,7 @@ from airtest_mobileauto.control import *
 
 
 class AppYuanShen:
-    # todo 模拟器url,(用node,totalNode,url列表展示)
+    # todo 模拟器url,(用node,totalNode,url列表-LINK_dict展示)
     def __init__(self,mynode,totalnode,):
         self.prefix = self.__class__.__name__  # 类的名字
         # device

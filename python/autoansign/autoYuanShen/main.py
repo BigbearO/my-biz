@@ -18,6 +18,7 @@ def handle(data):
 
 if __name__ == "__main__":
     endpoint=""
+    # todo 配置化
     consumer=AutoConsumer(handle,endpoint=endpoint,group="auto-games")
     consumer.run("games","0")
 
