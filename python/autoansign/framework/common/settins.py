@@ -19,7 +19,8 @@ from datetime import timezone, timedelta
 # 重写函数#
 from airtest.core.api import Template as Template_o
 
-from framework.common.base_func import TimeECHO, readyaml, TimeDebug
+from framework.common.common_func import TimeECHO, loggerhead
+from framework.common.yaml_reader import readyaml
 
 
 class Settings(object):
@@ -219,3 +220,8 @@ class Settings(object):
     TimeDebug("totalnode="+str(cls.totalnode))
     TimeDebug("LINK_dict="+str(cls.LINK_dict))
     TimeDebug("tmpdir="+str(cls.tmpdir))
+
+  def TimeDebug(self,info, *args, **kwargs):
+    if self.outputnode >= 0 and self.outputnode != self.mynode:
+      return
+    self.logger.debug(loggerhead()+info, *args, **kwargs)

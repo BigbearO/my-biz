@@ -8,7 +8,7 @@ class readyaml():
   def __init__(self, yamlfile=""):
     self.yamlfile = yamlfile
     try:
-      with open(yamlfile,  'r', encoding='utf-8') as f:
+      with open(yamlfile, 'r', encoding='utf-8') as f:
         yaml_dict = yaml.load(f, Loader=yaml.FullLoader)
       TimeECHO(f"{funs_name()}.读取{yamlfile}")
       if not isinstance(yaml_dict, dict):
@@ -19,33 +19,32 @@ class readyaml():
       traceback.print_exc()
       TimeECHO(f"{funs_name()}.读取{yamlfile}失败")
       self.yaml_dict = {}
-  #
 
   def get(self, tag="", fallback=None):
     if tag in self.yaml_dict.keys():
       fallback = self.yaml_dict[tag]
-    #
+
     return fallback
-  #
 
   def getint(self, tag="", fallback=None):
     try:
       fallback = self.get(tag, fallback)
       fallback = int(fallback)
     except:
-      TimeECHO(f"{funs_name()}.读取{self.yamlfile}失败，参数{tag}设置错误,采用默认值")
-    #
+      TimeECHO(
+        f"{funs_name()}.读取{self.yamlfile}失败，参数{tag}设置错误,采用默认值")
     return fallback
-  #
 
   def getboolean(self, tag="", fallback=None):
     try:
       fallback = self.get(tag, fallback)
       fallback = bool(fallback)
     except:
-      TimeECHO(f"{funs_name()}.读取{self.yamlfile}失败，参数{tag}设置错误,采用默认值")
+      TimeECHO(
+        f"{funs_name()}.读取{self.yamlfile}失败，参数{tag}设置错误,采用默认值")
     #
     return fallback
+
   #
 
   def getstr(self, tag="", fallback=None):
@@ -53,6 +52,7 @@ class readyaml():
       fallback = self.get(tag, fallback)
       fallback = str(fallback)
     except:
-      TimeECHO(f"{funs_name()}.读取{self.yamlfile}失败，参数{tag}设置错误,采用默认值")
+      TimeECHO(
+        f"{funs_name()}.读取{self.yamlfile}失败，参数{tag}设置错误,采用默认值")
     #
     return fallback

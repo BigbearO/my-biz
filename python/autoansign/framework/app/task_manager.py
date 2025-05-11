@@ -1,29 +1,10 @@
 # .......
-from datetime import datetime, timezone, timedelta
-import time
-from airtest.core.settings import Settings as ST
-import logging
-import sys
-import os
-import numpy as np
-import random
 import traceback
-import subprocess
-import shlex
 import multiprocessing
-import yaml
 # 临时目录,用于存放临时文件
-import tempfile
 # 重写函数#
-from airtest.core.api import connect_device, sleep
-from airtest.core.api import exists as exists_o
-from airtest.core.api import touch as touch_o
-from airtest.core.api import swipe as swipe_o
-from airtest.core.api import start_app as start_app_o
-from airtest.core.api import stop_app as stop_app_o
-from airtest.core.api import Template as Template_o
 
-from framework.settins import Settings
+from framework.common.settins import Settings
 
 
 class TaskManager:
