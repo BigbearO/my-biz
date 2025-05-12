@@ -2,20 +2,13 @@
 # -*- coding: utf-8 -*-
 
 import logging
-import shlex
 import subprocess
-import sys
 import traceback
 
-import numpy as np
-from airtest.core.api import exists as exists_o
 # 临时目录,用于存放临时文件
 # 重写函数#
 from airtest.core.api import sleep
-from airtest.core.api import swipe as swipe_o
-from airtest.core.api import touch as touch_o
 from airtest.core.settings import Settings as ST
-
 
 # ........................
 # python -m pip install --upgrade --no-deps --force-reinstall airtest

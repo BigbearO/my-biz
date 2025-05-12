@@ -7,19 +7,13 @@ import os
 import sys
 # 临时目录,用于存放临时文件
 import tempfile
-##################################
-# Author : cndaqiang             #
-# Update : 2023-11-10            #
-# Build  : 2023-11-10            #
-# What   : IOS/Android 自动化任务  #
-#################################
 # .......
 from datetime import timezone, timedelta
 
 # 重写函数#
 from airtest.core.api import Template as Template_o
 
-from framework.common.common_func import TimeECHO, loggerhead
+from framework.common.common_func import TimeECHO, loggerhead, TimeDebug
 from framework.common.yaml_reader import readyaml
 
 
@@ -221,7 +215,4 @@ class Settings(object):
     TimeDebug("LINK_dict="+str(cls.LINK_dict))
     TimeDebug("tmpdir="+str(cls.tmpdir))
 
-  def TimeDebug(self,info, *args, **kwargs):
-    if self.outputnode >= 0 and self.outputnode != self.mynode:
-      return
-    self.logger.debug(loggerhead()+info, *args, **kwargs)
+

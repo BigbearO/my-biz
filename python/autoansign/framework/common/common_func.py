@@ -7,13 +7,6 @@ import shlex
 import subprocess
 import sys
 import traceback
-##################################
-# Author : cndaqiang             #
-# Update : 2023-11-10            #
-# Build  : 2023-11-10            #
-# What   : IOS/Android 自动化任务  #
-#################################
-# .......
 from datetime import datetime
 
 import numpy as np
@@ -27,7 +20,7 @@ from airtest.core.api import swipe as swipe_o
 from airtest.core.api import touch as touch_o
 from airtest.core.settings import Settings as ST
 
-from framework.common.base_func import funs_name, fun_name
+from framework.common.base_func import funs_name, fun_name, getPopen
 
 # ........................
 # python -m pip install --upgrade --no-deps --force-reinstall airtest
@@ -143,7 +136,10 @@ def TimeErr(info, *args, **kwargs):
     f.close()
   Settings.logger.warning(modified_args, *args, **kwargs)
 
-
+def TimeDebug(self,info, *args, **kwargs):
+    if self.outputnode >= 0 and self.outputnode != self.mynode:
+      return
+    self.logger.debug(loggerhead()+info, *args, **kwargs)
 
 def run_command(command=[], sleeptime=20,  quiet=False, must_ok=False):
   """
