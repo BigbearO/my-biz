@@ -26,29 +26,26 @@
 
     <dependencyManagement>
         <dependencies>
-            <dependency>
-                <groupId>dev.langchain4j</groupId>
-                <artifactId>langchain4j-dashscope-spring-boot-starter</artifactId>
-                <version>${last.langchain.version}</version>
-            </dependency>
+<!--            社区支持不在bom里面-->
             <dependency>
                 <groupId>dev.langchain4j</groupId>
                 <artifactId>langchain4j-community-dashscope</artifactId>
                 <version>${langchain.version}</version>
             </dependency>
-            <!-- https://mvnrepository.com/artifact/dev.langchain4j/langchain4j-mcp -->
-            <dependency>
-                <groupId>dev.langchain4j</groupId>
-                <artifactId>langchain4j-mcp</artifactId>
-                <version>${langchain.version}</version>
-            </dependency>
-            <!--            <dependency>-->
-            <!--                <groupId>dev.langchain4j</groupId>-->
-            <!--                <artifactId>langchain4j-bom</artifactId>-->
-            <!--                <version>${langchain.version}</version>-->
-            <!--                <type>pom</type>-->
-            <!--                <scope>import</scope>-->
-            <!--            </dependency>-->
+                        <dependency>
+                            <groupId>dev.langchain4j</groupId>
+                            <artifactId>langchain4j-bom</artifactId>
+                            <version>${langchain.version}</version>
+                            <type>pom</type>
+                            <scope>import</scope>
+                        </dependency>
+<!--            <dependency>-->
+<!--                <groupId>dev.langchain4j</groupId>-->
+<!--                <artifactId>langchain4j-mcp</artifactId>-->
+<!--                <version>${langchain.version}</version>-->
+<!--            </dependency>-->
+
+
         </dependencies>
     </dependencyManagement>
 </project>

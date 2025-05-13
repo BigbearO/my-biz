@@ -11,9 +11,11 @@ import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.memory.chat.TokenWindowChatMemory;
 import dev.langchain4j.model.Tokenizer;
 import dev.langchain4j.model.chat.ChatLanguageModel;
+import dev.langchain4j.model.chat.StreamingChatLanguageModel;
 import dev.langchain4j.model.chat.listener.ChatModelListener;
 import dev.langchain4j.model.dashscope.QwenChatModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
+import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 import dev.langchain4j.model.openai.OpenAiTokenizer;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
@@ -53,6 +55,28 @@ public class ClientsConfig {
     public ChatLanguageModel myChatLanguageModel() {
 
         return OpenAiChatModel.builder()
+                .timeout(Duration.ofSeconds(10)) //10s超时
+                .logRequests(true)    // 启用请求日志
+                .logResponses(true)
+                // todo 想想之后咋解决，不通过指定的方式
+                .httpClientBuilder(JdkHttpClient.builder())
+
+//				.listeners(List.of(chatModelListener()))
+//				.maxRetries(5)  // 设置重试策略
+                .apiKey(SpringUtil.getProperty("llm.ak"))
+                .maxTokens(1024)
+                .timeout(Duration.ofSeconds(30))
+                .modelName("DeepSeek-R1-Distill-Qwen-14B")
+                .baseUrl("https://ai.gitee.com/v1")
+                .build();
+    }
+
+
+    @Bean
+    @Primary
+    public StreamingChatLanguageModel myStreamingModel() {
+
+        return OpenAiStreamingChatModel.builder()
                 .timeout(Duration.ofSeconds(10)) //10s超时
                 .logRequests(true)    // 启用请求日志
                 .logResponses(true)
