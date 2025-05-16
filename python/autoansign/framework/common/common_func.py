@@ -39,8 +39,6 @@ logger = logging.getLogger("airtest")
 logger.setLevel(logging.WARNING)
 
 
-
-
 def save_yaml(vsr_dict={}, yamlfile=""):
   try:
     # 写入 YAML 文件

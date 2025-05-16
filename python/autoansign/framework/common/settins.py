@@ -18,8 +18,6 @@ from framework.common.yaml_reader import readyaml
 
 
 class Settings(object):
-  #
-  # 特色修改
   # python解释器是AirtestIDE还是终端的python
   AirtestIDE = "AirtestIDE" in sys.executable
   start_app_syskeys = False
@@ -42,20 +40,7 @@ class Settings(object):
   mobiletime = 8
   eastern_eight_offset = timedelta(hours=mobiletime)
   eastern_eight_tz = timezone(eastern_eight_offset)
-  # 日志参数
-  logger_dict = [logging.DEBUG, logging.INFO, logging.WARNING, logging.ERROR, logging.CRITICAL]
-  logger_level = 1  # 设置为0输出详细模式
-  logging.basicConfig(level=logging.INFO, format='%(message)s')
-  logger = logging.getLogger("airtest_mobileauto")
-  logger.setLevel(logging.DEBUG)
-  outputnode = -1
-  logfile = "result.0.txt"
-  logfile_dict = {0: "result.0.txt"}
-  #
 
-  # client, 客户端情况
-  mynode = 0
-  totalnode = 1
   multiprocessing = False
   # 客户端
   # 虚拟机,android docker, iphone, etc,主要进行设备的连接和重启
@@ -65,7 +50,7 @@ class Settings(object):
   MuMudir = ""  # "D:\Program Files\Netease\MuMu Player 12\shell"
   # ADB地址
   LINK_dict = {0: "Android:///127.0.0.1:5555"}
-  # 开始采用临时文件夹保存并行临时文件
+  # 使用当前用户目录临时文件夹保存并行临时文件
   tmpdir = os.path.join(tempfile.gettempdir(), prefix)
   #
   # 注意Config新增的控制参数, 必须在init中进行定义
@@ -198,10 +183,8 @@ class Settings(object):
     cls.LINK_dict[9] = "Android:///emulator-5554"  # 本地的安卓模拟器
     cls.LINK_dict[10] = "Android:///4e86ac13"  # usb连接的安卓手机
     cls.LINK_dict = config.get('LINK_dict', cls.LINK_dict)
-    #
     # 初始化之后，根据参数修改配置
     cls.logfile = cls.logfile_dict[cls.mynode]
-  #
 
   @classmethod
   def Config_mynode(cls, mynode):

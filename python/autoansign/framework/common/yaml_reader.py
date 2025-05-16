@@ -1,7 +1,7 @@
 import traceback
 
 import yaml
-from framework.common.base_func import TimeECHO, TimeDebug, funs_name
+from framework.common.base_func import funs_name
 
 
 class readyaml():
