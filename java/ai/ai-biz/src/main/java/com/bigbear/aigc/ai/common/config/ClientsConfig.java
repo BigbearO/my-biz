@@ -5,21 +5,23 @@ import com.bigbear.aigc.ai.common.util.MyChatModelListener;
 import com.bigbear.aigc.ai.manager.PersistentChatMemoryStore;
 import com.bigbear.aigc.ai.service.ChatAssistant;
 import com.bigbear.aigc.ai.service.PetDoctor;
+import dev.langchain4j.community.model.dashscope.QwenChatModel;
 import dev.langchain4j.http.client.jdk.JdkHttpClient;
 import dev.langchain4j.memory.chat.ChatMemoryProvider;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.memory.chat.TokenWindowChatMemory;
-import dev.langchain4j.model.Tokenizer;
-import dev.langchain4j.model.chat.ChatLanguageModel;
-import dev.langchain4j.model.chat.StreamingChatLanguageModel;
+import dev.langchain4j.model.TokenCountEstimator;
+import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.chat.listener.ChatModelListener;
-import dev.langchain4j.model.dashscope.QwenChatModel;
+
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
-import dev.langchain4j.model.openai.OpenAiTokenizer;
+import dev.langchain4j.model.openai.OpenAiTokenCountEstimator;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import lombok.RequiredArgsConstructor;
+import opennlp.tools.tokenize.Tokenizer;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -52,7 +54,7 @@ public class ClientsConfig {
 
     @Bean
     @Primary
-    public ChatLanguageModel myChatLanguageModel() {
+    public ChatModel myChatModel() {
 
         return OpenAiChatModel.builder()
                 .timeout(Duration.ofSeconds(10)) //10s超时
@@ -74,7 +76,7 @@ public class ClientsConfig {
 
     @Bean
     @Primary
-    public StreamingChatLanguageModel myStreamingModel() {
+    public StreamingChatModel myStreamingModel() {
 
         return OpenAiStreamingChatModel.builder()
                 .timeout(Duration.ofSeconds(10)) //10s超时
@@ -94,7 +96,7 @@ public class ClientsConfig {
     }
 
     @Bean
-    public ChatLanguageModel qwenVLModel() {
+    public ChatModel qwenVLModel() {
         return QwenChatModel.builder()
                 .apiKey("You API key here")
                 .modelName("qwen-vl-max")
@@ -108,19 +110,19 @@ public class ClientsConfig {
 
     @Bean
     // 这个bean也可以使用 @AiService标记接口ChatAssistant来实现
-    public ChatAssistant chatAssistant(@Qualifier("myChatLanguageModel") ChatLanguageModel chatLanguageModel) {
+    public ChatAssistant chatAssistant(@Qualifier("myChatModel") ChatModel ChatModel) {
 
 
         return AiServices.builder(ChatAssistant.class)
-                .chatLanguageModel(chatLanguageModel)
+                .chatModel(ChatModel)
                 .chatMemoryProvider(chatMemoryProvider())
                 .build();
     }
 
     @Bean
-    public PetDoctor petDoctor(@Qualifier("myChatLanguageModel") ChatLanguageModel chatLanguageModel) {
+    public PetDoctor petDoctor(@Qualifier("myChatModel") ChatModel ChatModel) {
         return AiServices.builder(PetDoctor.class)
-                .chatLanguageModel(chatLanguageModel)
+                .chatModel(ChatModel)
                 .chatMemoryProvider(chatMemoryProvider())
                 .build();
     }
@@ -148,11 +150,12 @@ public class ClientsConfig {
     // -------------下面是带token限制的 ,就是去掉超过你的限制数token的问题
     @Bean
     public ChatMemoryProvider tokenChatMemoryProvider() {
-        Tokenizer tokenizer = new OpenAiTokenizer(GPT_3_5_TURBO);
+
+        TokenCountEstimator countEstimator=new OpenAiTokenCountEstimator(GPT_3_5_TURBO);
         return memoryId -> TokenWindowChatMemory.builder()
                 // 设置消息窗口 ID
                 .id(memoryId)
-                .maxTokens(1000, tokenizer)
+                .maxTokens(1000, countEstimator)
                 // 设置消息最大条数，默认为 10
                 .chatMemoryStore(SpringUtil.getBean(ChatMemoryStore.class))
                 .build();

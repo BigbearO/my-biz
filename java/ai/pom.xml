@@ -14,8 +14,8 @@
     <description>1</description>
     <packaging>pom</packaging>
     <properties>
-        <langchain.version>1.0.0-beta3</langchain.version>
-        <last.langchain.version>0.36.2</last.langchain.version>
+        <langchain.version>1.0.0</langchain.version>
+        <last.langchain.version>1.0.0-beta5</last.langchain.version>
         <sensitive.version>0.23.0</sensitive.version>
     </properties>
     <!--项目子模块-->
@@ -26,24 +26,24 @@
 
     <dependencyManagement>
         <dependencies>
-<!--            社区支持不在bom里面-->
+            <!--            社区支持不在bom里面-->
             <dependency>
                 <groupId>dev.langchain4j</groupId>
                 <artifactId>langchain4j-community-dashscope</artifactId>
-                <version>${langchain.version}</version>
+                <version>${last.langchain.version}</version>
             </dependency>
-                        <dependency>
-                            <groupId>dev.langchain4j</groupId>
-                            <artifactId>langchain4j-bom</artifactId>
-                            <version>${langchain.version}</version>
-                            <type>pom</type>
-                            <scope>import</scope>
-                        </dependency>
-<!--            <dependency>-->
-<!--                <groupId>dev.langchain4j</groupId>-->
-<!--                <artifactId>langchain4j-mcp</artifactId>-->
-<!--                <version>${langchain.version}</version>-->
-<!--            </dependency>-->
+            <dependency>
+                <groupId>dev.langchain4j</groupId>
+                <artifactId>langchain4j-bom</artifactId>
+                <version>${langchain.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!--            <dependency>-->
+            <!--                <groupId>dev.langchain4j</groupId>-->
+            <!--                <artifactId>langchain4j-mcp</artifactId>-->
+            <!--                <version>${langchain.version}</version>-->
+            <!--            </dependency>-->
 
 
         </dependencies>

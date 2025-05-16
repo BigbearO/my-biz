@@ -4,7 +4,7 @@ import com.bigbear.aigc.ai.entity.dto.AiReqDTO;
 import com.bigbear.aigc.ai.enums.AiContentEnums;
 import com.bigbear.aigc.ai.manager.AiReqManager;
 import dev.langchain4j.data.message.*;
-import dev.langchain4j.model.chat.ChatLanguageModel;
+import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.output.Response;
 import lombok.RequiredArgsConstructor;
@@ -22,10 +22,10 @@ import java.util.Base64;
 @RequiredArgsConstructor
 public class MediaContentRecognition {
 	@jakarta.annotation.Resource(name = "mediaContentRecognitionModel")
-	private ChatLanguageModel mediaContentRecognitionModel;
+	private ChatModel mediaContentRecognitionModel;
 
 	@jakarta.annotation.Resource(name = "qwenVLModel")
-	private ChatLanguageModel qwenVLModel;
+	private ChatModel qwenVLModel;
 
 	private final AiReqManager aiReqManager;
 

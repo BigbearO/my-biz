@@ -11,8 +11,8 @@ import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.TextContent;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.StreamingResponseHandler;
-import dev.langchain4j.model.chat.ChatLanguageModel;
-import dev.langchain4j.model.chat.StreamingChatLanguageModel;
+import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
 import dev.langchain4j.model.output.Response;
@@ -48,7 +48,7 @@ public class TestController {
 	private final PetDoctor petDoctor;
 
 	@jakarta.annotation.Resource(name = "myStreamingModel")
-	private StreamingChatLanguageModel myStreamingModel;
+	private StreamingChatModel myStreamingModel;
 
 	@RequestMapping("/chat")
 	@Inner(value = false)

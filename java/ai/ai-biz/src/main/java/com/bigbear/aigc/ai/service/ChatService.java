@@ -1,7 +1,7 @@
 package com.bigbear.aigc.ai.service;
 
 import com.github.houbb.sensitive.word.bs.SensitiveWordBs;
-import dev.langchain4j.model.chat.ChatLanguageModel;
+import dev.langchain4j.model.chat.ChatModel;
 import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,8 +20,8 @@ public class ChatService {
 	private final SensitiveWordBs sensitiveWordBs;
 
 	private final RedisTemplate<String, Object> redisTemplate;
-	@Resource(name = "myChatLanguageModel")
-	private ChatLanguageModel chatLanguageModel;
+	@Resource(name = "myChatModel")
+	private ChatModel ChatModel;
 
 	private final PetDoctor petDoctor;
 

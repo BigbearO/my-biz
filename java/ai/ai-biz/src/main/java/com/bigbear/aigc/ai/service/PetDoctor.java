@@ -10,7 +10,7 @@ import dev.langchain4j.service.V;
 
 //@AiService(
 //		chatMemoryProvider = "chatMemoryProvider",
-//		wiringMode = EXPLICIT, chatModel = "myChatLanguageModel"
+//		wiringMode = EXPLICIT, chatModel = "myChatModel"
 //)
 public interface PetDoctor {
 

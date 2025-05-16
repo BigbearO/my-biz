@@ -3,7 +3,7 @@ package com.bigbear.aigc.ai.common.config;//package com.bigbear.aigc.ai.common.c
 //import com.bigbear.aigc.ai.service.ChatAssistant;
 //import dev.langchain4j.data.segment.TextSegment;
 //import dev.langchain4j.memory.chat.ChatMemoryProvider;
-//import dev.langchain4j.model.chat.ChatLanguageModel;
+//import dev.langchain4j.model.chat.ChatModel;
 //import dev.langchain4j.model.embedding.EmbeddingModel;
 //import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
 //import dev.langchain4j.rag.DefaultRetrievalAugmentor;
@@ -65,11 +65,11 @@ package com.bigbear.aigc.ai.common.config;//package com.bigbear.aigc.ai.common.c
 //
 //	@Bean
 //	// 这个bean也可以使用 @AiService标记接口ChatAssistant来实现
-//	public ChatAssistant chatAssistantWithRag(@Qualifier("myChatLanguageModel") ChatLanguageModel chatLanguageModel,
+//	public ChatAssistant chatAssistantWithRag(@Qualifier("myChatModel") ChatModel ChatModel,
 //											  EmbeddingStore<TextSegment> embeddingStore, ChatMemoryProvider chatMemoryProvider
 //	,RetrievalAugmentor retrievalAugmentor) {
 //		return AiServices.builder(ChatAssistant.class)
-//				.chatLanguageModel(chatLanguageModel)
+//				.ChatModel(ChatModel)
 //				.chatMemoryProvider(chatMemoryProvider)
 //				.contentRetriever(EmbeddingStoreContentRetriever.from(embeddingStore))
 //				.retrievalAugmentor(retrievalAugmentor)
@@ -94,12 +94,12 @@ package com.bigbear.aigc.ai.common.config;//package com.bigbear.aigc.ai.common.c
 //	}
 //
 //	@Bean
-//	public RetrievalAugmentor retrievalAugmentor(ContentRetriever contentRetriever,@Qualifier("myChatLanguageModel") ChatLanguageModel chatLanguageModel) {
+//	public RetrievalAugmentor retrievalAugmentor(ContentRetriever contentRetriever,@Qualifier("myChatModel") ChatModel ChatModel) {
 //		// 创建检索增强器，用于增强提示生成过程中的内容检索,作为 RAG 流程的入口点
 //		return DefaultRetrievalAugmentor.builder()
 //				.contentRetriever(contentRetriever)
 //				.executor(freeThreadPoolExecutor)
-//				.queryTransformer(new CompressingQueryTransformer(chatLanguageModel))
+//				.queryTransformer(new CompressingQueryTransformer(ChatModel))
 //				.build();
 //	}
 //

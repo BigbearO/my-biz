@@ -10,7 +10,7 @@ import dev.langchain4j.mcp.client.transport.McpTransport;
 import dev.langchain4j.mcp.client.transport.http.HttpMcpTransport;
 import dev.langchain4j.mcp.client.transport.stdio.StdioMcpTransport;
 import dev.langchain4j.memory.chat.ChatMemoryProvider;
-import dev.langchain4j.model.chat.ChatLanguageModel;
+import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.tool.ToolProvider;
 import jakarta.servlet.http.HttpServletResponse;
@@ -68,10 +68,10 @@ public class McpConfig {
     }
 
 
-    public PetDoctor petDoctor2(@Qualifier("myChatLanguageModel") ChatLanguageModel chatLanguageModel,ToolProvider toolProvider,
+    public PetDoctor petDoctor2(@Qualifier("myChatModel") ChatModel ChatModel,ToolProvider toolProvider,
                                 ChatMemoryProvider chatMemoryProvider) {
         return AiServices.builder(PetDoctor.class)
-                .chatLanguageModel(chatLanguageModel)
+                .chatModel(ChatModel)
                 .chatMemoryProvider(chatMemoryProvider)
                 .toolProvider(toolProvider)
                 .build();
@@ -85,7 +85,7 @@ public class McpConfig {
         //       通过chat告诉LLM去总结LangChain4j这个github仓库最近的3个commits
         petDoctor2.chat("Summarize the last 3 commits of the LangChain4j GitHub repository");
         HttpServletResponse response=null;
-       
+
 
     }
 }

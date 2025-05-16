@@ -3,9 +3,10 @@ package com.bigbear.aigc.ai.manager;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.data.message.ChatMessage;
-import dev.langchain4j.model.Tokenizer;
+import dev.langchain4j.model.TokenCountEstimator;
 
-public class CharTokenizer implements Tokenizer {
+
+public class CharTokenizer implements TokenCountEstimator {
 	//	todo 计算就是最简单，按照字符数，1个token2个字符
 	@Override
 	public int estimateTokenCountInText(String s) {
