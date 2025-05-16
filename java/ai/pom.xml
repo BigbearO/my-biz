@@ -16,7 +16,7 @@
     <properties>
         <langchain.version>1.0.0</langchain.version>
         <last.langchain.version>1.0.0-beta5</last.langchain.version>
-        <sensitive.version>0.23.0</sensitive.version>
+        <sensitive.version>0.25.1</sensitive.version>
     </properties>
     <!--项目子模块-->
     <modules>
