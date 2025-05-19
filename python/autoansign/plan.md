@@ -38,3 +38,7 @@ todo 考虑组队，哪个totalnode好像是组队使用，多进程
 
 
 
+auto.js 青龙面板
+
+
+

@@ -13,9 +13,10 @@ from datetime import timezone, timedelta
 # 重写函数#
 from airtest.core.api import Template as Template_o
 
-from framework.common.common_func import TimeECHO, loggerhead, TimeDebug
+from framework.common.property import AutoProperty
 from framework.common.yaml_reader import readyaml
 
+logInfo = AutoProperty.logInfo
 
 class Settings(object):
   # python解释器是AirtestIDE还是终端的python
@@ -25,15 +26,11 @@ class Settings(object):
   current_dir = os.path.dirname(current_file_path)
   testpng = Template_o(os.path.join(current_dir, "tpl_target_pos.png"), record_pos=(-0.28, 0.153), resolution=(960, 540), target_pos=6)
   #
-  # 控制端
-  platform = sys.platform.lower()
-  # 避免和windows名字接近
-  platform = "macos" if "darwin" in platform else platform
+
   #
   # control, 运行控制
   prefix = ""
-  figdir = "assets"  # 输入的静态(图片)资源目录
-  figdirs = [figdir]  # 默认的静态(图片)资源目录, 输入的优先级 figdir > "./" >  figdirs.append()
+
   # 时间参数
   # 防止服务器时区不同, 影响对游戏的执行时间判断
   # 设置为8则为东八区
@@ -56,8 +53,7 @@ class Settings(object):
   # 注意Config新增的控制参数, 必须在init中进行定义
   win_Instance = {}  # 模拟器启动的编号
   win_InstanceName = {}  # 模拟器运行后的窗口名
-  BossKeydict = {18: "alt", 17: "ctrl", 16: "shift", 88: "x", 81: "q"}
-  BossKey = {0: []}  # 老板键,快速隐藏APP
+
   cmd_start_device = {}  # 自定义开启设备命令
   cmd_stop_device = {}  # 自定义关闭设备命令
 
@@ -69,7 +65,7 @@ class Settings(object):
     if ".yaml" == config_file[-5:] or ".yml" == config_file[-4:]:
       config = readyaml(config_file)
     else:
-      TimeECHO("airtest_mobileauto已采用yaml格式配置文件，请升级相关程序")
+      AutoProperty.logInfo.TimeECHO("airtest_mobileauto已采用yaml格式配置文件，请升级相关程序")
       exit()
     # node info
     cls.mynode = config.getint('mynode', cls.mynode)
@@ -193,9 +189,9 @@ class Settings(object):
 
   @classmethod
   def info(cls, prefix=""):
-    TimeDebug("mynode="+str(cls.mynode))
-    TimeDebug("totalnode="+str(cls.totalnode))
-    TimeDebug("LINK_dict="+str(cls.LINK_dict))
-    TimeDebug("tmpdir="+str(cls.tmpdir))
+    AutoProperty.logInfo.TimeDebug("mynode="+str(cls.mynode))
+    AutoProperty.logInfo.TimeDebug("totalnode="+str(cls.totalnode))
+    AutoProperty.logInfo.TimeDebug("LINK_dict="+str(cls.LINK_dict))
+    AutoProperty.logInfo.TimeDebug("tmpdir="+str(cls.tmpdir))
 
 

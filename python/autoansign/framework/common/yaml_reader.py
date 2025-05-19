@@ -2,7 +2,9 @@ import traceback
 
 import yaml
 from framework.common.base_func import funs_name
+from framework.common.property import AutoProperty
 
+logInfo = AutoProperty.logInfo
 
 class readyaml():
   def __init__(self, yamlfile=""):
@@ -10,14 +12,14 @@ class readyaml():
     try:
       with open(yamlfile, 'r', encoding='utf-8') as f:
         yaml_dict = yaml.load(f, Loader=yaml.FullLoader)
-      TimeECHO(f"{funs_name()}.读取{yamlfile}")
+      logInfo.TimeECHO(f"{funs_name()}.读取{yamlfile}")
       if not isinstance(yaml_dict, dict):
-        TimeECHO(f"{funs_name()}.读取{yamlfile}. 内容异常, 设置为空数组")
+        logInfo.TimeECHO(f"{funs_name()}.读取{yamlfile}. 内容异常, 设置为空数组")
         yaml_dict = {}
       self.yaml_dict = yaml_dict
     except:
       traceback.print_exc()
-      TimeECHO(f"{funs_name()}.读取{yamlfile}失败")
+      logInfo.TimeECHO(f"{funs_name()}.读取{yamlfile}失败")
       self.yaml_dict = {}
 
   def get(self, tag="", fallback=None):
@@ -31,7 +33,7 @@ class readyaml():
       fallback = self.get(tag, fallback)
       fallback = int(fallback)
     except:
-      TimeECHO(
+      logInfo.TimeECHO(
         f"{funs_name()}.读取{self.yamlfile}失败，参数{tag}设置错误,采用默认值")
     return fallback
 
@@ -40,7 +42,7 @@ class readyaml():
       fallback = self.get(tag, fallback)
       fallback = bool(fallback)
     except:
-      TimeECHO(
+      logInfo.TimeECHO(
         f"{funs_name()}.读取{self.yamlfile}失败，参数{tag}设置错误,采用默认值")
     #
     return fallback
@@ -52,7 +54,7 @@ class readyaml():
       fallback = self.get(tag, fallback)
       fallback = str(fallback)
     except:
-      TimeECHO(
+      logInfo.TimeECHO(
         f"{funs_name()}.读取{self.yamlfile}失败，参数{tag}设置错误,采用默认值")
     #
     return fallback

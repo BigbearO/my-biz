@@ -1,2 +1,20 @@
 logger:
   level: 1
+
+mynode: 0
+# 多进程时,多进程的数目
+totalnode: 2
+# 多进程配置
+multiprocessing: True
+# 所有账户的ADB地址
+LINK_dict:
+  0: Android:///127.0.0.1:5555
+  1: Android:///127.0.0.1:5557
+logfile:
+  0: result.0.txt
+  1: result.1.txt
+prefix: "auto"
+
+#MuMudir: D:\Program Files\Netease\MuMu Player 12\shell
+#MuMu_Instance:
+#  0: "0"
