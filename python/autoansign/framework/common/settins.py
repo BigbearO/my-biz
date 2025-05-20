@@ -25,9 +25,6 @@ class Settings(object):
   current_file_path = os.path.abspath(__file__)
   current_dir = os.path.dirname(current_file_path)
   testpng = Template_o(os.path.join(current_dir, "tpl_target_pos.png"), record_pos=(-0.28, 0.153), resolution=(960, 540), target_pos=6)
-  #
-
-  #
   # control, 运行控制
   prefix = ""
 
@@ -68,9 +65,7 @@ class Settings(object):
       AutoProperty.logInfo.TimeECHO("airtest_mobileauto已采用yaml格式配置文件，请升级相关程序")
       exit()
     # node info
-    cls.mynode = config.getint('mynode', cls.mynode)
-    cls.totalnode = config.getint('totalnode', cls.totalnode)
-    cls.multiprocessing = config.getboolean('multiprocessing', cls.multiprocessing) and cls.totalnode > 1
+    cls.multiprocessing = config.getboolean('multiprocessing', cls.multiprocessing)
 
     # control
     cls.prefix = config.getstr('prefix', cls.prefix)
@@ -84,33 +79,12 @@ class Settings(object):
     cls.eastern_eight_tz = timezone(eastern_eight_offset)
     #
     cls.logger_level = config.getint('logger_level', cls.logger_level)
-    level = Settings.logger_dict[Settings.logger_level]
+    level = AutoProperty.logInfo.logger_dict[Settings.logger_level]
     logging.basicConfig(level=level, format='%(message)s')
     logger = logging.getLogger("airtest_mobileauto")
     logger.setLevel(level)
     cls.outputnode = config.getint('outputnode', cls.outputnode)
-    # 输入日志到文件
-    for i in range(10):
-      cls.logfile_dict[i] = ""
     cls.logfile_dict = config.get('logfile', cls.logfile_dict)
-    # 处理旧日志
-    for i in cls.logfile_dict.keys():
-      if cls.multiprocessing:
-        if i >= cls.totalnode:
-          continue
-      else:
-        if i != cls.mynode:
-          continue
-      if os.path.exists(cls.logfile_dict[i]):
-        try:
-          os.remove(cls.logfile_dict[i]+".old.txt")
-        except:
-          pass
-        try:
-          os.rename(cls.logfile_dict[i], cls.logfile_dict[i]+".old.txt")
-        except:
-          pass
-    #
     # client
     cls.dockercontain = config.get('dockercontain', cls.dockercontain)
     #
@@ -189,8 +163,6 @@ class Settings(object):
 
   @classmethod
   def info(cls, prefix=""):
-    AutoProperty.logInfo.TimeDebug("mynode="+str(cls.mynode))
-    AutoProperty.logInfo.TimeDebug("totalnode="+str(cls.totalnode))
     AutoProperty.logInfo.TimeDebug("LINK_dict="+str(cls.LINK_dict))
     AutoProperty.logInfo.TimeDebug("tmpdir="+str(cls.tmpdir))
 

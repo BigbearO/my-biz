@@ -2,36 +2,27 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-##################################
-# Author : cndaqiang             #
-# Update : 2023-11-10            #
-# Build  : 2023-11-10            #
-# What   : IOS/Android 自动化任务  #
-#################################
-# .......
-from datetime import datetime, timezone, timedelta
-import time
-from airtest.core.settings import Settings as ST
-import logging
-import sys
 import os
-import numpy as np
 import random
+import time
 import traceback
-import subprocess
-import shlex
-import multiprocessing
-import yaml
+# .......
+from datetime import datetime
+
+import numpy as np
 # 临时目录,用于存放临时文件
-import tempfile
 # 重写函数#
-from airtest.core.api import connect_device, sleep
-from airtest.core.api import exists as exists_o
-from airtest.core.api import touch as touch_o
-from airtest.core.api import swipe as swipe_o
-from airtest.core.api import start_app as start_app_o
-from airtest.core.api import stop_app as stop_app_o
-from airtest.core.api import Template as Template_o
+from airtest.core.api import sleep
+from airtest.core.settings import Settings
+from airtest_mobileauto import fun_name
+
+from framework.common.base_func import funs_name
+from framework.common.common_func import save_yaml, exists, connect_status, \
+  touch
+from framework.common.property import AutoProperty
+from framework.common.yaml_reader import readyaml
+
+logInfo = AutoProperty.logInfo
 
 class DQWheel:
   def __init__(self, var_dict_file='var_dict_file.yaml', mynode=-10, totalnode=-10):
@@ -99,19 +90,19 @@ class DQWheel:
     if os.path.exists(filename):
       try:
         os.remove(filename)
-        TimeECHO("删除 ["+filename+"] 成功")
+        logInfo.TimeECHO("删除 ["+filename+"] 成功")
       except:
         traceback.print_exc()
-        TimeECHO("删除 ["+filename+"] 失败")
+        logInfo.TimeECHO("删除 ["+filename+"] 失败")
         return False
       if os.path.exists(filename):
-        TimeErr("删除 ["+filename+"] 失败, 还存在")
+        logInfo.TimeErr("删除 ["+filename+"] 失败, 还存在")
         return False
       else:
         return True
     else:
       if not quiet:
-        TimeECHO("不存在["+filename+"]")
+        logInfo.TimeECHO("不存在["+filename+"]")
       return False
 
   def removefiles(self, dir=".", head="", body="", foot="", quiet=True):
@@ -147,7 +138,7 @@ class DQWheel:
       self.removefile(filename)
     #
     content = str(content)
-    TimeECHO(f"创建 [{filename}].[{content}]")
+    logInfo.TimeECHO(f"创建 [{filename}].[{content}]")
     with open(filename, 'w', encoding='utf-8') as f:
       f.write(content)
     return True
@@ -167,18 +158,18 @@ class DQWheel:
 
   def readfile(self, filename):
     if not os.path.exists(filename):
-      TimeECHO("不存在 ["+filename+"]")
+      logInfo.TimeECHO("不存在 ["+filename+"]")
       return [""]
     try:
       f = open(filename, 'r', encoding='utf-8')
       content = f.readlines()
       f.close()
       content = content if len(content) > 0 else [""]
-      TimeECHO("读取 ["+filename+"] 成功")
+      logInfo.TimeECHO("读取 ["+filename+"] 成功")
       return content
     except:
       traceback.print_exc()
-      TimeECHO("读取 ["+filename+"] 失败")
+      logInfo.TimeECHO("读取 ["+filename+"] 失败")
       return [""]
 
   #
@@ -195,10 +186,10 @@ class DQWheel:
       self.touch同步文件(self.独立同步文件, content)
     #
     if self.存在同步文件(同步文件):
-      TimeECHO(f"不再创建 [{同步文件}]")
+      logInfo.TimeECHO(f"不再创建 [{同步文件}]")
       return True
-    content = loggerhead()+funs_name() if len(content) == 0 else content
-    TimeECHO(f"**** TOUCH **** 创建同步文件 [{同步文件}]")
+    content = logInfo.loggerhead()+funs_name() if len(content) == 0 else content
+    logInfo.TimeECHO(f"**** TOUCH **** 创建同步文件 [{同步文件}]")
     self.touchfile(同步文件, content)
     #
     return True
@@ -206,17 +197,17 @@ class DQWheel:
   def 存在同步文件(self, 同步文件=""):
     if len(同步文件) > 1:
       if os.path.exists(同步文件):
-        TimeECHO(f"存在同步文件 [{同步文件}]")
+        logInfo.TimeECHO(f"存在同步文件 [{同步文件}]")
         return True
       else:
         return False
     # 只要是总结点数大于1,无论当前是否组队都判断辅助同步文件
     if self.totalnode_bak > 1 and os.path.exists(self.辅助同步文件):
-      TimeECHO(f"存在辅助同步文件 [{self.辅助同步文件}]")
+      logInfo.TimeECHO(f"存在辅助同步文件 [{self.辅助同步文件}]")
       return True
     # 每个进程的独立文件不同,不同节点不会误判
     if os.path.exists(self.独立同步文件):
-      TimeECHO(f"存在独立同步文件 [{self.独立同步文件}]")
+      logInfo.TimeECHO(f"存在独立同步文件 [{self.独立同步文件}]")
       return True
     return False
 
@@ -231,20 +222,20 @@ class DQWheel:
     if totalnode < 2:
       return True
     if self.存在同步文件():
-      TimeErr(f"同步{name}.检测到同步文件")
+      logInfo.TimeErr(f"同步{name}.检测到同步文件")
       return True
     filelist = []
     ionode = mynode == 0 or totalnode == 1
     #
     if ionode:
-      TimeECHO(f"BARRIERNODE [{name}]")
+      logInfo.TimeECHO(f"BARRIERNODE [{name}]")
     #
     for i in np.arange(1, totalnode):
       filename = f".tmp.barrier.{i}.{name}.txt"
       filename = os.path.join(Settings.tmpdir, filename)
       if ionode:
         if os.path.exists(filename):
-          TimeErr("完蛋,barriernode之前就存在同步文件")
+          logInfo.TimeErr("完蛋,barriernode之前就存在同步文件")
         self.touchfile(filename)
       filelist.append(filename)
       self.filelist.append(filename)
@@ -262,11 +253,11 @@ class DQWheel:
           if not barrieryes:
             break
         if barrieryes:
-          TimeECHO(f"BARRIERNODE [{name}] 同步完成")
-          TimeECHO("."*10)
+          logInfo.TimeECHO(f"BARRIERNODE [{name}] 同步完成")
+          logInfo.TimeECHO("."*10)
           return True
         if times % 15 == 0:
-          TimeECHO(f"BARRIERNODE [{name}] 同步检测...")
+          logInfo.TimeECHO(f"BARRIERNODE [{name}] 同步检测...")
       else:
         if self.removefile(filelist[mynode-1]):
           return True
@@ -275,15 +266,15 @@ class DQWheel:
       for i in filelist:
         self.removefile(i)
       # 不清除也没事,start时会自动清除
-    TimeErr(f"BARRIERNODE [{name}] 同步失败,创建同步文件")
+    logInfo.TimeErr(f"BARRIERNODE [{name}] 同步失败,创建同步文件")
     self.touch同步文件()
     return False
 
   def read_dict(self, var_dict_file="position_dict.yaml"):
     var_dict = {}
-    TimeECHO(f"读取 [{var_dict_file}]")
+    logInfo.TimeECHO(f"读取 [{var_dict_file}]")
     if not os.path.exists(var_dict_file):
-      TimeECHO("不存在 "+var_dict_file)
+      logInfo.TimeECHO("不存在 "+var_dict_file)
       return var_dict
     # 读取变量
     # read_dict 不仅适合保存字典,而且适合任意的变量类型
@@ -292,7 +283,7 @@ class DQWheel:
       config = readyaml(var_dict_file)
       return config.yaml_dict
     #
-    TimeECHO(f"请升级程序，使用yaml格式存储字典")
+    logInfo.TimeECHO(f"请升级程序，使用yaml格式存储字典")
     # 旧版本的pickle格式, 适合存储任意数据
     import pickle
     try:
@@ -300,7 +291,7 @@ class DQWheel:
         var_dict = pickle.load(f)
     except:
       traceback.print_exc()
-      TimeECHO("文件为空，已设置 var_dict 为None")
+      logInfo.TimeECHO("文件为空，已设置 var_dict 为None")
       var_dict = None  # 或者其他默认值
     return var_dict
 
@@ -375,7 +366,7 @@ class DQWheel:
       self.removefile(mydict_file)
       return [var]
     #
-    TimeECHO("gather["+name+"]成功")
+    logInfo.TimeECHO("gather["+name+"]成功")
     return vars
 
   def uniq_Template_array(self, arr):
@@ -401,10 +392,10 @@ class DQWheel:
     content = f"第[{self.calltimes_dict[strinfo]}]次寻找{strinfo}"
     length = len(判断元素集合)
     for idx, i in enumerate(判断元素集合):
-      TimeECHO(f"{content}({idx+1}/{length}):{i}")
+      logInfo.TimeECHO(f"{content}({idx+1}/{length}):{i}")
       pos = exists(i)
       if pos:
-        TimeECHO(f"{strinfo}成功:{i}")
+        logInfo.TimeECHO(f"{strinfo}成功:{i}")
         # 交换元素位置
         判断元素集合[0], 判断元素集合[idx] = 判断元素集合[idx], 判断元素集合[0]
         if savepos:
@@ -428,11 +419,11 @@ class DQWheel:
       if keystr in self.var_dict.keys():
         # 判断数据类型是否正确
         if not isinstance(self.var_dict[keystr], (tuple, list)):
-          TimeECHO("该位置记录错误,正在删除字典: "+keystr)
+          logInfo.TimeECHO("该位置记录错误,正在删除字典: "+keystr)
           del self.var_dict[keystr]
         else:
           touch(self.var_dict[keystr])
-          TimeECHO("touch (saved) "+keystr)
+          logInfo.TimeECHO("touch (saved) "+keystr)
           sleep(0.1)
           return True
     pos = exists(png)
@@ -440,7 +431,7 @@ class DQWheel:
       self.connecttimes = 0
       touch(pos)
       if len(keystr) > 0:
-        TimeECHO("touch "+keystr)
+        logInfo.TimeECHO("touch "+keystr)
       if savepos:
         self.var_dict[keystr] = pos
         self.save_dict(self.var_dict, self.var_dict_file)
@@ -448,7 +439,7 @@ class DQWheel:
     else:
       self.connecttimes = self.connecttimes+1
       if len(keystr) > 0:
-        TimeECHO("NotFound "+keystr)
+        logInfo.TimeECHO("NotFound "+keystr)
       return False
 
   def cal_record_pos(self, record_pos=(0.5, 0.5), resolution=(960, 540), keystr="", savepos=False):
@@ -462,7 +453,7 @@ class DQWheel:
 
   def touch_record_pos(self, record_pos=(0.5, 0.5), resolution=(960, 540), keystr="", savepos=False):
     pos = self.cal_record_pos(record_pos=record_pos, resolution=resolution, keystr=keystr, savepos=savepos)
-    TimeECHO("touch (record_pos) "+keystr+f"{pos}")
+    logInfo.TimeECHO("touch (record_pos) "+keystr+f"{pos}")
     return touch(pos)
 
   #
@@ -477,16 +468,16 @@ class DQWheel:
     while self.existsTHENtouch(png=png, keystr=keystr+f".{runloop}", savepos=savepos):
       if limit > 0:
         if self.timelimit(timekey=timekey, limit=limit, init=False):
-          TimeErr("TOUCH"+keystr+"超时.....")
+          logInfo.TimeErr("TOUCH"+keystr+"超时.....")
           break
       if runloop > loop:
-        TimeErr("TOUCH"+keystr+"超LOOP.....")
+        logInfo.TimeErr("TOUCH"+keystr+"超LOOP.....")
         break
       sleep(10)
       runloop = runloop+1
     #
     if exists(png):
-      TimeErr(keystr+"图片仍存在")
+      logInfo.TimeErr(keystr+"图片仍存在")
       return True
     else:
       return False
@@ -501,10 +492,10 @@ class DQWheel:
       if self.stopnow():
         return
       if os.path.exists(不再同步):
-        TimeErr(f"检测到文件: [{不再同步}],结束{fun_name(1)}循环")
+        logInfo.TimeErr(f"检测到文件: [{不再同步}],结束{fun_name(1)}循环")
         return
-      TimeECHO(f"---{mynode}---"*5)
-      TimeECHO(f"存在同步文件 [{同步文件}],第一次尝试同步程序")
+      logInfo.TimeECHO(f"---{mynode}---"*5)
+      logInfo.TimeECHO(f"存在同步文件 [{同步文件}],第一次尝试同步程序")
       start_timestamp = int(time.time())
       # 第一次尝试同步
       self.同步等待(mynode, totalnode, 同步文件, sleeptime)
@@ -513,21 +504,21 @@ class DQWheel:
         if self.stopnow():
           return
         if os.path.exists(不再同步):
-          TimeErr(f"检测到文件:{不再同步},结束{fun_name(1)}循环")
+          logInfo.TimeErr(f"检测到文件:{不再同步},结束{fun_name(1)}循环")
           return
         waitminu = int(min(59, 5*totalnode))
-        TimeErr(f"仍然存在同步文件,进行{waitminu}分钟一次的循环")
+        logInfo.TimeErr(f"仍然存在同步文件,进行{waitminu}分钟一次的循环")
         hour, minu, sec = self.time_getHMS()
         minu = minu % waitminu
         if minu > totalnode:
           sleepsec = (waitminu-minu)*60-sec
-          TimeECHO(f"等待{sleepsec}s")
+          logInfo.TimeECHO(f"等待{sleepsec}s")
           sleep(sleepsec)
           continue
         end_timestamp = int(time.time())
         sleepNtime = max(10, sleeptime-(end_timestamp-start_timestamp))+mynode*5
         self.同步等待(mynode, totalnode, 同步文件, sleepNtime)
-      TimeECHO(f"+++{mynode}+++"*5)
+      logInfo.TimeECHO(f"+++{mynode}+++"*5)
     else:
       return True
     return not self.存在同步文件(同步文件)
@@ -551,7 +542,7 @@ class DQWheel:
     if not os.path.exists(同步文件):
       return True
     #
-    TimeECHO("进入同步等待")
+    logInfo.TimeECHO("进入同步等待")
     同步成功 = True
     name = 同步文件
     全部通信成功文件 = os.path.join(Settings.tmpdir, os.path.basename(同步文件)+".同步完成.txt")
@@ -565,7 +556,7 @@ class DQWheel:
     for i in np.arange(1, totalnode):
       if mynode > 0 and mynode != i:
         continue
-      TimeECHO(f"进行同步循环{i}")
+      logInfo.TimeECHO(f"进行同步循环{i}")
       sleep(mynode*1)
       #
       主辅通信成功 = False
@@ -594,9 +585,9 @@ class DQWheel:
         # 判断通信成功与否
         同步成功 = 同步成功 and 主辅通信成功
         if 同步成功:
-          TimeECHO(f"同步{i}成功")
+          logInfo.TimeECHO(f"同步{i}成功")
         else:
-          TimeECHO(f"同步{i}失败")
+          logInfo.TimeECHO(f"同步{i}失败")
           self.touchfile(全部通信失败文件)
           break
         continue
@@ -606,7 +597,7 @@ class DQWheel:
         myrandom = ""
         lockfile = f".tmp.barrier.{myrandom}.{i}.{name}.in.txt"
         lockfile = os.path.join(Settings.tmpdir, lockfile)
-        TimeECHO(f"进行同步判定{i}")
+        logInfo.TimeECHO(f"进行同步判定{i}")
         sleeploop = 0
         for sleeploop in np.arange(60*5*(totalnode-1)):
           # 主辅通信循环
@@ -615,26 +606,26 @@ class DQWheel:
           if len(myrandom) > 0 and not 主辅通信成功:
             lockfile = f".tmp.barrier.{myrandom}.{i}.{name}.in.txt"
             lockfile = os.path.join(Settings.tmpdir, lockfile)
-            TimeECHO(f"同步文件更新 lockfile=[{lockfile}]")
+            logInfo.TimeECHO(f"同步文件更新 lockfile=[{lockfile}]")
             sleep(10)
             主辅通信成功 = self.removefile(lockfile)
             if not 主辅通信成功:
-              TimeECHO(f"发现异常,主辅通信成功={主辅通信成功},无法删除[{lockfile}]")
+              logInfo.TimeECHO(f"发现异常,主辅通信成功={主辅通信成功},无法删除[{lockfile}]")
               if os.path.exists(lockfile):
-                TimeECHO(f"发现异常, 不存在[{lockfile}], 跳出循环")
+                logInfo.TimeECHO(f"发现异常, 不存在[{lockfile}], 跳出循环")
                 break
           #
           # 本节点通信成功，开始等待其他节点
           if 主辅通信成功:
             hour, minu, sec = self.time_getHMS()
             if sleeploop % 10 == 0:
-              TimeECHO(f"本节点通信成功{sleeploop}，正在寻找>{全部通信成功文件}<")
+              logInfo.TimeECHO(f"本节点通信成功{sleeploop}，正在寻找>{全部通信成功文件}<")
             if os.path.exists(全部通信成功文件):
-              TimeECHO(f"检测到全部通信成功文件{全部通信成功文件}")
+              logInfo.TimeECHO(f"检测到全部通信成功文件{全部通信成功文件}")
               同步成功 = True
               break
           if os.path.exists(全部通信失败文件):
-            TimeErr(f"监测到全部通信失败文件{全部通信失败文件}")
+            logInfo.TimeErr(f"监测到全部通信失败文件{全部通信失败文件}")
             同步成功 = False
             break
           sleep(1)
@@ -646,27 +637,27 @@ class DQWheel:
     file_sleeptime = ".tmp.barrier.sleeptime.txt"
     file_sleeptime = os.path.join(Settings.tmpdir, file_sleeptime)
     if 同步成功:
-      TimeECHO("同步等待成功")
+      logInfo.TimeECHO("同步等待成功")
       if ionode:
-        TimeECHO(f"存储sleeptime到 [{file_sleeptime}]")
+        logInfo.TimeECHO(f"存储sleeptime到 [{file_sleeptime}]")
         self.touchfile(filename=file_sleeptime, content=str(sleeptime))
-        TimeECHO("开始删建文件")
+        logInfo.TimeECHO("开始删建文件")
         self.clean文件()
         self.touchfile(全部通信成功文件)
         self.removefile(同步文件)
         self.removefile(全部通信失败文件)
       else:
-        TimeECHO("开始读取sleeptime")
+        logInfo.TimeECHO("开始读取sleeptime")
         sleeptime_read = self.readfile(file_sleeptime)[0].strip()
         if len(sleeptime_read) > 0:
           sleeptime = int(sleeptime_read)
     else:
-      TimeErr("同步等待失败")
+      logInfo.TimeErr("同步等待失败")
       self.touchfile(全部通信失败文件)
       return False
     #
     self.barriernode(mynode, totalnode, "同步等待结束")
-    TimeECHO(f"需要sleep{sleeptime}")
+    logInfo.TimeECHO(f"需要sleep{sleeptime}")
     sleep(sleeptime)
     self.removefile(file_sleeptime)
     return not os.path.exists(同步文件)
@@ -728,7 +719,7 @@ class DQWheel:
     return left
 
   def stoptask(self):
-    TimeErr(f"停止Airtest控制,停止信息"+self.stopinfo)
+    logInfo.TimeErr(f"停止Airtest控制,停止信息"+self.stopinfo)
     return
     # 该命令无法结束,直接return吧
     # sys.exit()

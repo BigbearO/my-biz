@@ -1,45 +1,32 @@
 
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
-##################################
-# Author : cndaqiang             #
-# Update : 2023-11-10            #
-# Build  : 2023-11-10            #
-# What   : IOS/Android 自动化任务  #
-#################################
 # .......
-from datetime import datetime, timezone, timedelta
-import time
-from airtest.core.settings import Settings as ST
-import logging
-import sys
 import os
-import numpy as np
-import random
-import traceback
-import subprocess
 import shlex
-import multiprocessing
-import yaml
+import sys
+import traceback
+
+import numpy as np
 # 临时目录,用于存放临时文件
-import tempfile
 # 重写函数#
 from airtest.core.api import connect_device, sleep
-from airtest.core.api import exists as exists_o
-from airtest.core.api import touch as touch_o
-from airtest.core.api import swipe as swipe_o
-from airtest.core.api import start_app as start_app_o
-from airtest.core.api import stop_app as stop_app_o
-from airtest.core.api import Template as Template_o
+from airtest.core.settings import Settings
+
+from framework.common.base_func import fun_name, funs_name, getPopen
+from framework.common.common_func import run_command, touchkey_win, swipe, \
+  getpid_win
+from framework.common.property import AutoProperty
+from framework.phone.dqWheel import DQWheel
+
+logInfo = AutoProperty.logInfo
 
 class deviceOB:
-  def __init__(self, 设备类型=None, mynode=0, totalnode=1, LINK="Android:///"+"127.0.0.1:"+str(5555)):
+  def __init__(self, device_type=None, mynode=0, totalnode=1, LINK="Android:///"+"127.0.0.1:"+str(5555)):
     # 控制端
-    self.控制端 = sys.platform.lower()
+    self.controller = sys.platform.lower()
     # 避免和windows名字接近
-    self.控制端 = "macos" if "darwin" in self.控制端 else self.控制端
-    #
+    self.controller = "macos" if "darwin" in self.controller else self.controller
     # 客户端
     self.device = None
     #
@@ -52,50 +39,50 @@ class deviceOB:
     self.LINKtype = self.LINK.split(":")[0].lower()  # android, ios
     self.LINKhead = self.LINK[:-len(self.LINKport)-1] if len(self.LINKport) > 0 else self.LINK  # ios:///http:ip
     self.LINKURL = self.LINK.split("/")[-1]  # ip:port
-    self.设备类型 = 设备类型.lower() if 设备类型 else self.LINKtype
+    self.device_type = device_type.lower() if device_type else self.LINKtype
     #
     self.adb_path = "adb"
-    if "android" in self.设备类型:
+    if "android" in self.device_type:
       from airtest.core.android import adb
       self.ADB = adb.ADB()
       self.adb_path = self.ADB.adb_path
     # 不同客户端对重启的适配能力不同
-    if "ios" in self.设备类型:
-      self.客户端 = "ios"
+    if "ios" in self.device_type:
+      self.client = "ios"
     # 自定义安卓设备/模拟器
     elif self.mynode in Settings.cmd_start_device.keys() or self.mynode in Settings.cmd_stop_device.keys():
-      self.客户端 = "UserDefinedAndroid"
-    elif "win" in self.控制端:
+      self.client = "UserDefinedAndroid"
+    elif "win" in self.controller:
       if os.path.exists(Settings.BlueStackdir) and self.mynode in Settings.win_Instance.keys():
-        self.客户端 = "win_BlueStacks"
+        self.client = "win_BlueStacks"
       elif os.path.exists(Settings.LDPlayerdir) and self.mynode in Settings.win_Instance.keys():
-        self.客户端 = "win_LD"
+        self.client = "win_LD"
       elif os.path.exists(Settings.MuMudir) and self.mynode in Settings.win_Instance.keys():
-        self.客户端 = "win_MuMu"
+        self.client = "win_MuMu"
       elif len(self.LINKport) > 0:  # 通过网络访问的安卓设备
-        self.客户端 = "RemoteAndroid"
+        self.client = "RemoteAndroid"
       else:
-        self.客户端 = "USBAndroid"
-    elif "linux" in self.控制端 and self.mynode in Settings.dockercontain.keys():  # Linux + docker
-      self.客户端 = "lin_docker"
+        self.client = "USBAndroid"
+    elif "linux" in self.controller and self.mynode in Settings.dockercontain.keys():  # Linux + docker
+      self.client = "lin_docker"
     elif len(self.LINKport) > 0:  # 通过网络访问的安卓设备
-      self.客户端 = "RemoteAndroid"
+      self.client = "RemoteAndroid"
     else:
-      self.客户端 = "USBAndroid"
+      self.client = "USBAndroid"
     #
 
     #
     self.实体终端 = False
-    self.实体终端 = "mac" in self.控制端 or "ios" in self.设备类型
+    self.实体终端 = "mac" in self.controller or "ios" in self.device_type
     #
-    TimeECHO(f"控制端({self.控制端})")
-    TimeECHO(f"客户端({self.客户端})")
-    TimeECHO(f"ADB =({self.adb_path})")
-    TimeECHO(f"LINK({self.LINK})")
-    TimeECHO(f"LINKhead({self.LINKhead})")
-    TimeECHO(f"LINKtype({self.LINKtype})")
-    TimeECHO(f"LINKURL({self.LINKURL})")
-    TimeECHO(f"LINKport({self.LINKport})")
+    logInfo.TimeECHO(f"控制端({self.controller})")
+    logInfo.TimeECHO(f"客户端({self.client})")
+    logInfo.TimeECHO(f"ADB =({self.adb_path})")
+    logInfo.TimeECHO(f"LINK({self.LINK})")
+    logInfo.TimeECHO(f"LINKhead({self.LINKhead})")
+    logInfo.TimeECHO(f"LINKtype({self.LINKtype})")
+    logInfo.TimeECHO(f"LINKURL({self.LINKURL})")
+    logInfo.TimeECHO(f"LINKport({self.LINKport})")
     #
     self.连接设备()
 
@@ -114,44 +101,44 @@ class deviceOB:
     """
     self.device = False
     #
-    TimeECHO(f"{self.LINK}:开始第{times}/{timesMax+1}次连接")
+    logInfo.TimeECHO(f"{self.LINK}:开始第{times}/{timesMax+1}次连接")
     try:
       self.device = connect_device(self.LINK)
       if self.device:
-        TimeECHO(f"{self.LINK}:链接成功")
+        logInfo.TimeECHO(f"{self.LINK}:链接成功")
         self.设备信息()
         return True
     except:
       if times == timesMax+1:
         traceback.print_exc()
-      TimeErr(f"{self.LINK}:链接失败")
-      if "ios" in self.设备类型:
-        TimeECHO("重新插拔数据线")
+      logInfo.TimeErr(f"{self.LINK}:链接失败")
+      if "ios" in self.device_type:
+        logInfo.TimeECHO("重新插拔数据线")
       if "android" in self.LINKtype:
         # 检查adb的执行权限
         result = getPopen([self.adb_path])
         if "Android" in result[1]:
           result = getPopen([self.adb_path, "devices"])
           if self.LINKURL not in result[1]:
-            TimeECHO(f"没有找到ADB设备{self.LINKURL}\n"+result[1])
+            logInfo.TimeECHO(f"没有找到ADB设备{self.LINKURL}\n"+result[1])
             if times == timesMax:
               self.重启设备()
               return self.连接设备(times+1, timesMax)
         else:
-          TimeErr(f"{self.adb_path} 执行错误")
-          TimeErr(result[1])
+          logInfo.TimeErr(f"{self.adb_path} 执行错误")
+          logInfo.TimeErr(result[1])
           return False
     #
     if times < timesMax:
-      TimeECHO(f"{self.LINK}:链接失败,启动设备再次连接")
+      logInfo.TimeECHO(f"{self.LINK}:链接失败,启动设备再次连接")
       self.启动设备()
       return self.连接设备(times+1, timesMax)
     elif times == timesMax:
-      TimeECHO(f"{self.LINK}:链接失败,重启设备再次连接")
+      logInfo.TimeECHO(f"{self.LINK}:链接失败,重启设备再次连接")
       self.重启设备()
       return self.连接设备(times+1, timesMax)
     else:
-      TimeErr(f"{self.LINK}:链接失败次数达到上限{timesMax},无法继续")
+      logInfo.TimeErr(f"{self.LINK}:链接失败次数达到上限{timesMax},无法继续")
       return False
 
   def 启动设备(self):
@@ -159,12 +146,12 @@ class deviceOB:
       # 避免其他adb程序占用导致卡住
       run_command([[str(self.adb_path), "disconnect", self.LINKURL]])
     command = []
-    TimeECHO(f"尝试启动设备中...")
-    if self.客户端 == "ios":
-      if "mac" in self.控制端:
-        TimeECHO(f"测试本地IOS打开中")
+    logInfo.TimeECHO(f"尝试启动设备中...")
+    if self.client == "ios":
+      if "mac" in self.controller:
+        logInfo.TimeECHO(f"测试本地IOS打开中")
       else:
-        TimeECHO(f"当前模式无法打开IOS")
+        logInfo.TimeECHO(f"当前模式无法打开IOS")
         return False
       # 获得运行的结果
       result = getPopen(["tidevice", "list"])
@@ -177,47 +164,47 @@ class deviceOB:
         command.append([f"tidevice $(cat para.txt) wdaproxy -B  com.facebook.WebDriverAgentRunner.cndaqiang.xctrunner --port {self.LINKport} > tidevice.result.txt 2 > &1 &"])
         sleep(20)
       else:
-        TimeErr(" tidevice list 无法找到IOS设备重启失败")
+        logInfo.logInfo.TimeErr(" tidevice list 无法找到IOS设备重启失败")
         return False
     # android
-    elif self.客户端 == "UserDefinedAndroid":
+    elif self.client == "UserDefinedAndroid":
       if self.mynode in Settings.cmd_start_device.keys():
         command.append(shlex.split(Settings.cmd_start_device[self.mynode]))
       else:
         command.append([self.adb_path, "connect", self.LINKURL])
-    elif self.客户端 == "win_BlueStacks":
+    elif self.client == "win_BlueStacks":
       instance = str(Settings.win_Instance[self.mynode])
       command.append([os.path.join(Settings.BlueStackdir, "HD-Player.exe"), "--instance", instance])
-    elif self.客户端 == "win_LD":
+    elif self.client == "win_LD":
       instance = str(Settings.win_Instance[self.mynode])
       command.append([os.path.join(Settings.LDPlayerdir, "ldconsole.exe"), "launch", "--index", instance])
-    elif self.客户端 == "win_MuMu":
+    elif self.client == "win_MuMu":
       instance = str(Settings.win_Instance[self.mynode])
       command.append([os.path.join(Settings.MuMudir, "MuMuManager.exe"), "control", "-v", instance, "launch"])
-    elif self.客户端 == "FULL_ADB":
+    elif self.client == "FULL_ADB":
       # 通过reboot的方式可以实现重启和解决资源的效果
       command.append([self.adb_path, "connect", self.LINKURL])
       command.append([self.adb_path, "-s", self.LINKURL, "reboot"])
-    elif self.客户端 == "lin_docker":
+    elif self.client == "lin_docker":
       containID = f"{Settings.dockercontain[self.mynode]}"
       command.append(["docker", "restart", containID])
     elif True:
       command.append([self.adb_path, "connect", self.LINKURL])
     # 下面的命令这两个命令是需要root权限的, 或者不对所有设备适配的
     # 可能无法执行, 因此默认关闭了, 未来可以考虑启动这些命令
-    elif self.客户端 == "RemoteAndroid":
+    elif self.client == "RemoteAndroid":
       # 热重启系统，需要root权限
       command.append([self.adb_path, "-s", self.LINKURL, "shell", "stop"])
       command.append([self.adb_path, "-s", self.LINKURL, "shell", "start"])
-    elif self.客户端 == "USBAndroid":
+    elif self.client == "USBAndroid":
       result = getPopen([self.adb_path, "devices"])
       if self.LINKURL in result[1]:
         command.append([self.adb_path, "-s", self.LINKURL, "reboot"])
       else:
-        TimeECHO(f"没有找到USB设备{self.LINKURL}\n"+result[1])
+        logInfo.TimeECHO(f"没有找到USB设备{self.LINKURL}\n"+result[1])
         return False
     else:
-      TimeECHO(f"未知设备类型")
+      logInfo.TimeECHO(f"未知device_type")
       return False
     #
     # 开始运行
@@ -233,7 +220,7 @@ class deviceOB:
       while minu % (self.totalnode) != self.mynode or sec > 30:
         if self.totalnode == 1:
           break
-        TimeECHO("等待启动时间中")
+        logInfo.TimeECHO("等待启动时间中")
         sleep(5)
         hour, minu, sec = DQWheel.time_getHMS()
       # 在启动新的模拟器之前，按下Bosskey把所有的模拟器都调到前台
@@ -246,33 +233,33 @@ class deviceOB:
     touchkey_win(BossKey)
     #
     if exit_code == 0:
-      TimeECHO(f"启动成功")
+      logInfo.TimeECHO(f"启动成功")
       return True
     else:
-      TimeErr(f"启动失败")
+      logInfo.TimeErr(f"启动失败")
       return False
 
   def 关闭设备(self):
     command = []
-    TimeECHO(f"尝试关闭设备中...")
-    if self.客户端 == "ios":
-      if "mac" in self.控制端:
-        TimeECHO(f"测试本地IOS关闭中")
+    logInfo.TimeECHO(f"尝试关闭设备中...")
+    if self.client == "ios":
+      if "mac" in self.controller:
+        logInfo.TimeECHO(f"测试本地IOS关闭中")
         command.append(["tidevice", "reboot"])
       else:
-        TimeECHO(f"当前模式无法关闭IOS")
+        logInfo.TimeECHO(f"当前模式无法关闭IOS")
         return False
     # android
-    elif self.客户端 == "UserDefinedAndroid":
+    elif self.client == "UserDefinedAndroid":
       if self.mynode in Settings.cmd_stop_device.keys():
         command.append(shlex.split(Settings.cmd_stop_device[self.mynode]))
       else:
         command.append([self.adb_path, "disconnect", self.LINKURL])
-    elif self.客户端 == "win_BlueStacks":
+    elif self.client == "win_BlueStacks":
       # 尝试获取PID
       PID = getpid_win(IMAGENAME="HD-Player.exe", key=Settings.win_InstanceName[self.mynode])
       if PID <= 0:
-        TimeECHO("如果BlueStacks在后台时，需要先调到前台才能获得准确的PID")
+        logInfo.TimeECHO("如果BlueStacks在后台时，需要先调到前台才能获得准确的PID")
         if self.mynode in Settings.BossKey.keys():
           BossKey = Settings.BossKey[self.mynode]
         else:
@@ -283,7 +270,7 @@ class deviceOB:
           while minu % (self.totalnode) != self.mynode or sec > 30:
             if self.totalnode == 1:
               break
-            TimeECHO("等待关闭时间中")
+            logInfo.TimeECHO("等待关闭时间中")
             sleep(5)
             hour, minu, sec = DQWheel.time_getHMS()
           # 在获得模拟器名称前，按下Bosskey把所有的模拟器都调到前台
@@ -296,34 +283,34 @@ class deviceOB:
       else:
         # 关闭所有虚拟机，暂时不采用
         # command.append(["taskkill", "/F", "/IM", "HD-Player.exe"])
-        TimeErr("找不到BlueStacks模拟器窗口, 请检查配置参数BlueStack_Windows与模拟器名称是否一一对应")
+        logInfo.TimeErr("找不到BlueStacks模拟器窗口, 请检查配置参数BlueStack_Windows与模拟器名称是否一一对应")
         command = []
-    elif self.客户端 == "win_LD":
+    elif self.client == "win_LD":
       instance = Settings.win_Instance[self.mynode]
       command.append([os.path.join(Settings.LDPlayerdir, "ldconsole.exe"), "quit", "--index", instance])
-    elif self.客户端 == "win_MuMu":
+    elif self.client == "win_MuMu":
       instance = Settings.win_Instance[self.mynode]
       command.append([os.path.join(Settings.MuMudir, "MuMuManager.exe"), "control", "-v", instance, "shutdown"])
-    elif self.客户端 == "lin_docker":
+    elif self.client == "lin_docker":
       containID = f"{Settings.dockercontain[self.mynode]}"
       command.append(["docker", "stop", containID])
     elif True:
       command.append([self.adb_path, "disconnect", self.LINKURL])
     # 下面的命令这两个命令是需要root权限的, 或者不对所有设备适配的
     # 可能无法执行, 因此默认关闭了, 未来可以考虑启动这些命令
-    elif self.客户端 == "RemoteAndroid":
+    elif self.client == "RemoteAndroid":
       # 热重启系统，需要root权限
       command.append([self.adb_path, "-s", self.LINKURL, "shell", "stop"])
       command.append([self.adb_path, "-s", self.LINKURL, "shell", "start"])
       command.append([self.adb_path, "disconnect", self.LINKURL])
-    elif self.客户端 == "USBAndroid":
+    elif self.client == "USBAndroid":
       result = getPopen([self.adb_path, "devices"])
       if self.LINKURL in result[1]:
         command.append([self.adb_path, "-s", self.LINKURL, "reboot"])
       else:
-        TimeECHO(f"没有找到USB设备{self.LINKURL}\n"+result[1])
+        logInfo.TimeECHO(f"没有找到USB设备{self.LINKURL}\n"+result[1])
         command = []
-    elif self.客户端 == "FULL_ADB":
+    elif self.client == "FULL_ADB":
       # 通过reboot的方式可以实现重启和解决资源的效果
       command.append([self.adb_path, "connect", self.LINKURL])
       command.append([self.adb_path, "-s", self.LINKURL, "reboot"])
@@ -331,20 +318,20 @@ class deviceOB:
     # 开始运行
     exit_code = run_command(command=command, sleeptime=60)
     if exit_code == 0:
-      TimeECHO(f"关闭成功")
+      logInfo.TimeECHO(f"关闭成功")
       return True
     else:
-      TimeECHO(f"关闭失败")
+      logInfo.TimeECHO(f"关闭失败")
       return False
 
   def 重启设备(self, sleeptime=0):
-    TimeECHO(f"重新启动({self.LINK})")
+    logInfo.TimeECHO(f"重新启动({self.LINK})")
     self.关闭设备()
     sleeptime = max(10, sleeptime-60)
     printtime = max(30, sleeptime/10)
-    TimeECHO("sleep %d min" % (sleeptime/60))
+    logInfo.TimeECHO("sleep %d min" % (sleeptime/60))
     for i in np.arange(int(sleeptime/printtime)):
-      TimeECHO(f"...taskkill_sleep: {i}", end='\r')
+      logInfo.TimeECHO(f"...taskkill_sleep: {i}", end='\r')
       sleep(printtime)
     self.启动设备()
 
@@ -355,7 +342,7 @@ class deviceOB:
   def 解锁设备(self, sleeptime=0):
     success = not self.device.is_locked()
     if not success:
-      TimeECHO("屏幕已锁定")
+      logInfo.TimeECHO("屏幕已锁定")
       # 先唤醒
       self.device.wake()
       # 再向上滑动解锁
@@ -366,25 +353,25 @@ class deviceOB:
       swipe((w/2, h*0.9), (w/2, h*0.5))
       # 尝试用airtest的解锁. 很容易失败
       if self.device.is_locked():
-        TimeECHO("滑动解锁失败")
+        logInfo.TimeECHO("滑动解锁失败")
         self.device.unlock()
         if self.device.is_locked():
-          TimeECHO("unlock()方式解锁失败")
+          logInfo.TimeECHO("unlock()方式解锁失败")
       #
       success = not self.device.is_locked()
       if success:
-        TimeECHO(f"解锁成功")
+        logInfo.TimeECHO(f"解锁成功")
     return success
 
   def 返回键(self):
     self.device.keyevent("BACK")
-    TimeECHO(f"TOUCH.返回键")
+    logInfo.TimeECHO(f"TOUCH.返回键")
     sleep(0.5)
     return
 
   def HOME键(self):
     self.device.keyevent("HOME")
-    TimeECHO(f"TOUCH.HOMOE键")
+    logInfo.TimeECHO(f"TOUCH.HOMOE键")
     sleep(0.5)
     return
   #
@@ -395,14 +382,14 @@ class deviceOB:
     adb shell ...
     """
     if not self.LINKtype == "android":
-      TimeECHO(f"{fun_name(1)}暂不支持{self.LINKtype}")
+      logInfo.TimeECHO(f"{fun_name(1)}暂不支持{self.LINKtype}")
       return -100
     #
     exit_code_o = 0
     command_step = 0
     # 获得运行的结果
     if not quiet:
-      TimeECHO(funs_name())
+      logInfo.TimeECHO(funs_name())
     for i_command in command:
       if len(i_command) < 1:
         continue
@@ -411,7 +398,7 @@ class deviceOB:
       if len(trim_insert) < 1:
         continue
       if not quiet:
-        TimeECHO("  devices shell:"+trim_insert)
+        logInfo.TimeECHO("  devices shell:"+trim_insert)
       try:
         result = [0, str(self.device.adb.shell(i_command))]
       except:
@@ -420,9 +407,9 @@ class deviceOB:
       exit_code = result[0]
       if not quiet:
         if exit_code != 0:
-          TimeECHO("result:"+">"*20)
-          TimeECHO(result[1])
-          TimeECHO("result:"+"<"*20)
+          logInfo.TimeECHO("result:"+">"*20)
+          logInfo.TimeECHO(result[1])
+          logInfo.TimeECHO("result:"+"<"*20)
       exit_code_o += exit_code
       if must_ok and exit_code_o != 0:
         break
@@ -443,7 +430,7 @@ class deviceOB:
     if self.LINKtype == "android":
       command.append(['am', 'start', '-a', 'android.intent.action.VIEW', '-d', url])
     else:
-      TimeECHO(f"{fun_name(1)}暂不支持{self.LINKtype}")
+      logInfo.TimeECHO(f"{fun_name(1)}暂不支持{self.LINKtype}")
       return -100
     return self.shell(command)
 

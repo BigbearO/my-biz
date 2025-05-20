@@ -25,6 +25,10 @@ class AutoLog:
     self.logfile_dict = {0: "result.0.txt"}
     logging.basicConfig(level=self.logger_dict[logger_level], format='%(message)s')
     # todo 之后深入学习后再优化
+    # 控制屏幕输出
+    #  logging.getLogger("airtest")如果将这个目录设置成airtest，可以降低airtest输出到屏幕的信息
+    # 但是在关闭设备后(airtest无法工作)，就不可以在用logger()输出信息了，会出错，
+    # 暂时先定义为项目;airtest_mobile
     self.logger = logging.getLogger("airtest_mobile")
     self.logger.setLevel(self.logger_dict[logger_level])
   # todo 之后优化

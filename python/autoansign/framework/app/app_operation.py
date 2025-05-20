@@ -1,27 +1,14 @@
 # .......
-from datetime import datetime, timezone, timedelta
-import time
-from airtest.core.settings import Settings as ST
-import logging
-import sys
-import os
 import numpy as np
-import random
-import traceback
-import subprocess
-import shlex
-import multiprocessing
-import yaml
 # 临时目录,用于存放临时文件
-import tempfile
 # 重写函数#
-from airtest.core.api import connect_device, sleep
-from airtest.core.api import exists as exists_o
-from airtest.core.api import touch as touch_o
-from airtest.core.api import swipe as swipe_o
-from airtest.core.api import start_app as start_app_o
-from airtest.core.api import stop_app as stop_app_o
-from airtest.core.api import Template as Template_o
+from airtest.core.api import sleep
+
+from framework.app.base_app_func import start_app, stop_app
+from framework.common.base_func import fun_name
+from framework.common.property import AutoProperty
+
+logInfo = AutoProperty.logInfo
 
 class appOB:
   def __init__(self, APPID="", big=False, device=None):
@@ -41,13 +28,13 @@ class appOB:
       try:
         self.APPlist = self.deviceOB.device.list_app()
       except:
-        TimeECHO("appOB.获取app_list失败")
+        logInfo.TimeECHO("appOB.获取app_list失败")
         self.APPlist = []
       if self.APPID not in self.APPlist and len(self.APPID) > 0:
         self.HaveAPP = False
         for app in self.APPlist:
           if self.APPID in str(app):
-            TimeECHO(f"更正APPID从{self.APPID}到{app}]")
+            logInfo.TimeECHO(f"更正APPID从{self.APPID}到{app}]")
             self.APPID = str(app)
             self.HaveAPP = True
             break
@@ -55,17 +42,17 @@ class appOB:
 
   def 打开APP(self):
     if not self.HaveAPP:
-      TimeECHO(f"{fun_name(1)}:不存在{self.APPID},return")
+      logInfo.TimeECHO(f"{fun_name(1)}:不存在{self.APPID},return")
       return False
     #
     if self.Activity:
-      TimeECHO(f"打开APP[{self.APPID}/{self.Activity}]中")
+      logInfo.TimeECHO(f"打开APP[{self.APPID}/{self.Activity}]中")
       启动成功 = start_app(self.APPID, self.Activity)
     else:
-      TimeECHO(f"打开APP[{self.APPID}]中")
+      logInfo.TimeECHO(f"打开APP[{self.APPID}]中")
       启动成功 = start_app(self.APPID)
     if not 启动成功:
-      TimeErr("打开失败,可能失联")
+      logInfo.TimeErr("打开失败,可能失联")
       return False
     else:
       sleep(20)
@@ -73,10 +60,10 @@ class appOB:
 
   def 重启APP(self, sleeptime=0):
     if not self.HaveAPP:
-      TimeECHO(f"{fun_name(1)}:不存在{self.APPID},return")
+      logInfo.TimeECHO(f"{fun_name(1)}:不存在{self.APPID},return")
       return False
     #
-    TimeECHO(f"重启APP中")
+    logInfo.TimeECHO(f"重启APP中")
     self.关闭APP()
     sleep(10)
     sleeptime = max(10, sleeptime)  # 这里的单位是s
@@ -84,30 +71,30 @@ class appOB:
     if sleeptime > 60*60 and self.deviceOB:  # >1h
       self.deviceOB.重启重连设备(sleeptime)
     else:
-      TimeECHO("sleep %d min" % (sleeptime/60))
+      logInfo.TimeECHO("sleep %d min" % (sleeptime/60))
       nstep = int(sleeptime/printtime)
       for i in np.arange(nstep):
-        TimeECHO(f"...taskkill_sleep: {i}/{nstep}", end='\r')
+        logInfo.TimeECHO(f"...taskkill_sleep: {i}/{nstep}", end='\r')
         sleep(printtime)
-    TimeECHO(f"打开程序")
+    logInfo.TimeECHO(f"打开程序")
     if self.打开APP():
       if self.big:
-        TimeECHO(f"打开程序成功,sleep60*2")
+        logInfo.TimeECHO(f"打开程序成功,sleep60*2")
         sleep(60*2)
       return True
     else:
-      TimeECHO(f"打开程序失败")
+      logInfo.TimeECHO(f"打开程序失败")
       return False
   #
 
   def 关闭APP(self):
     if not self.HaveAPP:
-      TimeECHO(f"{fun_name(1)}:不存在{self.APPID},return")
+      logInfo.TimeECHO(f"{fun_name(1)}:不存在{self.APPID},return")
       return False
     #
-    TimeECHO(f"关闭APP[{self.APPID}]中")
+    logInfo.TimeECHO(f"关闭APP[{self.APPID}]中")
     if not stop_app(self.APPID):
-      TimeErr("关闭失败,可能失联")
+      logInfo.TimeErr("关闭失败,可能失联")
       return False
     else:
       sleep(5)
@@ -119,8 +106,8 @@ class appOB:
     # only support android
     if not self.deviceOB:
       return ""
-    if "android" not in self.deviceOB.设备类型:
-      TimeECHO(f"{fun_name(1)}不支持{self.deviceOB.设备类型}")
+    if "android" not in self.deviceOB.device_type:
+      logInfo.TimeECHO(f"{fun_name(1)}不支持{self.deviceOB.device_type}")
       return ""
     #
     try:
@@ -141,37 +128,37 @@ class appOB:
     if rebootimes == 0:
       if self.APPID in packageid:
         if len(self.APPID) != len(packageid):
-          TimeECHO(f"{fun_name(1)}: 注意APPID的差异 {self.APPID} vs {packageid}")
+          logInfo.TimeECHO(f"{fun_name(1)}: 注意APPID的差异 {self.APPID} vs {packageid}")
         return True
       else:
-        TimeECHO(f"{fun_name(1)}: 当前的前台APP is {packageid}")
+        logInfo.TimeECHO(f"{fun_name(1)}: 当前的前台APP is {packageid}")
         return False
     #
     # reboottimes > 0 则尝试校验前台APP是否和APPID相同
     # 只能解决程序闪退，无法处理，程序卡在开屏界面的情况
-    TimeECHO(f"{fun_name(1)}: 开始校验前台APP is {self.APPID}")
-    TimeECHO(f"{fun_name(1)}: 当前的前台APP is {packageid}")
+    logInfo.TimeECHO(f"{fun_name(1)}: 开始校验前台APP is {self.APPID}")
+    logInfo.TimeECHO(f"{fun_name(1)}: 当前的前台APP is {packageid}")
     printinfo = f"{fun_name(1)}: 前台APP校验通过={packageid}"
     if self.APPID in packageid:
-      TimeECHO(printinfo)
+      logInfo.TimeECHO(printinfo)
       return self.APPID
 
     for i in range(6):
-      TimeECHO(f"{fun_name(1)}: 第{i+1}次打开APP")
+      logInfo.TimeECHO(f"{fun_name(1)}: 第{i+1}次打开APP")
       self.打开APP()
       sleep(30)
       packageid = self.前台APP()
       if self.APPID in packageid:
         printinfo = f"{fun_name(1)}: 前台APP校验通过={packageid}"
-        TimeECHO(printinfo)
+        logInfo.TimeECHO(printinfo)
         return self.APPID
       if i == 2:
-        TimeECHO(f"{fun_name(1)}: 重启设备后再次尝试")
+        logInfo.TimeECHO(f"{fun_name(1)}: 重启设备后再次尝试")
         self.deviceOB.重启重连设备(10)
     #
-    TimeECHO(f"{fun_name(1)}"+">"*10)
-    TimeECHO(f"{fun_name(1)}: 前台APP校验失败,模拟器有问题")
-    TimeECHO(f"{fun_name(1)}"+"<"*10)
+    logInfo.TimeECHO(f"{fun_name(1)}"+">"*10)
+    logInfo.TimeECHO(f"{fun_name(1)}: 前台APP校验失败,模拟器有问题")
+    logInfo.TimeECHO(f"{fun_name(1)}"+"<"*10)
     #
     return self.前台APP(rebootimes-1)
 

@@ -1,19 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import logging
 import os
 import shlex
 import subprocess
 import sys
 import traceback
-from datetime import datetime
 
 import numpy as np
 import yaml
 from airtest.core.api import Template as Template_o
 from airtest.core.api import exists as exists_o
-
 # 重写函数#
 from airtest.core.api import sleep
 from airtest.core.api import swipe as swipe_o
@@ -37,11 +34,6 @@ ST.THRESHOLD = 0.8  # 其他语句的默认阈值
 # ST.FIND_TIMEOUT=10 #*2 #获取截图的时间限制
 # ST.FIND_TIMEOUT_TMP=1#匹配图形的时间限制, 也许可以再改小些加速
 
-# 控制屏幕输出
-# 这个设置可以极低的降低airtest输出到屏幕的信息
-# 但是在关闭设备后(airtest无法工作)，就不可以在用logger()输出信息了，会出错
-logger = logging.getLogger("airtest")
-logger.setLevel(logging.WARNING)
 
 
 def save_yaml(vsr_dict={}, yamlfile=""):
@@ -49,11 +41,11 @@ def save_yaml(vsr_dict={}, yamlfile=""):
     # 写入 YAML 文件
     with open(yamlfile, 'w', encoding='utf-8') as f:
       yaml.dump(vsr_dict, f, allow_unicode=True)
-    logger.TimeECHO(f"保存 [{yamlfile}]")
+    logInfo.TimeECHO(f"保存 [{yamlfile}]")
     return True
   except:
     traceback.format_exc()
-    logger.TimeErr(f"{funs_name()}写入yaml文件{yamlfile}失败")
+    logInfo.TimeErr(f"{funs_name()}写入yaml文件{yamlfile}失败")
     return False
 
 def Template(*args, **kwargs):
@@ -72,7 +64,7 @@ def Template(*args, **kwargs):
         args_list[0] = os.path.join(dir, args_list[0].lstrip('/'))
         break
     else:
-      logger.TimeErr(f"不存在{args_list[0]}")
+      logInfo.TimeErr(f"不存在{args_list[0]}")
     args = args_list
   # 调用Template_o函数，传入修改后的参数
   return Template_o(*args, **kwargs)
@@ -90,7 +82,7 @@ def run_command(command=[], sleeptime=20,  quiet=False, must_ok=False):
   command_step = 0
   # 获得运行的结果
   if not quiet:
-    logger.TimeECHO(funs_name())
+    logInfo.TimeECHO(funs_name())
   for i_command in command:
     if len(i_command) < 1:
       continue
@@ -99,7 +91,7 @@ def run_command(command=[], sleeptime=20,  quiet=False, must_ok=False):
     if len(trim_insert) < 1:
       continue
     if not quiet:
-      logger.TimeECHO("  sysrun:"+trim_insert)
+      logInfo.TimeECHO("  sysrun:"+trim_insert)
     #
     try:
       # os.system的容易卡，各种命令兼容性也不好，subprocess.Popen可以直接填windows快捷方式里的内容
@@ -110,9 +102,9 @@ def run_command(command=[], sleeptime=20,  quiet=False, must_ok=False):
     exit_code = result[0]
     if not quiet:
       if exit_code != 0:
-        logger.TimeECHO("result:"+">"*20)
-        logger.TimeECHO(result[1])
-        logger.TimeECHO("result:"+"<"*20)
+        logInfo.TimeECHO("result:"+">"*20)
+        logInfo.TimeECHO(result[1])
+        logInfo.TimeECHO("result:"+"<"*20)
     exit_code_o += exit_code
     if must_ok and exit_code_o != 0:
       break
@@ -132,7 +124,7 @@ def run_class_command(self=None, command=[], quiet=False, must_ok=False):
   exit_code_o = 0
   command_step = 0
   if not quiet:
-    logger.TimeECHO(funs_name())
+    logInfo.TimeECHO(funs_name())
   for i_command in command:
     # 去掉所有的空白符号看是否还有剩余命令
     trim_insert = i_command.strip()
@@ -141,7 +133,7 @@ def run_class_command(self=None, command=[], quiet=False, must_ok=False):
     if '#' == trim_insert[0]:
       continue
     if not quiet:
-      logger.TimeECHO("  python: "+i_command.rstrip())
+      logInfo.TimeECHO("  python: "+i_command.rstrip())
     try:
       exec(i_command)
       exit_code = 0
@@ -177,17 +169,17 @@ def getpid_win(IMAGENAME="HD-Player.exe", key="BlueStacks App Player 0"):
       except UnicodeDecodeError:
         continue
     if not decoded_output:
-      logger.TimeECHO(f"getpid_win({IMAGENAME}) error"+":无法解析输出")
+      logInfo.TimeECHO(f"getpid_win({IMAGENAME}) error"+":无法解析输出")
       return 0
     cont = decoded_output.splitlines()
     cont = output.decode('gbk', errors='ignore').splitlines()
   except:
-    logger.TimeECHO(f"getpid_win({IMAGENAME}) error"+"-"*10)
+    logInfo.TimeECHO(f"getpid_win({IMAGENAME}) error"+"-"*10)
     traceback.print_exc()
-    logger.TimeECHO(f"getpid_win({IMAGENAME}) error"+"-"*10)
+    logInfo.TimeECHO(f"getpid_win({IMAGENAME}) error"+"-"*10)
     return 0
   PID = 0
-  logger.TimeECHO(f"{fun_name(1)}.from {cont}")
+  logInfo.TimeECHO(f"{fun_name(1)}.from {cont}")
   for task in cont:
     taskterm = task.split()
     if len(taskterm) < 3:
@@ -203,12 +195,12 @@ def getpid_win(IMAGENAME="HD-Player.exe", key="BlueStacks App Player 0"):
     if key in task:
       PID = task.split()[1]
       try:
-        logger.TimeECHO(f"getpid_win:{task}")
+        logInfo.TimeECHO(f"getpid_win:{task}")
         PID = int(PID)
       except:
-        logger.TimeECHO(f"getpid_win({IMAGENAME},{key}) error"+"-"*10)
+        logInfo.TimeECHO(f"getpid_win({IMAGENAME},{key}) error"+"-"*10)
         traceback.print_exc()
-        logger.TimeECHO(f"getpid_win({IMAGENAME},{key}) error"+"-"*10)
+        logInfo.TimeECHO(f"getpid_win({IMAGENAME},{key}) error"+"-"*10)
         PID = 0
       break
   return PID
@@ -216,9 +208,9 @@ def getpid_win(IMAGENAME="HD-Player.exe", key="BlueStacks App Player 0"):
 
 def touchkey_win(Key=[]):
   if len(Key) == 0:
-    return None
+    return
   if AutoConstants.platform != "win32":
-    logger.TimeECHO(f"平台{AutoConstants.platform} not support {fun_name(1)}")
+    logInfo.TimeECHO(f"平台{AutoConstants.platform} not support {fun_name(1)}")
     return False
   try:
     import win32api
@@ -233,14 +225,13 @@ def touchkey_win(Key=[]):
       touchkey = touchkey+f" {AutoConstants.BossKeydict[ikey]}"
     else:
       touchkey = touchkey+" unknow"
-  logger.TimeECHO(f"{fun_name(1)}: {touchkey}")
+  logInfo.TimeECHO(f"{fun_name(1)}: {touchkey}")
   #
   for ikey in Key:
     win32api.keybd_event(ikey, 0, 0, 0)
   for ikey in Key[::-1]:
     win32api.keybd_event(ikey, 0, win32con.KEYEVENTF_KEYUP, 0)
   sleep(5)
-  return None
 
 
 def connect_status(times=10):
@@ -251,10 +242,10 @@ def connect_status(times=10):
     except:
       if i == times - 1:
         traceback.print_exc()
-      logger.TimeECHO(f"{funs_name()}无法连接设备,重试中{i}")
+      logInfo.TimeECHO(f"{funs_name()}无法连接设备,重试中{i}")
       sleep(1)
       continue
-  logger.TimeECHO(f"设备失去联系")
+  logInfo.TimeECHO(f"设备失去联系")
   return False
 # ........................
 
@@ -264,16 +255,16 @@ def exists(*args, **kwargs):
     result = exists_o(*args, **kwargs)
   except:
     result = False
-    logger.TimeECHO(f" {fun_name(1)}  失败")
+    logInfo.TimeECHO(f" {fun_name(1)}  失败")
     if not connect_status():
-      logger.TimeErr(f"{fun_name(1)}连接不上设备")
+      logInfo.TimeErr(f"{fun_name(1)}连接不上设备")
       return result
     sleep(1)
     try:
       result = exists_o(*args, **kwargs)
     except:
       traceback.print_exc()
-      logger.TimeECHO(f"再次尝试{fun_name(1)}仍失败")
+      logInfo.TimeECHO(f"再次尝试{fun_name(1)}仍失败")
       result = False
   return result
 
@@ -283,16 +274,16 @@ def touch(*args, **kwargs):
     result = touch_o(*args, **kwargs)
   except:
     result = False
-    logger.TimeECHO(f" {fun_name(1)}  失败")
+    logInfo.TimeECHO(f" {fun_name(1)}  失败")
     if not connect_status():
-      logger.TimeErr(f"{fun_name(1)}连接不上设备")
+      logInfo.TimeErr(f"{fun_name(1)}连接不上设备")
       return result
     sleep(1)
     try:
       result = touch_o(*args, **kwargs)
     except:
       traceback.print_exc()
-      logger.TimeECHO(f"再次尝试{fun_name(1)}仍失败")
+      logInfo.TimeECHO(f"再次尝试{fun_name(1)}仍失败")
       result = False
   return result
 
@@ -303,15 +294,15 @@ def swipe(*args, **kwargs):
     result = swipe_o(*args, **kwargs)
   except:
     result = False
-    logger.TimeECHO(f" {fun_name(1)}  失败")
+    logInfo.TimeECHO(f" {fun_name(1)}  失败")
     if not connect_status():
-      logger.TimeErr(f"{fun_name(1)}连接不上设备")
+      logInfo.TimeErr(f"{fun_name(1)}连接不上设备")
       return result
     sleep(1)
     try:
       result = swipe_o(*args, **kwargs)
     except:
       traceback.print_exc()
-      logger.TimeECHO(f"再次尝试{fun_name(1)}仍失败")
+      logInfo.TimeECHO(f"再次尝试{fun_name(1)}仍失败")
       result = False
   return result

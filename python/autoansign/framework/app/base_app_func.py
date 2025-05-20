@@ -1,53 +1,37 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-##################################
-# Author : cndaqiang             #
-# Update : 2023-11-10            #
-# Build  : 2023-11-10            #
-# What   : IOS/Android 自动化任务  #
-#################################
 # .......
-from datetime import datetime, timezone, timedelta
-import time
-from airtest.core.settings import Settings as ST
-import logging
-import sys
-import os
-import numpy as np
-import random
 import traceback
-import subprocess
-import shlex
-import multiprocessing
-import yaml
+
 # 临时目录,用于存放临时文件
-import tempfile
 # 重写函数#
-from airtest.core.api import connect_device, sleep
-from airtest.core.api import exists as exists_o
-from airtest.core.api import touch as touch_o
-from airtest.core.api import swipe as swipe_o
+from airtest.core.api import sleep
 from airtest.core.api import start_app as start_app_o
 from airtest.core.api import stop_app as stop_app_o
-from airtest.core.api import Template as Template_o
 
+from framework.common.base_func import fun_name
+from framework.common.common_func import connect_status
+from framework.common.property import AutoProperty
+from framework.common.settins import Settings
+
+logInfo = AutoProperty.logInfo
 
 def start_app(*args, **kwargs):
   if Settings.start_app_syskeys:
     args_list = list(args)
     args_list[0] = str(args_list[0])+" --pct-syskeys 0"
     args = args_list
-    TimeECHO(f"{fun_name(1)} with {args_list[0]}")
+    logInfo.TimeECHO(f"{fun_name(1)} with {args_list[0]}")
     Settings.start_app_syskeys = True
   try:
     result = True
     start_app_o(*args, **kwargs)
   except:
     result = False
-    TimeECHO(f"{fun_name(1)} 失败")
+    logInfo.TimeECHO(f"{fun_name(1)} 失败")
     if not connect_status():
-      TimeErr(f"{fun_name(1)}连接不上设备")
+      logInfo.TimeErr(f"{fun_name(1)}连接不上设备")
       return result
     sleep(1)
     # ......
@@ -74,10 +58,10 @@ def start_app(*args, **kwargs):
         args_list = list(args)
         args_list[0] = str(args_list[0])+" --pct-syskeys 0"
         args = args_list
-        TimeECHO(f"{fun_name(1)} with {args_list[0]}")
+        logInfo.TimeECHO(f"{fun_name(1)} with {args_list[0]}")
         Settings.start_app_syskeys = True
       if "device offline" in errormessgae:
-        TimeECHO("ADB device offline")
+        logInfo.TimeECHO("ADB device offline")
         return result
     # ......
     try:
@@ -85,7 +69,7 @@ def start_app(*args, **kwargs):
       start_app_o(*args, **kwargs)
     except:
       traceback.print_exc()
-      TimeECHO(f"再次尝试{fun_name(1)}仍失败，检测是否没有开启ADB,或者重新启动ADB")
+      logInfo.TimeECHO(f"再次尝试{fun_name(1)}仍失败，检测是否没有开启ADB,或者重新启动ADB")
       result = False
   return result
 
@@ -97,9 +81,9 @@ def stop_app(*args, **kwargs):
     stop_app_o(*args, **kwargs)
   except:
     result = False
-    TimeECHO(f"{fun_name(1)} 失败")
+    logInfo.TimeECHO(f"{fun_name(1)} 失败")
     if not connect_status():
-      TimeErr(f"{fun_name(1)}连接不上设备")
+      logInfo.TimeErr(f"{fun_name(1)}连接不上设备")
       return result
     sleep(1)
     # 下面仍会输出信息，所以这里少报错，让屏幕更干净
@@ -110,6 +94,6 @@ def stop_app(*args, **kwargs):
       stop_app_o(*args, **kwargs)
     except:
       traceback.print_exc()
-      TimeECHO(f"再次尝试{fun_name(1)}仍失败")
+      logInfo.TimeECHO(f"再次尝试{fun_name(1)}仍失败")
       result = False
   return result
