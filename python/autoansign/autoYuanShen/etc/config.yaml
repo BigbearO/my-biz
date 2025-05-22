@@ -1,6 +1,14 @@
 logger:
   level: 1
 
+auto:
+    rocketmq:
+      endpoint: 192.168.
+      group: "auto-games"
+
+endpoint: 192.168.
+group: "auto-games"
+
 mynode: 0
 # 多进程时,多进程的数目
 totalnode: 2
