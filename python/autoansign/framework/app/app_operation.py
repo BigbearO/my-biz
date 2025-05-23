@@ -58,18 +58,18 @@ class appOB:
       sleep(20)
     return True
 
-  def 重启APP(self, sleeptime=0):
+  def app_restart(self, sleeptime=0):
     if not self.HaveAPP:
       logInfo.TimeECHO(f"{fun_name(1)}:不存在{self.APPID},return")
       return False
     #
     logInfo.TimeECHO(f"重启APP中")
-    self.关闭APP()
+    self.app_close()
     sleep(10)
     sleeptime = max(10, sleeptime)  # 这里的单位是s
     printtime = max(30, sleeptime/10)
     if sleeptime > 60*60 and self.deviceOB:  # >1h
-      self.deviceOB.重启重连设备(sleeptime)
+      self.deviceOB.device_reconnect(sleeptime)
     else:
       logInfo.TimeECHO("sleep %d min" % (sleeptime/60))
       nstep = int(sleeptime/printtime)
@@ -87,7 +87,7 @@ class appOB:
       return False
   #
 
-  def 关闭APP(self):
+  def app_close(self):
     if not self.HaveAPP:
       logInfo.TimeECHO(f"{fun_name(1)}:不存在{self.APPID},return")
       return False
@@ -154,7 +154,7 @@ class appOB:
         return self.APPID
       if i == 2:
         logInfo.TimeECHO(f"{fun_name(1)}: 重启设备后再次尝试")
-        self.deviceOB.重启重连设备(10)
+        self.deviceOB.device_reconnect(10)
     #
     logInfo.TimeECHO(f"{fun_name(1)}"+">"*10)
     logInfo.TimeECHO(f"{fun_name(1)}: 前台APP校验失败,模拟器有问题")

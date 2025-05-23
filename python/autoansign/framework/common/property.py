@@ -82,6 +82,12 @@ class AutoProperty:
   logInfo =AutoLog()
   timeZoneInfo=TimeZoneInfo()
   simulatorInfo= SimulatorInfo()
+  dockercontain = {}
+  cmd_start_device = {}  # 自定义开启设备命令
+  cmd_stop_device = {}  # 自定义关闭设备命令
+  win_Instance = {}  # 模拟器启动的编号
+  # todo 相关数据能不能传递进去
+  win_InstanceName = {}  # 模拟器运行后的窗口名
 
   @classmethod
   def init_property(cls, config_file="config/config.yaml"):

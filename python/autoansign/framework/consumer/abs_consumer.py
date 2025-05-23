@@ -21,7 +21,7 @@ class AutoConsumer:
     config_data = ClientConfiguration(self.endpoint, self.credentials)
     self.simple_consumer = SimpleConsumer(config_data, group)
 
-  def run(self, listen_topic, filter_tag):
+  def start(self, listen_topic, filter_tag):
     mq_tag = None
     if filter_tag is not None and len(filter_tag) > 0:
       mq_tag = FilterExpression(filter_tag)

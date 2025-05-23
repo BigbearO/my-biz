@@ -1,25 +1,30 @@
-from airtest_mobileauto.control import *
+from airtest.core.api import sleep
 
+from framework.app.app_operation import appOB
+from framework.common.common_func import connect_status, Template, exists
+from framework.common.property import AutoProperty
+from framework.entity.task import BaseTask
+from framework.phone.device import deviceOB
+from framework.phone.dqWheel import DQWheel
 
-class AppYuanShen:
-    # todo
-    def __init__(self,mynode,totalnode,):
+logInfo = AutoProperty.logInfo
+
+class AppYuanShen(BaseTask):
+
+    # todo 参数传递优化 怎么传进去
+    def __init__(self, account,link):
+        super().__init__(account,link)
         self.prefix = self.__class__.__name__  # 类的名字
-        # device
-        # node就是kv 去获取这个设备的url地址
-        self.mynode = Settings.mynode
-        self.totalnode = Settings.totalnode
-        self.LINK = Settings.LINK_dict[Settings.mynode]
-        self.mobile = deviceOB(mynode=self.mynode, totalnode=self.totalnode, LINK=self.LINK)
-        self.设备类型 = self.mobile.设备类型
-        self.APPID = "com.alicloud.databox"
+        print(self.link)
+
+        self.mobile = deviceOB(device_type=None, teams=None, link=self.link)
+        self.device_type = self.mobile.device_type
+        self.APPID = "com.mihoyo.yuan"
         self.APPOB = appOB(APPID=self.APPID, big=True, device=self.mobile)
-        self.Tool = DQWheel(var_dict_file=f"{self.mobile.设备类型}.var_dict_{self.prefix}.yaml",
-                            mynode=self.mynode, totalnode=self.totalnode)
-        #
+        self.Tool = DQWheel(var_dict_file=f"{self.mobile.device_type}.var_dict_{self.prefix}.yaml")
         self.dayFILE = f"{self.prefix}.txt"
         self.timelimit = 60 * 10
-        self.运行时间 = [3.0, 4.0]
+        self.run_time_range = [3.0, 4.0]
         self.today = self.Tool.time_getweek()
         self.yesterday = (self.today - 1) % 7
         self.APPOB.big = False
@@ -30,35 +35,33 @@ class AppYuanShen:
     #
 
     def stop(self):
-        self.APPOB.关闭APP()
-
+        self.APPOB.app_close()
     #
-
     def run(self, times=0):
         if not connect_status():
-            self.mobile.连接设备()
+            self.mobile.device_connect()
         if times == 0:
             self.today = self.Tool.time_getweek()
             self.yesterday = (self.today - 1) % 7
             try:
                 self.yesterday = int(self.Tool.readfile(self.dayFILE)[0].strip())
             except:
-                TimeECHO(f"未能从{self.dayFILE}中获取到上次运行时间")
+                logInfo.TimeECHO(f"未能从{self.dayFILE}中获取到上次运行时间")
             self.Tool.timelimit(timekey="RUN", limit=self.timelimit, init=True)
         #
         if self.Tool.timelimit(timekey="RUN", limit=self.timelimit, init=False):
-            TimeECHO(f"{self.prefix}.运行超时")
+            logInfo.TimeECHO(f"{self.prefix}.运行超时")
             self.Tool.touchfile(self.dayFILE, content=str(self.yesterday))
             return
         #
         if times > 8:
-            TimeECHO("失败次数太多，停止")
+            logInfo.TimeECHO("失败次数太多，停止")
             self.Tool.touchfile(self.dayFILE, content=str(self.yesterday))
             return
         #
         times = times + 1
         # 重新打开程序
-        self.APPOB.重启APP()
+        self.APPOB.app_restart()
         #
         # ------------------------------------------------------------------------------
         # 不存在对应图片则设置为None
@@ -106,7 +109,7 @@ class AppYuanShen:
         #
         存在, 领取界面 = self.Tool.存在任一张图(领取界面, self.prefix + "领取界面")
         if not 存在:
-            TimeECHO(f"{self.prefix}检测不到领取界面")
+            logInfo.TimeECHO(f"{self.prefix}检测不到领取界面")
             return self.run(times)
         #
         self.Tool.存在任一张图([领取按钮], self.prefix + "领取按钮", savepos=True)
@@ -115,20 +118,20 @@ class AppYuanShen:
         # 检测是否有领取按钮，有的话，领取之后再循环一次检测是否有领取成功按钮
         if self.Tool.existsTHENtouch(领取按钮, self.prefix + "领取按钮", savepos=True):
             self.success_count = self.success_count + 1
-            TimeECHO(f"{self.prefix}.....成功次数{self.success_count}....")
+            logInfo.TimeECHO(f"{self.prefix}.....成功次数{self.success_count}....")
             self.yesterday = self.today
             if self.success_count < self.looptime:
                 return self.run(times=0)
         else:
-            TimeECHO(f"{self.prefix}检测不到领取按钮")
+            logInfo.TimeECHO(f"{self.prefix}检测不到领取按钮")
         if exists(领取成功):
             self.yesterday = self.today
-            TimeECHO(f"{self.prefix}领取成功")
+            logInfo.TimeECHO(f"{self.prefix}领取成功")
         else:
             if self.yesterday == self.today:
-                TimeECHO("找不到[领取成功]，应该签到过了")
+                logInfo.TimeECHO("找不到[领取成功]，应该签到过了")
             else:
-                TimeECHO("找不到[领取成功]，再次尝试签到")
+                logInfo.TimeECHO("找不到[领取成功]，再次尝试签到")
                 return self.run(times)
         #
         self.Tool.touchfile(self.dayFILE, content=str(self.yesterday))
@@ -139,17 +142,17 @@ class AppYuanShen:
 
     def looprun(self, times=0):
         times = times + 1
-        startclock = self.运行时间[0]
-        endclock = self.运行时间[1]
+        startclock = self.run_time_range[0]
+        endclock = self.run_time_range[1]
         while True:
             leftmin = self.Tool.hour_in_span(startclock, endclock) * 60.0
             if leftmin > 0:
-                TimeECHO("剩余%d分钟进入新的一天" % (leftmin))
-                self.APPOB.关闭APP()
-                self.mobile.重启重连设备(leftmin * 60)
+                logInfo.TimeECHO("剩余%d分钟进入新的一天" % (leftmin))
+                self.APPOB.app_close()
+                self.mobile.device_reconnect(leftmin * 60)
                 continue
             times = times + 1
-            TimeECHO("=" * 10)
+            logInfo.TimeECHO("=" * 10)
             self.success_count = 0
             self.run()
 

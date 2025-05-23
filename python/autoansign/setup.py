@@ -26,6 +26,7 @@ setup(
     url='https://github.com/MobileAutoFlow/autoansign',
     install_requires=[
         'airtest-mobileauto>=2.1.2',
+        'airtest',
     ],
     entry_points={
         'console_scripts': [
