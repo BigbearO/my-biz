@@ -6,7 +6,7 @@ from framework.common.base_func import funs_name
 from framework.common.property import AutoProperty
 
 logInfo = AutoProperty.logInfo
-
+# todo 直接赋值实例化
 
 def _to_class(cls, _obj):
   _obj_ = type('new', (object,), _obj)

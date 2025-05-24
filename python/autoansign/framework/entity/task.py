@@ -8,6 +8,6 @@ class BaseTask:
       self.team=[]
       self.isMain=True # 房主为true，否则为false
       self.game=-1 #游戏类型
-      self.task_mode="" #任务类型，单人，组队
+      self.task_mode=1 #任务类型，单人，组队
 
 

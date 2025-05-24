@@ -6,6 +6,5 @@ if __name__ == '__main__':
   # prefix = "info"
   # data= tmpdir = os.path.join(tempfile.gettempdir(), prefix)
   # print(data)
-
-  AirtestIDE = "AirtestIDE" in sys.executable
-  print(AirtestIDE)
+  tmpdir = os.path.abspath('.')
+  print(tmpdir)

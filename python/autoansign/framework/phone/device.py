@@ -32,7 +32,7 @@ class deviceOB:
     self.device = None
     self.teams=teams
     #
-    self.link = link
+    self.LINK = link
     self.LINKport = self.LINK.split(":")[-1]  # port
     # (USB连接时"Android:///id",没有端口
     self.LINKport = "" if "/" in self.LINKport else self.LINKport

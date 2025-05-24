@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import logging
+import os
 from datetime import datetime
 
 from framework.common.auto_constants import TimeZoneInfo
@@ -82,6 +83,8 @@ class AutoProperty:
   logInfo =AutoLog()
   timeZoneInfo=TimeZoneInfo()
   simulatorInfo= SimulatorInfo()
+  # todo 不存在创建
+  tmpdir = os.path.abspath('.')+"/logs"
   dockercontain = {}
   cmd_start_device = {}  # 自定义开启设备命令
   cmd_stop_device = {}  # 自定义关闭设备命令
@@ -90,5 +93,6 @@ class AutoProperty:
   win_InstanceName = {}  # 模拟器运行后的窗口名
 
   @classmethod
-  def init_property(cls, config_file="config/config.yaml"):
+  def init_property(cls, properties):
+    cls.tmpdir=properties.getstr("tmpdir")
     pass

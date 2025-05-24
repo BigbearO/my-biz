@@ -9,17 +9,19 @@ from framework.phone.dqWheel import DQWheel
 
 logInfo = AutoProperty.logInfo
 
-class AppYuanShen(BaseTask):
+# package_name ="com.miHoYo.GenshinImpact"
+package_name ="com.carrot.carrotfantasy"
+# 用来测试的
 
+class AppYuanShen(BaseTask):
     # todo 参数传递优化 怎么传进去
     def __init__(self, account,link):
         super().__init__(account,link)
         self.prefix = self.__class__.__name__  # 类的名字
-        print(self.link)
 
         self.mobile = deviceOB(device_type=None, teams=None, link=self.link)
         self.device_type = self.mobile.device_type
-        self.APPID = "com.mihoyo.yuan"
+        self.APPID =  package_name
         self.APPOB = appOB(APPID=self.APPID, big=True, device=self.mobile)
         self.Tool = DQWheel(var_dict_file=f"{self.mobile.device_type}.var_dict_{self.prefix}.yaml")
         self.dayFILE = f"{self.prefix}.txt"
@@ -31,8 +33,6 @@ class AppYuanShen(BaseTask):
         #
         self.looptime = 1
         self.success_count = 0
-
-    #
 
     def stop(self):
         self.APPOB.app_close()
@@ -135,10 +135,8 @@ class AppYuanShen(BaseTask):
                 return self.run(times)
         #
         self.Tool.touchfile(self.dayFILE, content=str(self.yesterday))
-        self.APPOB.关闭APP()
+        self.APPOB.app_close()
         return True
-
-    #
 
     def looprun(self, times=0):
         times = times + 1
@@ -150,7 +148,7 @@ class AppYuanShen(BaseTask):
                 logInfo.TimeECHO("剩余%d分钟进入新的一天" % (leftmin))
                 self.APPOB.app_close()
                 self.mobile.device_reconnect(leftmin * 60)
-                continue
+                break
             times = times + 1
             logInfo.TimeECHO("=" * 10)
             self.success_count = 0
