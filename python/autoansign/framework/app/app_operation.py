@@ -10,7 +10,7 @@ from framework.common.property import AutoProperty
 
 logInfo = AutoProperty.logInfo
 
-class appOB:
+class AppOB:
   def __init__(self, APPID="", big=False, device=None):
     # 配置device
     self.deviceOB = device

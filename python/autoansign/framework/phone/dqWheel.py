@@ -27,15 +27,16 @@ logInfo = AutoProperty.logInfo
 eastern_eight_tz= AutoProperty.timeZoneInfo.eastern_eight_tz
 
 class DQWheel:
-  def __init__(self, var_dict_file='var_dict_file.yaml', mynode=-10, totalnode=-10):
+  def __init__(self, var_dict_file='var_dict_file.yaml', link=-10, teams=[]):
     self.timedict = {}
-    self.mynode = mynode
-    self.totalnode = totalnode
-    self.totalnode_bak = totalnode
+    self.link = link
+    self.teams = teams
+    self.teams_bak = len(teams)
     #
     self.barrierlimit = 60*20  # 同步最大时长
     self.filelist = []  # 建立的所有文件，用于后期clear
     self.var_dict_file = var_dict_file
+
     self.var_dict = self.read_dict(self.var_dict_file)
     self.savepos = True
     # 子程序运行次数
@@ -49,7 +50,7 @@ class DQWheel:
     self.connecttimesMAX = 20
     #sync_file放在运行目录, 也方便调试
     self.assist_sync_file = f"NeedRebarrier.txt"
-    self.alone_sync_file = f"NeedRebarrier.{self.mynode}.{self.totalnode}.txt"
+    self.alone_sync_file = f"NeedRebarrier.{self.link}.{self.teams_bak}.txt"
     self.removefile(self.alone_sync_file)
     self.removefile(self.stopfile)
 

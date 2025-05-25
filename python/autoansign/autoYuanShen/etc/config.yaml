@@ -5,15 +5,17 @@ auto:
     rocketmq:
       endpoint: 192.168.50.251
       group: "auto-games"
-
+MuMudir: D:\Program Files\Netease\MuMu Player 12\shell
+MuMu_Instance:
+  0: "0"
 endpoint: 192.168.50.251
 group: "auto-games"
 
 mqdata:
   account: 111
-#  link: Android:///127.0.0.1:5555
-  link: Android:///192.168.1.3:16384
-  game: wuziqi
+  link: Android:///127.0.0.1:16384
+#  link: Android:///192.168.1.3:16384
+  game: 1
 
 tmpdir: D:\project\my\my-biz\python\autoansign\logs
 
