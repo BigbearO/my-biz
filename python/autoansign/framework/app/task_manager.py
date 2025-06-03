@@ -5,13 +5,10 @@ import traceback
 from framework.common.property import AutoProperty
 from framework.common.settins import Settings
 
-# 临时目录,用于存放临时文件
-# 重写函数#
-
 
 logInfo = AutoProperty.logInfo
 
-
+# todo 这个manager重新优化 为组队做准备
 class TaskManager:
   def __init__(self, config_file, task_class, method_name, *args, **kwargs):
     self.task_class = task_class
@@ -53,7 +50,6 @@ class TaskManager:
       logInfo.TimeErr("Error in single_execute with mynode=%s", mynode)
     #
     logInfo.TimeDebug("single_execute finished with mynode=%s", mynode)
-    logInfo.TimeECHO(f"脚本已退出, 请定期清除缓存目录.{Settings.tmpdir}")
 
   def multi_execute(self):
     logInfo.TimeDebug("Multiprocessing with %s total nodes.", Settings.totalnode)

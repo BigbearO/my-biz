@@ -11,7 +11,7 @@ import numpy as np
 # 临时目录,用于存放临时文件
 # 重写函数#
 from airtest.core.api import connect_device, sleep
-from airtest.core.settings import Settings
+from airtest.core.error import AirtestError
 
 from framework.common.auto_constants import AutoConstants
 from framework.common.base_func import fun_name, funs_name, getPopen
@@ -22,8 +22,9 @@ from framework.phone.dqWheel import DQWheel
 
 logInfo = AutoProperty.logInfo
 
-class deviceOB:
-  def __init__(self, device_type=None, teams=None, link="Android:///"+"127.0.0.1:"+str(5555)):
+class DeviceOB:
+  # 默认
+  def __init__(self, device_type='android', teams=None, link="Android:///"+"127.0.0.1:"+str(5555)):
     # 控制端
     self.controller = sys.platform.lower()
     # 避免和windows名字接近
@@ -93,13 +94,22 @@ class deviceOB:
       self.height = self.display_info["height"]
       self.resolution = (self.width, self.height)
 
-  def device_connect(self, times=1, timesMax=2):
-    """
+  def is_connect(self):
+    if not self.device:
+      return False
+    try:
+      self.device.check_app(AutoConstants.connect_check_package) # 检测是否安装了指定的apk
+      return True
+    except AirtestError:  # 安装应用,是否同意覆盖安装,默认否
+      return True
+    except Exception:
+      return False
+
+
     # 尝试连接timesMax+1次,当前是times次
     # 在timesMax次时，会尝试重启设备
-    """
+  def device_connect(self, times=1, timesMax=2):
     self.device = False
-    #
     logInfo.TimeECHO(f"{self.LINK}:开始第{times}/{timesMax+1}次连接")
     try:
       self.device = connect_device(self.LINK)
@@ -167,8 +177,8 @@ class deviceOB:
         return False
     # android
     elif self.client == "UserDefinedAndroid":
-      if self.link in AutoProperty.cmd_start_device.keys():
-        command.append(shlex.split(AutoProperty.cmd_start_device[self.link]))
+      if self.LINK in AutoProperty.cmd_start_device.keys():
+        command.append(shlex.split(AutoProperty.cmd_start_device[self.LINK]))
       else:
         command.append([self.adb_path, "connect", self.LINKURL])
     # elif self.client == "win_BlueStacks":
@@ -185,7 +195,7 @@ class deviceOB:
       command.append([self.adb_path, "connect", self.LINKURL])
       command.append([self.adb_path, "-s", self.LINKURL, "reboot"])
     elif self.client == "lin_docker":
-      containID = f"{AutoProperty.dockercontain[self.link]}"
+      containID = f"{AutoProperty.dockercontain[self.LINK]}"
       command.append(["docker", "restart", containID])
     elif True:
       command.append([self.adb_path, "connect", self.LINKURL])

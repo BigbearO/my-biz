@@ -1,0 +1,24 @@
+
+app: com.yuliang.wuziqigame
+endpoint: 192.168.50.251
+group: "auto-games"
+#todo 之后适配多层级后改成下面的
+auto:
+    rocketmq:
+      endpoint: 192.168.50.251
+      group: "auto-games"
+    app: com.yuliang.wuziqigame
+
+mqdata:
+  account: 111
+#  link: Android:///127.0.0.1:5555
+#  link: Android:///127.0.0.1:16384?cap_method=JAVACAP
+  link: Android:///127.0.0.1:16416?cap_method=JAVACAP
+  game: 1
+  teams:
+  app: com.yuliang.wuziqigame
+
+tmpdir: D:\project\my\my-biz\python\autoansign\logs
+# 多进程配置
+multiprocessing: True
+prefix: "auto"

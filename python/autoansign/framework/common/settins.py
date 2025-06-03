@@ -21,7 +21,6 @@ logInfo = AutoProperty.logInfo
 class Settings(object):
   # python解释器是AirtestIDE还是终端的python
   AirtestIDE = "AirtestIDE" in sys.executable
-  start_app_syskeys = False
   current_file_path = os.path.abspath(__file__)
   current_dir = os.path.dirname(current_file_path)
   testpng = Template_o(os.path.join(current_dir, "tpl_target_pos.png"), record_pos=(-0.28, 0.153), resolution=(960, 540), target_pos=6)

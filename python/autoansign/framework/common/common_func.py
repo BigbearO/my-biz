@@ -233,7 +233,7 @@ def touchkey_win(Key=[]):
     win32api.keybd_event(ikey, 0, win32con.KEYEVENTF_KEYUP, 0)
   sleep(5)
 
-
+# todo 优化一下看能不能直接用deviceOB
 def connect_status(times=10):
   for i in np.arange(times):
     try:

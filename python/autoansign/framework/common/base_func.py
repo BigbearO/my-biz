@@ -7,7 +7,7 @@ import traceback
 
 # 临时目录,用于存放临时文件
 # 重写函数#
-from airtest.core.api import sleep
+from airtest.core.api import sleep, uninstall
 from airtest.core.settings import Settings as ST
 
 # ........................
@@ -93,3 +93,62 @@ def getPopen(command):
   return result
 
 
+
+
+
+def get_all_subclasses(cls):
+  """
+  递归获取某个类的所有子类（包括直接和间接子类）
+  """
+  subclasses = set()
+  for subclass in cls.__subclasses__():
+    subclasses.add(subclass)
+    subclasses.update(get_all_subclasses(subclass))  # 递归获取子类的子类
+  return subclasses
+
+
+def get_support_class(game_type, cls):
+  classes = get_all_subclasses(cls)
+  for subclass in classes:
+    try:
+      method = getattr(subclass, "is_support_game")
+      if callable(method):  # 确保方法是可调用的
+        is_support = method(game_type)
+        if is_support:
+          return subclass
+    except Exception as e:
+      print(f"Error executing method in {subclass.__name__}: {e}")
+
+  return None
+
+#检测app是否安装
+def existsapp(app):
+  dev = device()
+  try:
+    if dev.check_app(app):
+      return True
+    else:
+      return False
+  except Exception as e:
+    print(e)
+    print('检测异常安装')
+    return False
+
+#安装pak包
+def installapk(path ="apk path"):
+  try:
+    if existsapp(app) == True:
+      print(existsapp(app),'app存在，卸载安装')#app为app包名，如：com.tencent.qqlivehuawei
+      uninstall(app)
+      install(path)
+    else:
+      print('app不存在，安装pak')
+      install(path)
+  except Exception as e:
+    print(e)
+    print('检测异常安装')
+    install(path)
+  if existsapp(app) == True:
+    print('安装成功')
+  else:
+    print('安装失败')

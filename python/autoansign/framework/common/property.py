@@ -91,6 +91,7 @@ class AutoProperty:
   win_Instance = {}  # 模拟器启动的编号
   # todo 相关数据能不能传递进去
   win_InstanceName = {}  # 模拟器运行后的窗口名
+  start_app_syskeys=False
 
   @classmethod
   def init_property(cls, properties):

@@ -1,11 +1,14 @@
 import json
 import sys
 
+from airtest.core.android.adb import ADB
+
 from autoYuanShen.app_yuan_shen import AppYuanShen
+from framework.common.base_func import get_support_class
 from framework.common.property import AutoProperty
 from framework.common.yaml_reader import readyaml
 from framework.consumer.abs_consumer import AutoConsumer
-from framework.entity.task import BaseTask
+from framework.entity.baseTask import BaseTask
 
 logInfo = AutoProperty.logInfo
 
@@ -15,9 +18,9 @@ logInfo = AutoProperty.logInfo
       2执行task.run
       3 task.stop
   """
-def run_task(data):
-  logInfo.TimeECHO("receive data={}", data)
-  info = json.loads(data)
+def run_task(receive_data):
+  logInfo.TimeECHO("receive data={}", receive_data)
+  info = json.loads(receive_data)
   # package_name ="com.miHoYo.GenshinImpact"
   # 测试 暂时只用五子棋游戏来测试
   package_name = "com.yuliang.wuziqigame"
@@ -27,43 +30,21 @@ def run_task(data):
     logInfo.TimeECHO("未支持的游戏类型type="+info['game'])
     return
   app = support_class(package_name, info['account'], info['link'],info['game'])
-  # app.run()
+  app.run()
   # app.stop()
   print("finished")
-
-
-def get_all_subclasses(cls):
-  """
-  递归获取某个类的所有子类（包括直接和间接子类）
-  """
-  subclasses = set()
-  for subclass in cls.__subclasses__():
-    subclasses.add(subclass)
-    subclasses.update(get_all_subclasses(subclass))  # 递归获取子类的子类
-  return subclasses
-
-
-def get_support_class(game_type, cls):
-  classes = get_all_subclasses(cls)
-  for subclass in classes:
-    try:
-      method = getattr(subclass, "is_support_game")
-      if callable(method):  # 确保方法是可调用的
-        is_support = method(game_type)
-        if is_support:
-          return subclass
-    except Exception as e:
-      print(f"Error executing method in {subclass.__name__}: {e}")
-
-  return None
-
+  adb=ADB()
+  devices=adb.devices()
+  print(devices)
 
 """
-逻辑就是
-启动一个consumer进行一个个队列监听
-每个消息有对于的游戏类型进行处理
-消息队列只保护账号信息--提前和用户沟通扫码登录好
 
+逻辑就是
+1 先读取配置文件，参数配置化,尤其是mq,模拟器的启动目录这些
+2 根据配置文件 再判断是否打开模拟器
+3 启动一个consumer进行一个个队列监听，根据游戏类型找到对应的
+  每个消息有对于的游戏类型进行处理
+  mq消费的消息有账号信息和模拟器ip信息--因为需要用户扫码登录好，直接在管理端配置好
 再序列化成一个实体对象，这个实体对象有各种行为，run方法执行各种
 日志的prefix 刚好弄成日期
 """
@@ -80,10 +61,12 @@ if __name__ == "__main__":
   group = config.getstr("group")
   print("endpoint=", endpoint)
   print("group=", group)
-  # 通过配置文件参数启动，一个topic,一个实力
-  # consumer = AutoConsumer(run_task, endpoint=endpoint, group="auto-games")
+
   mqdata = config.get("mqdata")
   data = json.dumps(mqdata)
   print("group=", data)
+  # 通过配置文件参数启动，一个topic,一个实力
+  # consumer = AutoConsumer(run_task, endpoint=endpoint, group="auto-games")
+  # consumer.start("games","0")
   run_task(data)
-#   consumer.start("games","0")
+
