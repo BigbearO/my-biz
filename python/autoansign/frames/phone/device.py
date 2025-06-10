@@ -13,12 +13,12 @@ import numpy as np
 from airtest.core.api import connect_device, sleep
 from airtest.core.error import AirtestError
 
-from framework.common.auto_constants import AutoConstants
-from framework.common.base_func import fun_name, funs_name, getPopen
-from framework.common.common_func import run_command, touchkey_win, swipe, \
+from frames.common.auto_constants import AutoConstants
+from frames.common.base_func import fun_name, funs_name, getPopen
+from frames.common.common_func import run_command, touchkey_win, swipe, \
   getpid_win
-from framework.common.property import AutoProperty
-from framework.phone.dqWheel import DQWheel
+from frames.common.property import AutoProperty
+from frames.phone.dqWheel import DQWheel
 
 logInfo = AutoProperty.logInfo
 

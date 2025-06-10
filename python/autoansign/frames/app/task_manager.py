@@ -2,8 +2,8 @@
 import multiprocessing
 import traceback
 
-from framework.common.property import AutoProperty
-from framework.common.settins import Settings
+from frames.common.property import AutoProperty
+from frames.common.settins import Settings
 
 
 logInfo = AutoProperty.logInfo

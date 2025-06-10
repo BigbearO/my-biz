@@ -1,8 +1,8 @@
 from airtest.core.api import touch, sleep
 
-from frame.infra.common.common_func import Template
-from frame.infra.common.property import AutoProperty
-from frame.task.BaseTask import BaseTask
+from framework.infra.common.common_func import Template
+from framework.infra.common.property import AutoProperty
+from framework.task.BaseTask import BaseTask
 
 logInfo = AutoProperty.logInfo
 # 用来测试的
@@ -62,7 +62,6 @@ class AppYuan(BaseTask):
 
         #
         # if startApp:
-        # self.Tool.existsTHENtouch(startGame, self.prefix+"startGame", savepos=False)
         # todo 暂时先这样
         touch(startApp)
         sleep(3)

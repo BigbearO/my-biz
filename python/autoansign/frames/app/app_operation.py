@@ -6,10 +6,10 @@ from airtest.core.api import sleep
 from airtest.core.api import start_app as start_app_o
 from airtest.core.api import stop_app as stop_app_o
 
-from framework.common.base_func import fun_name
-from framework.common.common_func import connect_status
-from framework.common.property import AutoProperty
-from framework.common.settins import Settings
+from frames.common.base_func import fun_name
+from frames.common.common_func import connect_status
+from frames.common.property import AutoProperty
+from frames.common.settins import Settings
 
 logInfo = AutoProperty.logInfo
 

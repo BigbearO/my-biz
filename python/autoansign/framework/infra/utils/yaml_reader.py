@@ -2,8 +2,8 @@ import os
 import traceback
 
 import yaml
-from framework.common.base_func import funs_name
-from framework.common.property import AutoProperty
+from framework.infra.common.base_func import funs_name
+from framework.infra.common.property import AutoProperty
 
 logInfo = AutoProperty.logInfo
 # todo 直接赋值实例化

@@ -5,7 +5,7 @@ import logging
 import os
 from datetime import datetime
 
-from framework.common.auto_constants import TimeZoneInfo
+from framework.infra.common.auto_constants import TimeZoneInfo
 
 
 
@@ -84,7 +84,7 @@ class AutoProperty:
   timeZoneInfo=TimeZoneInfo()
   simulatorInfo= SimulatorInfo()
   # todo 不存在创建
-  tmpdir = os.path.abspath('.')+"/logs"
+  tmpdir = os.path.abspath('') + "/logs"
   dockercontain = {}
   cmd_start_device = {}  # 自定义开启设备命令
   cmd_stop_device = {}  # 自定义关闭设备命令

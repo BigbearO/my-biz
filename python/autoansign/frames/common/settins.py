@@ -13,8 +13,8 @@ from datetime import timezone, timedelta
 # 重写函数#
 from airtest.core.api import Template as Template_o
 
-from framework.common.property import AutoProperty
-from framework.common.yaml_reader import readyaml
+from frames.common.property import AutoProperty
+from frames.common.yaml_reader import readyaml
 
 logInfo = AutoProperty.logInfo
 

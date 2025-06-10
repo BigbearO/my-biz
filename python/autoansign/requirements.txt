@@ -1,10 +1,8 @@
-setuptools~=78.1.0
 airtest_mobileauto>=2.1.7.1
 rocketmq-python-client>=5.0.5
-keyboard==0.13.5
-#pyautogui todo 按钮也可以这个
+#keyboard==0.13.5
+pyautogui
 
 numpy~=1.26.4
 pyyaml~=6.0.2
 airtest~=1.3.5
-pip~=25.1.1

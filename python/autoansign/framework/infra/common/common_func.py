@@ -16,9 +16,9 @@ from airtest.core.api import sleep
 from airtest.core.api import swipe as swipe_o
 from airtest.core.api import touch as touch_o
 
-from frame.infra.common.auto_constants import AutoConstants
-from frame.infra.common.base_func import funs_name, fun_name, getPopen
-from frame.infra.common.property import AutoProperty
+from framework.infra.common.auto_constants import AutoConstants
+from framework.infra.common.base_func import funs_name, fun_name, getPopen
+from framework.infra.common.property import AutoProperty
 
 logInfo = AutoProperty.logInfo
 

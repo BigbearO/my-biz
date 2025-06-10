@@ -2,8 +2,8 @@ import os
 import traceback
 
 import yaml
-from frame.infra.common.base_func import funs_name
-from frame.infra.common.property import AutoProperty
+from frames.common.base_func import funs_name
+from frames.common.property import AutoProperty
 
 logInfo = AutoProperty.logInfo
 # todo 直接赋值实例化

@@ -1,12 +1,12 @@
 # 基本类，包含常规模拟器地址,任务类型等
-from abc import abstractmethod, ABC
+from abc import ABC
 
-import keyboard
+import pyautogui
 from airtest.core.api import connect_device, sleep
 from airtest.core.error import AirtestError
 
-from frame.infra.common.auto_constants import DeviceTypeEnum, AutoConstants
-from frame.task.ITask import ITask
+from framework.infra.common.auto_constants import DeviceTypeEnum, AutoConstants
+from framework.task.ITask import ITask
 
 
 # todo 之后加上重试这些机制
@@ -31,12 +31,13 @@ class BaseTask(ITask, ABC):
     return game == game_type
 
   def simulator_hide(self):
-    keyboard.press_and_release(AutoConstants.BossKey)  # 按下boss键
-
+    # keyboard.press_and_release()  # 按下boss键
+    pyautogui.hotkey(AutoConstants.BossKey)
 
 
   def simulator_show(self):
-    keyboard.press_and_release(AutoConstants.BossKey)  # 按下boss键
+    # keyboard.press_and_release(AutoConstants.BossKey)  # 按下boss键
+    pyautogui.hotkey(AutoConstants.BossKey)
 
   def device_is_connect(self):
     if not self.device:

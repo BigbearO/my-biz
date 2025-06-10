@@ -5,10 +5,10 @@ from multiprocessing import Process
 from airtest.core.android.adb import ADB
 from airtest.core.api import device
 
-from frame.infra.common.base_func import get_support_class
-from frame.infra.common.property import AutoProperty
-from frame.infra.utils.yaml_reader import readyaml
-from frame.task.BaseTask import BaseTask
+from framework.infra.common.base_func import get_support_class
+from framework.infra.common.property import AutoProperty
+from framework.infra.utils.yaml_reader import readyaml
+from framework.task.BaseTask import BaseTask
 
 logInfo = AutoProperty.logInfo
 

@@ -15,12 +15,12 @@ import numpy as np
 from airtest.core.api import sleep
 from airtest_mobileauto import fun_name
 
-from framework.common.auto_constants import AutoConstants
-from framework.common.base_func import funs_name
-from framework.common.common_func import save_yaml, exists, connect_status, \
+from frames.common.auto_constants import AutoConstants
+from frames.common.base_func import funs_name
+from frames.common.common_func import save_yaml, exists, connect_status, \
   touch
-from framework.common.property import AutoProperty
-from framework.common.yaml_reader import readyaml
+from frames.common.property import AutoProperty
+from frames.common.yaml_reader import readyaml
 
 logInfo = AutoProperty.logInfo
 # todo 优化

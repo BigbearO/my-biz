@@ -14,7 +14,7 @@ class AutoConstants:
   figdirs = [figdir]  # 默认的静态(图片)资源目录, 输入的优先级 figdir > "./" >  figdirs.append()
   BossKeydict = {18: "alt", 17: "ctrl", 16: "shift", 88: "x", 81: "q"}
   # todo 序列化
-  BossKey = 'Alt + q'  # 老板键,快速隐藏APP
+  BossKey = ['alt', 'q']  # 老板键,快速隐藏APP
   # todo 更改合适的包名
   connect_check_package="com.yuliang.wuziqigame"
   # 控制端
