@@ -17,6 +17,7 @@
         <langchain.version>1.0.1</langchain.version>
         <last.langchain.version>1.0.1-beta6</last.langchain.version>
         <sensitive.version>0.25.1</sensitive.version>
+        <mpj.version>1.5.3</mpj.version>
     </properties>
     <!--项目子模块-->
     <modules>

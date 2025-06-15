@@ -13,6 +13,8 @@ public class TestConsumer implements RocketMQListener<String> {
     public void onMessage(String message) {
         log.info("received message: {}", message);
     }
+
+
 }
 
 
