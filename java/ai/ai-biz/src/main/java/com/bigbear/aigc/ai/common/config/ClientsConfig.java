@@ -1,5 +1,7 @@
 package com.bigbear.aigc.ai.common.config;
 
+import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_3_5_TURBO;
+
 import cn.hutool.extra.spring.SpringUtil;
 import com.bigbear.aigc.ai.common.util.MyChatModelListener;
 import com.bigbear.aigc.ai.manager.PersistentChatMemoryStore;
@@ -14,23 +16,18 @@ import dev.langchain4j.model.TokenCountEstimator;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.chat.listener.ChatModelListener;
-
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 import dev.langchain4j.model.openai.OpenAiTokenCountEstimator;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
+import java.time.Duration;
 import lombok.RequiredArgsConstructor;
-import opennlp.tools.tokenize.Tokenizer;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.core.ValueOperations;
-
-import java.time.Duration;
-
-import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_3_5_TURBO;
 
 
 @AutoConfiguration

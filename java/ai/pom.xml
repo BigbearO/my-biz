@@ -14,8 +14,8 @@
     <description>1</description>
     <packaging>pom</packaging>
     <properties>
-        <langchain.version>1.0.1</langchain.version>
-        <last.langchain.version>1.0.1-beta6</last.langchain.version>
+        <langchain.version>1.1.0</langchain.version>
+        <last.langchain.version>1.1.0-beta7</last.langchain.version>
         <sensitive.version>0.25.1</sensitive.version>
         <mpj.version>1.5.3</mpj.version>
     </properties>
@@ -40,6 +40,14 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <dependency>
+                <groupId>org.springframework.ai</groupId>
+                <artifactId>spring-ai-bom</artifactId>
+                <version>1.0.0</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
             <!--            <dependency>-->
             <!--                <groupId>dev.langchain4j</groupId>-->
             <!--                <artifactId>langchain4j-mcp</artifactId>-->

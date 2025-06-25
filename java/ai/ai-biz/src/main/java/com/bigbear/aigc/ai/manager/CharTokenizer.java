@@ -1,7 +1,5 @@
 package com.bigbear.aigc.ai.manager;
 
-import dev.langchain4j.agent.tool.ToolExecutionRequest;
-import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.model.TokenCountEstimator;
 
