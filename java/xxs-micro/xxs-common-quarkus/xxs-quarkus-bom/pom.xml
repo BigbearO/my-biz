@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.bigbear</groupId>
+    <artifactId>xxs-common-quarkus</artifactId>
+    <version>${revision}</version>
+  </parent>
+  <artifactId>xxs-quarkus-bom</artifactId>
+  <name>${project.artifactId}</name>
+  <packaging>pom</packaging>
+  <!--  业务项目继承此依赖，可选依赖放这儿-->
+  <dependencyManagement>
+    <dependencies>
+
+    </dependencies>
+  </dependencyManagement>
+  <dependencies>
+    <dependency>
+      <groupId>com.bigbear</groupId>
+      <artifactId>xxs-quarkus-core</artifactId>
+      <version>${revision}</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <finalName>${project.name}</finalName>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+      </resource>
+    </resources>
+
+    <pluginManagement>
+      <!--  公共待选的插件放这儿  -->
+      <plugins>
+        <plugin>
+          <groupId>io.fabric8</groupId>
+          <artifactId>docker-maven-plugin</artifactId>
+          <version>${docker.plugin.version}</version>
+          <!--          todo docker 插件 使用下面的进行 打包，需要自定义容器镜像仓库地址这些 -->
+          <!--          <configuration>-->
+          <!--            &lt;!&ndash; Docker Remote Api&ndash;&gt;-->
+          <!--            <dockerHost>${docker.host}</dockerHost>-->
+          <!--            &lt;!&ndash; Docker 镜像私服&ndash;&gt;-->
+          <!--            <registry>${docker.registry}</registry>-->
+          <!--            &lt;!&ndash; 认证信息&ndash;&gt;-->
+          <!--            <authConfig>-->
+          <!--              <push>-->
+          <!--                <username>${docker.username}</username>-->
+          <!--                <password>${docker.password}</password>-->
+          <!--              </push>-->
+          <!--            </authConfig>-->
+          <!--            <images>-->
+          <!--              <image>-->
+          <!--                &lt;!&ndash; 镜像名称： 172.17.0.111/library/pig-gateway:2.6.3&ndash;&gt;-->
+          <!--                <name>${docker.registry}/${docker.namespace}/${project.name}:${project.version}</name>-->
+          <!--                <build>-->
+          <!--                  <dockerFile>${project.basedir}/Dockerfile</dockerFile>-->
+          <!--                </build>-->
+          <!--              </image>-->
+          <!--            </images>-->
+          <!--          </configuration>-->
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+
+</project>

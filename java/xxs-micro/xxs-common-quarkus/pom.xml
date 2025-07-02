@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.bigbear</groupId>
+    <artifactId>xxs-micro</artifactId>
+    <version>${revision}</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+  <version>${revision}</version>
+
+  <artifactId>xxs-common-quarkus</artifactId>
+  <packaging>pom</packaging>
+
+  <modules>
+    <module>xxs-quarkus-modules</module>
+  </modules>
+
+  <properties>
+
+        <my.version>1.0.0</my.version>
+    <maven.compiler.source>21</maven.compiler.source>
+    <maven.compiler.target>21</maven.compiler.target>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+
+    <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
+    <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
+    <quarkus.platform.version>3.24.1</quarkus.platform.version>
+    <surefire-plugin.version>3.5.3</surefire-plugin.version>
+
+    <flatten-maven-plugin.version>1.6.0</flatten-maven-plugin.version>
+    <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
+    <docker.plugin.version>0.45.1</docker.plugin.version>
+    <!--    <docker.host>http://192.168.0.100:2375</docker.host>-->
+    <!--    <docker.registry>registry.cn-shanghai.aliyuncs.com</docker.registry>-->
+    <!--    <docker.namespace>pig4cloud</docker.namespace>-->
+    <!--    <docker.username>username</docker.username>-->
+    <!--    <docker.password>password</docker.password>-->
+  </properties>
+
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>${quarkus.platform.group-id}</groupId>
+        <artifactId>${quarkus.platform.artifact-id}</artifactId>
+        <version>${quarkus.platform.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>${quarkus.platform.group-id}</groupId>
+        <artifactId>quarkus-amazon-services-bom</artifactId>
+        <version>${quarkus.platform.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.redisson</groupId>
+        <artifactId>redisson-quarkus-20</artifactId>
+        <version>3.50.0</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+
+  <build>
+    <plugins>
+      <!-- 统一 revision 版本 -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>flatten-maven-plugin</artifactId>
+        <version>${flatten-maven-plugin.version}</version>
+        <configuration>
+          <flattenMode>resolveCiFriendliesOnly</flattenMode>
+          <updatePomFile>true</updatePomFile>
+        </configuration>
+        <executions>
+          <execution>
+            <id>flatten</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>flatten</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>flatten.clean</id>
+            <phase>clean</phase>
+            <goals>
+              <goal>clean</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>${maven-compiler-plugin.version}</version>
+        <configuration>
+          <target>${maven.compiler.target}</target>
+          <source>${maven.compiler.source}</source>
+          <encoding>UTF-8</encoding>
+          <parameters>true</parameters>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${surefire-plugin.version}</version>
+        <configuration>
+          <systemPropertyVariables>
+            <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+            <maven.home>${maven.home}</maven.home>
+          </systemPropertyVariables>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>${surefire-plugin.version}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <systemPropertyVariables>
+            <native.image.path>${project.build.directory}/${project.build.finalName}-runner
+            </native.image.path>
+            <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+            <maven.home>${maven.home}</maven.home>
+          </systemPropertyVariables>
+        </configuration>
+      </plugin>
+    </plugins>
+
+
+  </build>
+
+</project>
