@@ -1,4 +1,4 @@
-package com.bigbear.order.biz.rest;
+package com.bigbear.upms.biz.trigger.rest;
 
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;

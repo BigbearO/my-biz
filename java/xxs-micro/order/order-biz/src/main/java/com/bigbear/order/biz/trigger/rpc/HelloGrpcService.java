@@ -1,8 +1,9 @@
-package com.bigbear.order.biz;
+package com.bigbear.order.biz.trigger.rpc;
 
-import com.xxs.HelloGrpc;
-import com.xxs.HelloReply;
-import com.xxs.HelloRequest;
+import com.bigbear.HelloGrpc;
+import com.bigbear.HelloReply;
+import com.bigbear.HelloRequest;
+import io.grpc.ManagedChannel;
 import io.quarkus.grpc.GrpcService;
 
 import io.smallrye.mutiny.Uni;
@@ -15,5 +16,7 @@ public class HelloGrpcService implements HelloGrpc {
         return Uni.createFrom().item("Hello " + request.getName() + "!")
                 .map(msg -> HelloReply.newBuilder().setMessage(msg).build());
     }
+
+//    ManagedChannel managedChannel;
 
 }

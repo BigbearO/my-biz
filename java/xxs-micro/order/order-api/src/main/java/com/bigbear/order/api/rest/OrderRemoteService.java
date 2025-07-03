@@ -20,8 +20,13 @@ import java.util.Set;
  *     }
  * }
  */
-//todo 怎么从注册中心拿地址
-@RegisterRestClient(baseUri = "https://stage.code.quarkus.io/api")
+//前缀就是configkey
+//# 配置 REST 客户端使用服务发现（而非固定 URL）
+//order/mp-rest/url=http://hello-service/api
+//order/mp-rest/discovery-enabled=true
+//order/mp-rest/service-name=hello-service
+//对应模块服务名
+@RegisterRestClient(configKey = "order")
 public interface OrderRemoteService {
 
     @GET

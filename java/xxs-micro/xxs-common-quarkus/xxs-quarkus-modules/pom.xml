@@ -16,6 +16,8 @@
   </properties>
   <modules>
     <module>xxs-quarkus-core</module>
+    <module>xxs-quarkus-grpc</module>
+    <module>xxs-quarkus-restrpc</module>
   </modules>
 
   <dependencies>
