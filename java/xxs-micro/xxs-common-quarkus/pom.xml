@@ -9,8 +9,8 @@
     <version>${revision}</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
-  <version>${revision}</version>
-
+<!--  todo 研究一下一旦自定义version之后处理-->
+<!--  <version>${my.version}</version>-->
   <artifactId>xxs-common-quarkus</artifactId>
   <packaging>pom</packaging>
 
@@ -19,7 +19,6 @@
   </modules>
 
   <properties>
-
     <my.version>1.0.0</my.version>
     <maven.compiler.source>21</maven.compiler.source>
     <maven.compiler.target>21</maven.compiler.target>

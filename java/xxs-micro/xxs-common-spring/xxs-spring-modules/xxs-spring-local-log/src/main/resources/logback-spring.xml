@@ -1,0 +1,142 @@
+<configuration>
+
+  <!--当前spring项目名称-->
+  <springProperty name="app-name" source="spring.application.name" defaultValue="no-app"/>
+
+
+  <!-- 控制台输出 - JSON格式 -->
+  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+      <providers>
+        <!-- 时间戳 -->
+        <timestamp>
+          <timeZone>UTC</timeZone>
+          <fieldName>timestamp</fieldName>
+        </timestamp>
+        <!-- 日志级别 -->
+        <logLevel>
+          <fieldName>level</fieldName>
+        </logLevel>
+
+        <!-- 线程名 -->
+        <threadName>
+          <fieldName>thread</fieldName>
+        </threadName>
+
+        <!-- 记录器名 -->
+        <loggerName>
+          <fieldName>logger</fieldName>
+        </loggerName>
+
+        <!-- 消息内容 -->
+        <message>
+          <fieldName>message</fieldName>
+        </message>
+
+        <!-- 堆栈跟踪 -->
+        <stackTrace>
+          <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
+            <maxDepthPerThrowable>30</maxDepthPerThrowable>
+            <maxLength>2048</maxLength>
+            <shortenedClassNameLength>20</shortenedClassNameLength>
+            <rootCauseFirst>true</rootCauseFirst>
+          </throwableConverter>
+        </stackTrace>
+
+        <!-- 上下文信息 -->
+        <context/>
+
+        <!-- 自定义字段 -->
+        <logstashMarkers/>
+
+        <!-- 应用自定义字段 -->
+        <arguments>
+          <includeNonStructuredArguments>true</includeNonStructuredArguments>
+        </arguments>
+
+        <!-- MDC字段 -->
+        <mdc>
+          <includeMdcKeyName>traceId</includeMdcKeyName>
+          <includeMdcKeyName>spanId</includeMdcKeyName>
+          <includeMdcKeyName>userId</includeMdcKeyName>
+        </mdc>
+
+        <!-- 模式匹配 -->
+        <pattern>
+          <pattern>
+            {
+            "app": "${app-name}",
+            "version": "${app.version:-1.0.0}"
+            }
+          </pattern>
+        </pattern>
+      </providers>
+    </encoder>
+  </appender>
+
+
+  <!-- 文件输出 - JSON格式 -->
+  <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>${LOG_FILE}</file>
+    <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+      <providers>
+        <timestamp/>
+        <logLevel/>
+        <threadName/>
+        <loggerName/>
+        <message/>
+        <stackTrace>
+          <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
+            <maxDepthPerThrowable>30</maxDepthPerThrowable>
+            <maxLength>2048</maxLength>
+            <shortenedClassNameLength>20</shortenedClassNameLength>
+          </throwableConverter>
+        </stackTrace>
+        <mdc/>
+        <context/>
+        <arguments/>
+        <pattern>
+          <pattern>
+            {
+            "app": "${app-name}",
+            "version": "${app.version:-1.0.0}",
+            "level": "%level",
+            "createTime": "%d{yyyy-MM-dd HH:mm:ss}",
+            "trace": "%X{X-B3-TraceId:-}",
+            "requestId": "%X{requestId}",
+            "span": "%X{X-B3-SpanId:-}",
+            "parent": "%X{X-B3-ParentSpanId:-}",
+            "thread": "%thread",
+            "className": "%logger{40}",
+            "message": "%message",
+            "stackTrace": "%exception{10}"
+            }
+          </pattern>
+        </pattern>
+      </providers>
+    </encoder>
+
+    <!-- 滚动策略：按时间和大小 -->
+    <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+      <!-- 每日滚动 -->
+      <fileNamePattern>${LOG_PATH}/application.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+      <!-- 每个文件最大100MB -->
+      <maxFileSize>50MB</maxFileSize>
+      <!-- 保留30天日志 -->
+      <maxHistory>30</maxHistory>
+      <!-- 所有日志文件总大小限制 -->
+      <totalSizeCap>5GB</totalSizeCap>
+      <!-- 启动时清理历史日志 -->
+      <cleanHistoryOnStart>true</cleanHistoryOnStart>
+    </rollingPolicy>
+  </appender>
+
+  <!-- 特定包/类的日志级别 -->
+<!--  <logger name="org.springframework" level="WARN"/>-->
+<!--  <logger name="com.bigbear" level="DEBUG"/>-->
+
+  <root level="INFO">
+    <appender-ref ref="CONSOLE"/>
+    <appender-ref ref="FILE"/>
+  </root>
+</configuration>

@@ -36,6 +36,7 @@
 
   <modules>
     <module>xxs-common-quarkus</module>
+    <module>xxs-common-spring</module>
   </modules>
   <dependencyManagement>
     <dependencies>

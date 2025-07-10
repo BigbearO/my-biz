@@ -21,6 +21,10 @@
    xxs-common-quarkus
    这俩定义为 pig 和 ruoyi 的最顶级父类项目
 
+https://code.quarkus.io/ 好像是项目生成 
+
+
+
 
 
 
@@ -35,7 +39,9 @@ Greeter  greeter
 然后在调用方配置文件配置，
 
 quarkus.grpc.clients.你在GrpcClient注解里面的服务名.host=dns:///grpc-hello-service 
-这里面就是  quarkus.grpc.clients.greeter.host=dns:///grpc-hello-service
+这里面就是  
+quarkus.grpc.clients.greeter.host=dns:///grpc-hello-service
+quarkus.grpc.clients.greeter.load-balancing-policy=round_robin 负载均衡-轮询策略，
 文档
 https://quarkus.io/guides/grpc-service-consumption
 
