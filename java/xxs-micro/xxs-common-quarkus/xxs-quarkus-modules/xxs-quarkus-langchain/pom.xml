@@ -1,0 +1,25 @@
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.bigbear</groupId>
+    <artifactId>xxs-quarkus-modules</artifactId>
+    <version>1.0.0</version>
+  </parent>
+  <artifactId>xxs-quarkus-langchain</artifactId>
+  <packaging>pom</packaging>
+  <name>project</name>
+  <dependencies>
+<!--     类似于 spring-starter ，无法创建复杂情况，需要自定义 -->
+    <dependency>
+      <groupId>io.quarkiverse.langchain4j</groupId>
+      <artifactId>quarkus-langchain4j-openai</artifactId>
+      <version>1.0.2</version>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkiverse.langchain4j</groupId>
+      <artifactId>quarkus-langchain4j-memory-store-redis</artifactId>
+      <version>1.0.2</version>
+    </dependency>
+  </dependencies>
+
+</project>

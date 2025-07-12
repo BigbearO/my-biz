@@ -1,0 +1,17 @@
+quarkus:
+  otel:
+    metrics:
+      enabled: true
+    logs:
+       enabled: true
+
+#       tracing 默认开启
+    exporter:
+      otlp:
+        logs:
+          endpoint: 'http://logs-uri:4317 '
+        metrics:
+          endpoint: 'http://metrics-uri:4317 '
+        traces:
+          endpoint: 'http://trace-uri:4317 '
+

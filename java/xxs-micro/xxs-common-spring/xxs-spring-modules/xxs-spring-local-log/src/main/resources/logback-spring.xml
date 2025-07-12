@@ -6,72 +6,7 @@
 
   <!-- 控制台输出 - JSON格式 -->
   <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-    <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
-      <providers>
-        <!-- 时间戳 -->
-        <timestamp>
-          <timeZone>UTC</timeZone>
-          <fieldName>timestamp</fieldName>
-        </timestamp>
-        <!-- 日志级别 -->
-        <logLevel>
-          <fieldName>level</fieldName>
-        </logLevel>
 
-        <!-- 线程名 -->
-        <threadName>
-          <fieldName>thread</fieldName>
-        </threadName>
-
-        <!-- 记录器名 -->
-        <loggerName>
-          <fieldName>logger</fieldName>
-        </loggerName>
-
-        <!-- 消息内容 -->
-        <message>
-          <fieldName>message</fieldName>
-        </message>
-
-        <!-- 堆栈跟踪 -->
-        <stackTrace>
-          <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
-            <maxDepthPerThrowable>30</maxDepthPerThrowable>
-            <maxLength>2048</maxLength>
-            <shortenedClassNameLength>20</shortenedClassNameLength>
-            <rootCauseFirst>true</rootCauseFirst>
-          </throwableConverter>
-        </stackTrace>
-
-        <!-- 上下文信息 -->
-        <context/>
-
-        <!-- 自定义字段 -->
-        <logstashMarkers/>
-
-        <!-- 应用自定义字段 -->
-        <arguments>
-          <includeNonStructuredArguments>true</includeNonStructuredArguments>
-        </arguments>
-
-        <!-- MDC字段 -->
-        <mdc>
-          <includeMdcKeyName>traceId</includeMdcKeyName>
-          <includeMdcKeyName>spanId</includeMdcKeyName>
-          <includeMdcKeyName>userId</includeMdcKeyName>
-        </mdc>
-
-        <!-- 模式匹配 -->
-        <pattern>
-          <pattern>
-            {
-            "app": "${app-name}",
-            "version": "${app.version:-1.0.0}"
-            }
-          </pattern>
-        </pattern>
-      </providers>
-    </encoder>
   </appender>
 
 

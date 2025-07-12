@@ -1,0 +1,40 @@
+
+otel:
+  propagators:
+    - tracecontext
+    - b3
+  resource:
+    attributes:
+      deployment.environment: dev
+      service:
+        name: cart
+        namespace: shop
+
+
+
+management:
+  otlp:
+    metrics:
+      export:
+        url: http://localhost:9090/api/v1/otlp/v1/metrics
+        step: 2s  # only for demo purposes
+        enabled: true
+    tracing:
+      endpoint: http://localhost:4318/v1/traces  # jager endpoint
+    logging:
+      compression: none
+
+  tracing:
+    sampling:
+      probability: 1.0  # send all traces for analysis
+
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http.client.requests: true  # enable histogram buckets for exemplars
+
+#  <appender name="OTEL" class="io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender">
+#  <encoder>
+#  <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} traceId=%X{traceId} spanId=%X{spanId} - %msg%n</pattern>
+#  </encoder>
+#  </appender>

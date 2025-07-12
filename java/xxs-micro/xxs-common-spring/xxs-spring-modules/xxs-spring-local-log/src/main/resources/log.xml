@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="false">
+
+  <!-- 定义 MDC 键 -->
+  <property name="LOG_PATTERN_JSON"
+    value="{&quot;time&quot;:&quot;%date{ISO8601}&quot;,&quot;level&quot;:&quot;%highlight(%level)&quot;,&quot;thread&quot;:&quot;%thread&quot;,&quot;logger&quot;:&quot;%logger&quot;,&quot;traceId&quot;:&quot;%X{traceId:-}&quot;,&quot;spanId&quot;:&quot;%X{spanId:-}&quot;,&quot;message&quot;:&quot;%replace(%msg){'\\&quot;','\\\\\\&quot;'}&quot;}%nopex%n"/>
+
+  <!-- 控制台输出 -->
+  <appender name="STDOUT_JSON" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>${LOG_PATTERN_JSON}</pattern>
+    </encoder>
+  </appender>
+
+  <!-- 文件输出 -->
+  <appender name="FILE_JSON" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>logs/app.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+      <!-- 每天一个文件，每个最大50MB -->
+      <fileNamePattern>logs/app.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+      <maxFileSize>50MB</maxFileSize>
+      <maxHistory>30</maxHistory>
+      <totalSizeCap>1GB</totalSizeCap>
+    </rollingPolicy>
+    <encoder>
+      <pattern>{"time":"%date{ISO8601}","level":"%level","thread":"%thread","logger":"%logger","traceId":"%X{traceId:-}","spanId":"%X{spanId:-}","message":"%msg"}%nopex%n</pattern>
+    </encoder>
+  </appender>
+
+  <!-- 异步写入日志文件 -->
+  <appender name="ASYNC_FILE" class="ch.qos.logback.classic.AsyncAppender">
+    <appender-ref ref="FILE_JSON"/>
+  </appender>
+
+  <!-- Spring Profile 支持 -->
+  <springProfile name="default,dev">
+    <root level="INFO">
+      <appender-ref ref="STDOUT_JSON"/>
+      <appender-ref ref="ASYNC_FILE"/>
+    </root>
+  </springProfile>
+
+  <springProfile name="prod">
+    <root level="INFO">
+      <appender-ref ref="ASYNC_FILE"/>
+    </root>
+  </springProfile>
+
+</configuration>

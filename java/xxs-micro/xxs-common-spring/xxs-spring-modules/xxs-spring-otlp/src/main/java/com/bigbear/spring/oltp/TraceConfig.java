@@ -35,7 +35,7 @@ public class TraceConfig {
         Resource serviceNameResource = Resource.create(
             Attributes.of(ServiceAttributes.SERVICE_NAME, name));
 
-        // Set to process the spans by the Zipkin Exporter
+
         SdkTracerProvider tracerProvider =
             SdkTracerProvider.builder()
                 .addSpanProcessor(spanProcessor)

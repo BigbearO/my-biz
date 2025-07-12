@@ -32,9 +32,11 @@ https://code.quarkus.io/ 好像是项目生成
 集成grpc
 在api模块 src/main/proto 增加proto文件，然后配置插件，自动生成代码
 在biz模块， 实现上述文件中 service定义的接口--也可HelloGrpcImplBase
-在调用方 加注解 proto 生成的service 接口 例如：
+在调用方 加注解 proto 生成的service 接口 例如： 
 @GrpcClient("greeter")
 Greeter  greeter
+
+//todo 好像 spring的starter @GrpcClient里面可以使用服务名直接进行服务发现？
 
 然后在调用方配置文件配置，
 

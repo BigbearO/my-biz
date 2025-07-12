@@ -18,6 +18,9 @@
     <module>xxs-quarkus-core</module>
     <module>xxs-quarkus-grpc</module>
     <module>xxs-quarkus-restrpc</module>
+    <module>xxs-quarkus-langchain</module>
+    <module>xxs-quarkus-otlp</module>
+    <module>xxs-quarkus-log</module>
   </modules>
 
   <dependencies>
@@ -25,6 +28,7 @@
       <groupId>org.redisson</groupId>
       <artifactId>redisson-quarkus-20</artifactId>
     </dependency>
+
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-reactive-mysql-client</artifactId>
