@@ -1,4 +1,4 @@
-package com.bigbear.quarkus.core.constants;
+package com.bigbear.quarkus.grpc.constants;
 
 import io.grpc.Metadata;
 

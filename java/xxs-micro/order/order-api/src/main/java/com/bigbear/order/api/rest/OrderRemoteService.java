@@ -27,6 +27,8 @@ import java.util.Set;
 //order/mp-rest/service-name=hello-service
 //对应模块服务名
 @RegisterRestClient(configKey = "order")
+//@RegisterRestClient(baseUri =  "stork://my-rest-service)
+//以stork:// 开始的baseUri使Stork能够发现服务，并根据负载平衡类型选择一个
 public interface OrderRemoteService {
 
     @GET

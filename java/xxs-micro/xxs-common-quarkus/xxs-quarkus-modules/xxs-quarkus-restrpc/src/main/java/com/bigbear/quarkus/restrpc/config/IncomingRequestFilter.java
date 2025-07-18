@@ -1,4 +1,4 @@
-package com.bigbear.quarkus.core.config;
+package com.bigbear.quarkus.restrpc.config;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.container.ContainerRequestContext;

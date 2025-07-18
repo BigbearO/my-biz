@@ -1,0 +1,6 @@
+
+
+quarkus:
+  rest-client:
+    my-service-api:
+      load-balancer-policy: round-robin

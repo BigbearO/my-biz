@@ -1,6 +1,6 @@
-package com.bigbear.quarkus.core.config;
+package com.bigbear.quarkus.grpc.config;
 
-import com.bigbear.quarkus.core.constants.GrpcHeaders;
+import com.bigbear.quarkus.grpc.constants.GrpcHeaders;
 import io.grpc.CallOptions;
 import io.grpc.Channel;
 import io.grpc.ClientCall;

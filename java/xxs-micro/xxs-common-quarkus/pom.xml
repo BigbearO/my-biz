@@ -59,14 +59,8 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
-<!--      <dependency>-->
-<!--        <groupId>org.redisson</groupId>-->
-<!--        <artifactId>redisson-quarkus-20</artifactId>-->
-<!--        <version>3.50.0</version>-->
-<!--      </dependency>-->
     </dependencies>
   </dependencyManagement>
-
 
   <build>
     <plugins>

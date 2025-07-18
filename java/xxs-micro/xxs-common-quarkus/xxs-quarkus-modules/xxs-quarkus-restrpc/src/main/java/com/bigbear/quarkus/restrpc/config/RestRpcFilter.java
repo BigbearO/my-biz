@@ -1,4 +1,5 @@
-package com.bigbear.quarkus.core.config;
+package com.bigbear.quarkus.restrpc.config;
+
 
 import com.bigbear.quarkus.core.constants.CommonConstants;
 import jakarta.inject.Singleton;
