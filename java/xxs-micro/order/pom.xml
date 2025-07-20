@@ -16,4 +16,11 @@
     <module>order-biz</module>
   </modules>
 
+  <dependencies>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-scheduler</artifactId>
+    </dependency>
+  </dependencies>
+
 </project>
