@@ -1,5 +1,7 @@
 package com.bigbear.quarkus.grpc.config;
 
+import com.bigbear.quarkus.core.util.HeaderUtils;
+import com.bigbear.quarkus.core.util.QuarkusUtil;
 import com.bigbear.quarkus.grpc.constants.GrpcHeaders;
 import io.grpc.CallOptions;
 import io.grpc.Channel;
@@ -28,9 +30,11 @@ public class AuthClientInterceptor implements ClientInterceptor {
         return new ForwardingClientCall.SimpleForwardingClientCall<ReqT, RespT>(next.newCall(method, callOptions)) {
             @Override
             public void start(Listener<RespT> responseListener, Metadata headers) {
+                // 添加额外头
+                HeaderUtils bean = QuarkusUtil.getBean(HeaderUtils.class);
+                String userId = bean.getUserId();
                 // 添加认证和用户信息
-                headers.put(GrpcHeaders.AUTH_TOKEN_HEADER,  "1" );
-                headers.put(GrpcHeaders.USER_ID_HEADER,"1"  );
+                headers.put(GrpcHeaders.USER_ID_HEADER, userId);
                 super.start(responseListener, headers);
             }
         };

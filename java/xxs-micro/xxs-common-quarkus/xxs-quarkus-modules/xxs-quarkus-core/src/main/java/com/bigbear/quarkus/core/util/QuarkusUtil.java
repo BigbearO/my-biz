@@ -16,10 +16,12 @@ public final class QuarkusUtil {
         // 私有构造方法，防止实例化
     }
 
+
     /**
      * 获取 Bean（如果未找到，返回 null）
      */
     public static <T> T getBean(Class<T> clazz) {
+        //  不生效就用  CDI.current().select(clazz)
         try (InstanceHandle<T> instance = Arc.container().instance(clazz)) {
             return instance.isAvailable() ? instance.get() : null;
         }

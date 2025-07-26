@@ -28,6 +28,7 @@ https://code.quarkus.io/ 好像是项目生成
 
 
 
+
 ## grpc
 集成grpc
 在api模块 src/main/proto 增加proto文件，然后配置插件，自动生成代码
@@ -103,8 +104,8 @@ public class RestClientHeaderFactory implements ClientHeadersFactory {
 ```
 
 
-
- todo 怎么从注册中心获取地址
+//  从当前请求中获取请求头数据，从而rpc获取user信息成功
+//todo restrpc 不能传递请求头,在filter处理了
 
 
 

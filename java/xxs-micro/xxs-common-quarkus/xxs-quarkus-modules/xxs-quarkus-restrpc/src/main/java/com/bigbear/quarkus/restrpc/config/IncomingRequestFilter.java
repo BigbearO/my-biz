@@ -1,31 +1,30 @@
 package com.bigbear.quarkus.restrpc.config;
 
+import com.bigbear.quarkus.core.constants.CommonConstants;
+import com.bigbear.quarkus.core.util.QuarkusUtil;
+import com.bigbear.quarkus.restrpc.util.HeaderUtils;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
+import jakarta.ws.rs.container.ContainerResponseContext;
+import jakarta.ws.rs.container.ContainerResponseFilter;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.ext.Provider;
 import java.io.IOException;
 
+//请求头传递
+
 @Provider
 @ApplicationScoped
-public class IncomingRequestFilter implements ContainerRequestFilter {
+public class IncomingRequestFilter implements ContainerResponseFilter {
 
-    // 存储当前请求的 Authorization 头
-    private static final ThreadLocal<String> authHeader = new ThreadLocal<>();
 
     @Override
-    public void filter(ContainerRequestContext requestContext) throws IOException {
-        // 从当前 HTTP 请求中获取 Authorization 头
-        String authorization = requestContext.getHeaderString(HttpHeaders.AUTHORIZATION);
-        authHeader.set(authorization);
-    }
-
-    public static String getCurrentAuthHeader() {
-        return authHeader.get();
-    }
-
-    public static void clear() {
-        authHeader.remove();
+    public void filter(ContainerRequestContext containerRequestContext,
+        ContainerResponseContext containerResponseContext) throws IOException {
+        String customHeader = containerRequestContext.getHeaderString(CommonConstants.USER_ID);
+        if (customHeader != null) {
+            containerRequestContext.getHeaders().add(CommonConstants.USER_ID, customHeader);
+        }
     }
 }

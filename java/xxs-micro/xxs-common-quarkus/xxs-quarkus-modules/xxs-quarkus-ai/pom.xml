@@ -3,7 +3,7 @@
   <parent>
     <groupId>com.bigbear</groupId>
     <artifactId>xxs-quarkus-modules</artifactId>
-    <version>1.0.0</version>
+    <version>${revision}</version>
   </parent>
   <artifactId>xxs-quarkus-ai</artifactId>
   <packaging>pom</packaging>

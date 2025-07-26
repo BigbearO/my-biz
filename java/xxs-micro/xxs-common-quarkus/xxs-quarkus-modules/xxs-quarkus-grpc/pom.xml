@@ -23,6 +23,7 @@
       <artifactId>quarkus-grpc</artifactId>
     </dependency>
 
+
   </dependencies>
 
 </project>

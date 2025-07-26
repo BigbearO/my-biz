@@ -1,0 +1,24 @@
+quarkus:
+  grpc:
+    server:
+      use-separate-server:  false  # 提供两种grpc,false Use the Vert.x based server,否则就是netty
+    clients:
+      hello:
+        use-quarkus-grpc-client: true # 'Use client using the Vert.x based transport'
+
+        # 使用 Stork 进行服务发现
+#        quarkus.grpc.clients.my-service.host=stork://my-service  # stork:// 协议触发服务发现
+#        quarkus.grpc.clients.my-service.name-resolver-factory=io.quarkus.grpc.runtime.StorkNameResolverProvider
+#  tls:
+#    key-store:
+#      p12:
+#        path: grpc-tls-keystore.p12
+#        password: '*****'
+#  http:
+#    insecure-requests: disabled
+
+
+#  使用下面的进行负载均衡
+
+#  quarkus.stork.my-service.service-discovery.type=consul
+#  quarkus.grpc.clients.my-service.load-balancing-policy=round_robin

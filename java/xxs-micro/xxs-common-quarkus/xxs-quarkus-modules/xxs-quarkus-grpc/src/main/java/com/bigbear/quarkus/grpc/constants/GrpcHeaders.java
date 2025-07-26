@@ -1,5 +1,6 @@
 package com.bigbear.quarkus.grpc.constants;
 
+import com.bigbear.quarkus.core.constants.CommonConstants;
 import io.grpc.Metadata;
 
 public interface GrpcHeaders {
