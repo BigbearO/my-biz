@@ -90,17 +90,7 @@ quarkus集成，grpc，并通过consul注册中心实现服务发现
     <groupId>io.quarkus</groupId>
     <artifactId>quarkus-resteasy-multipart</artifactId>
 </dependency>
-
-4 自定义Header
-在第一节已经说过了，在接口定义上添加@RegisterClientHeaders(RestClientHeaderFactory.class)
-这个注解来指定我们自定义Hearder的实现。
-参考
-public class RestClientHeaderFactory implements ClientHeadersFactory {
-    @Override
-    public MultivaluedMap<String, String> update(MultivaluedMap<String, String> incomingHeaders, MultivaluedMap<String, String> clientOutgoingHeaders) {
-        return incomingHeaders;
-    }
-}
+ 
 ```
 
 
@@ -108,6 +98,9 @@ public class RestClientHeaderFactory implements ClientHeadersFactory {
 //todo restrpc 不能传递请求头,在filter处理了
 
 
+
+参考这个 ，集成xxl
+https://github.com/naah69/quarkus-xxl-job
 
 ## todo 
 

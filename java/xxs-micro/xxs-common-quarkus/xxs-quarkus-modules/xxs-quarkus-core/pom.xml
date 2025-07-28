@@ -26,7 +26,7 @@
 <!--      <artifactId>quarkus-undertow</artifactId>-->
 <!--    </dependency>-->
 
-
+<!--服务发现与注册-->
 
     <dependency>
       <groupId>io.smallrye.stork</groupId>
@@ -72,6 +72,8 @@
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-arc</artifactId>
     </dependency>
+
+<!--    基础 web -->
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-rest</artifactId>
@@ -89,10 +91,6 @@
 
     <dependency>
       <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-rest-client-jsonb</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.quarkus</groupId>
       <artifactId>quarkus-rest-client-jackson</artifactId>
     </dependency>
 
@@ -106,6 +104,7 @@
       <artifactId>rest-assured</artifactId>
       <scope>test</scope>
     </dependency>
+<!-- 暂时都用jackson -->
 
 
   </dependencies>
@@ -116,15 +115,6 @@
         <!--         生成扫描索引-->
         <groupId>io.smallrye</groupId>
         <artifactId>jandex-maven-plugin</artifactId>
-        <version>3.3.2</version>
-        <executions>
-          <execution>
-            <id>make-index</id>
-            <goals>
-              <goal>jandex</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
     </plugins>
   </build>
