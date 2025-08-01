@@ -21,7 +21,3 @@ func init() {
 	}
 
 }
-
-func test() {
-
-}
