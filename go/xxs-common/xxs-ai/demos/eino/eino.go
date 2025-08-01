@@ -1,4 +1,4 @@
-package eino
+package main
 
 import (
 	"context"
