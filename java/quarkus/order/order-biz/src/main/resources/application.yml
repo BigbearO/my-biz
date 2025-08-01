@@ -14,5 +14,8 @@ quarkus:
     server:
       use-separate-server: false  # 提供两种grpc,false Use the Vert.x based server,否则就是netty
     clients:
-      hello:
+      userGrpc:
         use-quarkus-grpc-client: true # 'Use client using the Vert.x based transport'
+        host: pig-job
+        port: 8899
+        load-balancing-policy: round_robin

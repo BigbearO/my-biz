@@ -19,6 +19,6 @@ public class MemberTask {
 
         // 分页查找，也可以根据数据分片来
 //        autoGameService.task();
-        System.out.println("123");
+        System.out.println("sendAutoTask");
     }
 }

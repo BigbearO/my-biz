@@ -10,9 +10,11 @@ import io.grpc.ClientInterceptor;
 import io.grpc.ForwardingClientCall;
 import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
-import jakarta.inject.Singleton;
+import io.quarkus.grpc.GlobalInterceptor;
+import jakarta.enterprise.context.ApplicationScoped;
 
-@Singleton
+@ApplicationScoped
+@GlobalInterceptor
 public class AuthClientInterceptor implements ClientInterceptor {
 
 //    todo 在这里根据实现方式，获取数据，在下面的方法中调用注入
@@ -33,6 +35,7 @@ public class AuthClientInterceptor implements ClientInterceptor {
                 // 添加额外头
                 HeaderUtils bean = QuarkusUtil.getBean(HeaderUtils.class);
                 String userId = bean.getUserId();
+                System.out.println("222:"+userId);
                 // 添加认证和用户信息
                 headers.put(GrpcHeaders.USER_ID_HEADER, userId);
                 super.start(responseListener, headers);

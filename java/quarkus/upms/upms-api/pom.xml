@@ -32,6 +32,12 @@
         </dependency>
 
         <dependency>
+            <groupId>com.bigbear</groupId>
+            <artifactId>xxs-quarkus-grpc</artifactId>
+            <version>${revision}</version>
+        </dependency>
+
+        <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-oidc-client</artifactId>
         </dependency>
@@ -56,10 +62,7 @@
 <!--            <groupId>io.quarkus</groupId>-->
 <!--            <artifactId>quarkus-jdbc-postgresql</artifactId>-->
 <!--        </dependency>-->
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-grpc</artifactId>
-        </dependency>
+
         <dependency>
             <groupId>io.quarkiverse.config</groupId>
             <artifactId>quarkus-config-consul</artifactId>
