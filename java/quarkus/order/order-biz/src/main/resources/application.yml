@@ -2,7 +2,10 @@ greeting:
   message: "hello"
 
 
+
 quarkus:
+  application:
+    name: order
   http:
     port: 8802
     cors:
@@ -16,7 +19,23 @@ quarkus:
     clients:
       userGrpc:
         use-quarkus-grpc-client: true # 'Use client using the Vert.x based transport'
-#        host: pig-job
+        host: userGrpc
 #        port: 8899
-#        使用这个后
+#        使用注册中心后，host，port就不配置，使用 @GrpcClient("userGrpc")后，待验证
         load-balancing-policy: round_robin
+  stork:
+    order:
+      service-registrar:
+        type: consul
+      service-discovery:
+        type: consul
+  consul-config:
+    enabled: false
+    properties-value-keys: config/${quarkus.application.name}
+    agent:
+      host-port: ${consul.host}:${consul.port:8500}
+
+
+consul:
+  host: 192.168.50.250
+  port: 8500
