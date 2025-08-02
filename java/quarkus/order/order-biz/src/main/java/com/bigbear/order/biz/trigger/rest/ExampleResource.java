@@ -25,7 +25,7 @@ public class ExampleResource {
     @RestClient
     UserRemoteService userRemoteService;
 
-    @GrpcClient
+    @GrpcClient("userGrpc")
     UserGrpc userGrpc;
 
     @GET

@@ -16,6 +16,7 @@ quarkus:
     clients:
       userGrpc:
         use-quarkus-grpc-client: true # 'Use client using the Vert.x based transport'
-        host: pig-job
-        port: 8899
+#        host: pig-job
+#        port: 8899
+#        使用这个后
         load-balancing-policy: round_robin

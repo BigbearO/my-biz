@@ -21,13 +21,9 @@ public class UserGrpcService implements UserGrpc {
 
     @Override
     public Uni<UserInfo> getUserInfo(UserInfoReq request) {
-        System.out.println(111);
         UserInfo userInfo=  UserInfo.newBuilder().setUserName("xxs")
             .build();
         String o = MetadataInterceptor.USER.get();
-        Object o2 = Context.key(CommonConstants.CLIENT_ID).get();
-        System.out.println("userId:"+o);
-        System.out.println("client2:"+o2);
 
         Uni<UserInfo> item = Uni.createFrom().item(userInfo);
         return item;
