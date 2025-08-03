@@ -4,6 +4,7 @@ import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
 import io.vertx.ext.consul.ConsulClient;
 import io.vertx.ext.consul.ServiceOptions;
+import io.vertx.mutiny.core.Vertx;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
 import jakarta.enterprise.inject.Instance;
@@ -18,6 +19,7 @@ public class ServiceLifecycle {
 
     @ConfigProperty(name = "quarkus.application.name")
     String appName;
+
     private int port;
 
     private Logger logger;
@@ -46,6 +48,7 @@ public class ServiceLifecycle {
             }, 3000, TimeUnit.MILLISECONDS);
         }
     }
+
 
     void onStop(@Observes ShutdownEvent ev) {
         if (consulClient.isResolvable()) {

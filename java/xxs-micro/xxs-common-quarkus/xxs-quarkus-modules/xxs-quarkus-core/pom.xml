@@ -11,6 +11,8 @@
   <artifactId>xxs-quarkus-core</artifactId>
 
   <dependencies>
+
+<!--    服务注册与发现-->
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-smallrye-stork</artifactId>
@@ -20,13 +22,14 @@
       <artifactId>stork-service-discovery-consul</artifactId>
     </dependency>
 
-
-<!--    <dependency>-->
-<!--      <groupId>io.quarkus</groupId>-->
-<!--      <artifactId>quarkus-undertow</artifactId>-->
-<!--    </dependency>-->
-
-<!--服务发现与注册-->
+    <dependency>
+      <groupId>io.smallrye.stork</groupId>
+      <artifactId>stork-service-registration-consul</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.smallrye.reactive</groupId>
+      <artifactId>smallrye-mutiny-vertx-consul-client</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>io.smallrye.stork</groupId>
@@ -44,7 +47,6 @@
       <groupId>io.smallrye.stork</groupId>
       <artifactId>stork-service-discovery-kubernetes</artifactId>
     </dependency>
-
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-kubernetes-client</artifactId>
@@ -54,14 +56,26 @@
       <artifactId>stork-service-discovery-static-list</artifactId>
     </dependency>
 
-    <dependency>
-      <groupId>io.smallrye.stork</groupId>
-      <artifactId>stork-service-registration-consul</artifactId>
-    </dependency>
 
+<!--    服务注册发现结束-->
+
+<!-- 负载均衡-->
     <dependency>
       <groupId>io.smallrye.stork</groupId>
       <artifactId>stork-load-balancer-random</artifactId>
+    </dependency>
+
+<!-- todo 服务核心依赖  基础 web 这些-->
+    <!--    暂时沿用jboss-->
+    <!-- 暂时都用jackson -->
+    <!--    <dependency>-->
+    <!--      <groupId>io.quarkus</groupId>-->
+    <!--      <artifactId>quarkus-undertow</artifactId>-->
+    <!--    </dependency>-->
+<!--    todo 从配置中心读取-->
+    <dependency>
+      <groupId>io.quarkiverse.config</groupId>
+      <artifactId>quarkus-config-consul</artifactId>
     </dependency>
 
     <dependency>
@@ -72,18 +86,14 @@
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-arc</artifactId>
     </dependency>
-
-<!--    基础 web -->
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-rest</artifactId>
     </dependency>
-
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-rest-jackson</artifactId>
     </dependency>
-
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-rest-client</artifactId>
@@ -104,7 +114,7 @@
       <artifactId>rest-assured</artifactId>
       <scope>test</scope>
     </dependency>
-<!-- 暂时都用jackson -->
+
 
 
   </dependencies>

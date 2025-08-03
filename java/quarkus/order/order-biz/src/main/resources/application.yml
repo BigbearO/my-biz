@@ -24,16 +24,26 @@ quarkus:
 #        使用注册中心后，host，port就不配置，使用 @GrpcClient("userGrpc")后，待验证
         load-balancing-policy: round_robin
   stork:
+
     order:
       service-registrar:
         type: consul
       service-discovery:
         type: consul
+        consul-host: 192.168.50.250
+        consul-port: 8500
   consul-config:
     enabled: false
     properties-value-keys: config/${quarkus.application.name}
     agent:
       host-port: ${consul.host}:${consul.port:8500}
+  swagger-ui:
+    always-include: 'true'
+  smallrye-openapi:
+    info-title: quarkus微服务-订单模块
+    info-version: 1.0.0
+    info-description: 订单模块
+
 
 
 consul:
