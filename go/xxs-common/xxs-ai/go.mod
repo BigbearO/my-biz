@@ -1,4 +1,4 @@
-module xxs-ai
+module bigbear.com/xxs-ai
 
 go 1.23.0
 

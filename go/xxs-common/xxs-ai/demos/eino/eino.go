@@ -1,10 +1,15 @@
 package main
 
 import (
+	"bigbear.com/xxs-ai/common/client"
 	"context"
 	"log"
-	"xxs-ai/common/client"
 )
+
+// z之后参考
+
+//Notion笔记链接：https://mirage-thought-d06.notion.site/Eino-21d747825dae807ca9b3ff601c655f4a
+//github仓库：https://github.com/Wood-Q/AwesomeEino
 
 func main() {
 	ctx := context.Background()

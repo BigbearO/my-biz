@@ -1,8 +1,8 @@
 package main
 
 import (
+	"bigbear.com/xxs-ai/common/config"
 	"fmt"
-	"xxs-ai/common/config"
 )
 
 func main() {
