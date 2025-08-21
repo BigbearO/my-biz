@@ -4,6 +4,11 @@ server:
 spring:
   application:
     name: @artifactId@
+  ai:
+    mcp:
+      server:
+        name: ${spring.application.name}
+        version: 1.0.0
   cloud:
     nacos:
       username: @nacos.username@
