@@ -9,6 +9,9 @@ spring:
       server:
         name: ${spring.application.name}
         version: 1.0.0
+    chat:
+      client:
+        enabled: false # 禁用 ChatClient.Builder 自动配置,方便手动创建多个 ChatClient 实例。
   cloud:
     nacos:
       username: @nacos.username@

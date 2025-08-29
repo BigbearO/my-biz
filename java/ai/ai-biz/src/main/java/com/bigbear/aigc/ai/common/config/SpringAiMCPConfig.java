@@ -2,6 +2,8 @@ package com.bigbear.aigc.ai.common.config;
 
 import com.bigbear.aigc.ai.service.CustomerService;
 import java.util.List;
+import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.support.ToolCallbacks;
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.context.annotation.Bean;
@@ -15,4 +17,19 @@ public class SpringAiMCPConfig {
     public List<ToolCallback> crmTools(CustomerService customerService) {
         return List.of(ToolCallbacks.from(customerService));
     }
+
+
+    @Bean
+    public ChatClient openAiChatClient(OpenAiChatModel chatModel) {
+
+          ChatClient chatClient = ChatClient.create(chatModel);
+
+        // 或使用构建器以获得更多控制
+        ChatClient.Builder builder = ChatClient.builder(chatModel);
+//          chatClient = builder
+//            .defaultSystem("你是一个乐于助人的助手。")
+//            .build();
+        return chatClient;
+    }
+
 }
