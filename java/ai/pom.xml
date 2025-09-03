@@ -14,8 +14,10 @@
     <description>1</description>
     <packaging>pom</packaging>
     <properties>
-        <langchain.version>1.3.0</langchain.version>
-        <last.langchain.version>1.3.0-beta9</last.langchain.version>
+        <langchain.version>1.4.0</langchain.version>
+        <spring-ai.version>1.0.1</spring-ai.version>
+        <spring-ai-ali.version>1.0.0.3</spring-ai-ali.version>
+        <last.langchain.version>1.4.0-beta10</last.langchain.version>
         <sensitive.version>0.25.1</sensitive.version>
         <mpj.version>1.5.3</mpj.version>
     </properties>
@@ -43,14 +45,14 @@
             <dependency>
                 <groupId>org.springframework.ai</groupId>
                 <artifactId>spring-ai-bom</artifactId>
-                <version>1.0.1</version>
+                <version>${spring-ai.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
             <dependency>
                 <groupId>com.alibaba.cloud.ai</groupId>
                 <artifactId>spring-ai-alibaba-bom</artifactId>
-                <version>1.0.0.2</version>
+                <version>${spring-ai-ali.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
