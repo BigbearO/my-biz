@@ -14,8 +14,8 @@
     <description>1</description>
     <packaging>pom</packaging>
     <properties>
-        <langchain.version>1.4.0</langchain.version>
-        <spring-ai.version>1.0.1</spring-ai.version>
+        <langchain.version>1.5.0</langchain.version>
+        <spring-ai.version>1.0.2</spring-ai.version>
         <spring-ai-ali.version>1.0.0.3</spring-ai-ali.version>
         <last.langchain.version>1.4.0-beta10</last.langchain.version>
         <sensitive.version>0.25.1</sensitive.version>
