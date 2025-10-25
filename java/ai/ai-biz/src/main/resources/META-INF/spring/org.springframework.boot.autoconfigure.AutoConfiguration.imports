@@ -1,2 +1,2 @@
-com.bigbear.aigc.ai.common.config.ClientsConfig
-com.bigbear.aigc.ai.common.config.UtilConfig
+com.bigbear.aigc.biz.common.config.ClientsConfig
+com.bigbear.aigc.biz.common.config.UtilConfig

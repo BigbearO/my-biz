@@ -1,1 +1,0 @@
-package com.bigbear.aigc.ai.feign;

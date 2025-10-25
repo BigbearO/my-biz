@@ -1,69 +1,87 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-    <modelVersion>4.0.0</modelVersion>
+  <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>com.pig4cloud</groupId>
-        <artifactId>pig</artifactId>
-        <version>3.8.3</version>
-    </parent>
-    <groupId>com.bigbear</groupId>
-    <artifactId>ai</artifactId>
-    <description>1</description>
-    <packaging>pom</packaging>
-    <properties>
-        <langchain.version>1.6.0</langchain.version>
-        <spring-ai.version>1.0.2</spring-ai.version>
-        <spring-ai-ali.version>1.0.0.4</spring-ai-ali.version>
-        <last.langchain.version>1.6.0-beta12</last.langchain.version>
-        <sensitive.version>0.25.1</sensitive.version>
-        <mpj.version>1.5.3</mpj.version>
-    </properties>
-    <!--项目子模块-->
-    <modules>
-        <module>ai-api</module>
-        <module>ai-biz</module>
-    </modules>
+  <parent>
+    <groupId>org.dromara</groupId>
+    <artifactId>ruoyi-cloud-plus</artifactId>
+    <version>2.5.0</version>
+  </parent>
+  <groupId>com.bigbear</groupId>
+  <artifactId>ai</artifactId>
+  <description>1</description>
+  <packaging>pom</packaging>
+  <version>1.0.0</version>
+  <properties>
+    <langchain.version>1.7.1</langchain.version>
+    <langgraph.version>1.6.5</langgraph.version>
+    <spring-ai.version>1.0.3</spring-ai.version>
+    <spring-ai-ali.version>1.0.0.4</spring-ai-ali.version>
+    <last.langchain.version>1.7.1-beta14</last.langchain.version>
+    <sensitive.version>0.25.1</sensitive.version>
+    <mpj.version>1.5.4</mpj.version>
+  </properties>
+  <!--项目子模块-->
+  <modules>
+    <module>ai-api</module>
+    <module>ai-biz</module>
+  </modules>
 
-    <dependencyManagement>
-        <dependencies>
-            <!--            社区支持不在bom里面-->
-            <dependency>
-                <groupId>dev.langchain4j</groupId>
-                <artifactId>langchain4j-community-dashscope</artifactId>
-                <version>${last.langchain.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>dev.langchain4j</groupId>
-                <artifactId>langchain4j-bom</artifactId>
-                <version>${langchain.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.ai</groupId>
-                <artifactId>spring-ai-bom</artifactId>
-                <version>${spring-ai.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.alibaba.cloud.ai</groupId>
-                <artifactId>spring-ai-alibaba-bom</artifactId>
-                <version>${spring-ai-ali.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
+  <dependencies>
+    <dependency>
+      <groupId>com.alibaba</groupId>
+      <artifactId>fastjson</artifactId>
+    </dependency>
+  </dependencies>
 
-            <!--            <dependency>-->
-            <!--                <groupId>dev.langchain4j</groupId>-->
-            <!--                <artifactId>langchain4j-mcp</artifactId>-->
-            <!--                <version>${langchain.version}</version>-->
-            <!--            </dependency>-->
+  <dependencyManagement>
+    <dependencies>
+      <!--            社区支持不在bom里面-->
+      <dependency>
+        <groupId>dev.langchain4j</groupId>
+        <artifactId>langchain4j-community-dashscope</artifactId>
+        <version>${last.langchain.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>dev.langchain4j</groupId>
+        <artifactId>langchain4j-bom</artifactId>
+        <version>${langchain.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.bsc.langgraph4j</groupId>
+        <artifactId>langgraph4j-bom</artifactId>
+        <version>${langgraph.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework.ai</groupId>
+        <artifactId>spring-ai-bom</artifactId>
+        <version>${spring-ai.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.alibaba.cloud.ai</groupId>
+        <artifactId>spring-ai-alibaba-bom</artifactId>
+        <version>${spring-ai-ali.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+
+      <!--            <dependency>-->
+      <!--                <groupId>dev.langchain4j</groupId>-->
+      <!--                <artifactId>langchain4j-mcp</artifactId>-->
+      <!--                <version>${langchain.version}</version>-->
+      <!--            </dependency>-->
 
 
-        </dependencies>
-    </dependencyManagement>
+    </dependencies>
+  </dependencyManagement>
 </project>
