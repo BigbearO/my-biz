@@ -22,8 +22,7 @@ public class SpringAiMCPConfig {
     @Bean
     public ChatClient openAiChatClient(OpenAiChatModel chatModel) {
 
-          ChatClient chatClient = ChatClient.create(chatModel);
-
+        ChatClient chatClient = ChatClient.create(chatModel);
         // 或使用构建器以获得更多控制
         ChatClient.Builder builder = ChatClient.builder(chatModel);
 //          chatClient = builder

@@ -17,7 +17,7 @@
   <version>1.0.0</version>
   <properties>
     <langchain.version>1.7.1</langchain.version>
-    <langgraph.version>1.6.5</langgraph.version>
+    <langgraph.version>1.7.1</langgraph.version>
     <spring-ai.version>1.0.3</spring-ai.version>
     <spring-ai-ali.version>1.0.0.4</spring-ai-ali.version>
     <last.langchain.version>1.7.1-beta14</last.langchain.version>
@@ -28,12 +28,15 @@
   <modules>
     <module>ai-api</module>
     <module>ai-biz</module>
+    <module>ai-starter</module>
   </modules>
 
   <dependencies>
+    <!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
     <dependency>
-      <groupId>com.alibaba</groupId>
-      <artifactId>fastjson</artifactId>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>33.5.0-jre</version>
     </dependency>
   </dependencies>
 
@@ -52,7 +55,11 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
-
+      <dependency>
+        <groupId>com.github.houbb</groupId>
+        <artifactId>sensitive-word</artifactId>
+        <version>${sensitive.version}</version>
+      </dependency>
       <dependency>
         <groupId>org.bsc.langgraph4j</groupId>
         <artifactId>langgraph4j-bom</artifactId>
@@ -84,4 +91,56 @@
 
     </dependencies>
   </dependencyManagement>
+
+  <profiles>
+
+    <profile>
+      <id>xhf</id>
+      <properties>
+        <!-- 环境标识，需要与配置文件的名称相对应 -->
+        <profiles.active>xhf</profiles.active>
+        <nacos.server>127.0.0.1:8848</nacos.server>
+        <nacos.discovery.group>DEFAULT_GROUP</nacos.discovery.group>
+        <nacos.config.group>DEFAULT_GROUP</nacos.config.group>
+        <nacos.username>nacos</nacos.username>
+        <nacos.password>nacos</nacos.password>
+        <logstash.address>127.0.0.1:4560</logstash.address>
+      </properties>
+      <activation>
+        <!-- 默认环境 -->
+        <activeByDefault>true</activeByDefault>
+      </activation>
+    </profile>
+
+    <profile>
+      <id>dev</id>
+      <properties>
+        <!-- 环境标识，需要与配置文件的名称相对应 -->
+        <profiles.active>dev</profiles.active>
+        <nacos.server>127.0.0.1:8848</nacos.server>
+        <nacos.discovery.group>DEFAULT_GROUP</nacos.discovery.group>
+        <nacos.config.group>DEFAULT_GROUP</nacos.config.group>
+        <nacos.username>nacos</nacos.username>
+        <nacos.password>nacos</nacos.password>
+        <logstash.address>127.0.0.1:4560</logstash.address>
+      </properties>
+      <activation>
+        <!-- 默认环境 -->
+        <!--                <activeByDefault>true</activeByDefault>-->
+      </activation>
+    </profile>
+    <profile>
+      <id>prod</id>
+      <properties>
+        <profiles.active>prod</profiles.active>
+        <nacos.server>127.0.0.1:8848</nacos.server>
+        <nacos.discovery.group>DEFAULT_GROUP</nacos.discovery.group>
+        <nacos.config.group>DEFAULT_GROUP</nacos.config.group>
+        <nacos.username>nacos</nacos.username>
+        <nacos.password>nacos</nacos.password>
+        <logstash.address>127.0.0.1:4560</logstash.address>
+      </properties>
+    </profile>
+
+  </profiles>
 </project>

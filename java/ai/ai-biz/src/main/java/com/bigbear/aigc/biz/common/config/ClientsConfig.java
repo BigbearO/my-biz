@@ -5,6 +5,7 @@ import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_3_5_TURBO;
 import cn.hutool.extra.spring.SpringUtil;
 import com.bigbear.aigc.biz.common.util.MyChatModelListener;
 import com.bigbear.aigc.biz.manager.PersistentChatMemoryStore;
+import com.bigbear.aigc.biz.manager.DbChatMemoryStore;
 import com.bigbear.aigc.biz.service.ChatAssistant;
 import com.bigbear.aigc.biz.service.PetDoctor;
 import dev.langchain4j.community.model.dashscope.QwenChatModel;
@@ -51,7 +52,7 @@ public class ClientsConfig {
 
     @Bean
     @Primary
-    public ChatModel myChatModel() {
+    public OpenAiChatModel myChatModel() {
 
         return OpenAiChatModel.builder()
                 .timeout(Duration.ofSeconds(10)) //10s超时
@@ -122,6 +123,15 @@ public class ClientsConfig {
                 .chatModel(ChatModel)
                 .chatMemoryProvider(chatMemoryProvider())
                 .build();
+    }
+
+    @Bean
+    public ChatMemoryProvider pgChatMemory(DbChatMemoryStore pgChatMemoryStore) {
+        return memoryId ->  MessageWindowChatMemory.builder()
+            .id(memoryId)
+            .maxMessages(10)
+            .chatMemoryStore(pgChatMemoryStore)
+            .build();
     }
 
 

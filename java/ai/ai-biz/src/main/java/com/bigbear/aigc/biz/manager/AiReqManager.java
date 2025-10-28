@@ -3,7 +3,7 @@ package com.bigbear.aigc.biz.manager;
 import cn.hutool.http.HttpRequest;
 import com.alibaba.fastjson.JSONObject;
 import com.bigbear.aigc.biz.common.property.LLMProperties;
-import com.bigbear.aigc.biz.domain.entity.dto.AiReqDTO;
+import com.bigbear.aigc.biz.domain.dto.AiReqDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

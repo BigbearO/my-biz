@@ -9,34 +9,35 @@ import org.springframework.data.redis.core.ValueOperations;
 
 import java.util.List;
 
-import static dev.langchain4j.data.message.ChatMessageDeserializer.messagesFromJson;
-import static dev.langchain4j.data.message.ChatMessageSerializer.messagesToJson;
+import dev.langchain4j.data.message.ChatMessageDeserializer;
+import dev.langchain4j.data.message.ChatMessageSerializer;
 
 @Slf4j
 @RequiredArgsConstructor
 public class PersistentChatMemoryStore implements ChatMemoryStore {
-	public static String storeKeyPrefix = "storeKeyPrefix:";
 
-	private final ValueOperations<String, String> valueOperations;
+    public static String storeKeyPrefix = "storeKeyPrefix:";
 
-	public static String getKey(Object id) {
-		return storeKeyPrefix + id;
-	}
+    private final ValueOperations<String, String> valueOperations;
 
-	@Override
-	public List<ChatMessage> getMessages(Object memoryId) {
-		val messages = valueOperations.get(getKey(memoryId));
-		return messagesFromJson(messages);
-	}
+    public static String getKey(Object id) {
+        return storeKeyPrefix + id;
+    }
 
-	@Override
-	public void updateMessages(Object memoryId, List<ChatMessage> messages) {
-		String json = messagesToJson(messages); // 序列化消息
-		valueOperations.set(getKey(memoryId), json);
-	}
+    @Override
+    public List<ChatMessage> getMessages(Object memoryId) {
+        val messages = valueOperations.get(getKey(memoryId));
+        return ChatMessageDeserializer.messagesFromJson(messages);
+    }
 
-	@Override
-	public void deleteMessages(Object memoryId) {
-		valueOperations.getOperations().delete(getKey(memoryId));
-	}
+    @Override
+    public void updateMessages(Object memoryId, List<ChatMessage> messages) {
+        String json = ChatMessageSerializer.messagesToJson(messages); // 序列化消息
+        valueOperations.set(getKey(memoryId), json);
+    }
+
+    @Override
+    public void deleteMessages(Object memoryId) {
+        valueOperations.getOperations().delete(getKey(memoryId));
+    }
 }

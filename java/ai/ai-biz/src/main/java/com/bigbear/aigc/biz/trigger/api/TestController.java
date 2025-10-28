@@ -1,4 +1,4 @@
-package com.bigbear.aigc.biz.trigger.controller;
+package com.bigbear.aigc.biz.trigger.api;
 
 import com.alibaba.fastjson.JSONObject;
 import com.bigbear.aigc.biz.service.ChatService;

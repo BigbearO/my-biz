@@ -1,4 +1,4 @@
-package com.bigbear.aigc.biz.domain.entity.dto;
+package com.bigbear.aigc.biz.domain.dto;
 
 import com.bigbear.aigc.domain.enums.AiContentEnums;
 import lombok.Getter;

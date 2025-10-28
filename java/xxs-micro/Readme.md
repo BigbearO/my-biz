@@ -104,6 +104,14 @@ https://github.com/naah69/quarkus-xxl-job
 
 ## todo 
 
-go-zero能否 配置rpc和http使用同一端口
-https://cloud.tencent.com/developer/article/2514784
+ 1 封装 pig 的 依赖 pom.xml文件
+ 1 封装 ruoyi-plus 的 依赖 pom。xml文件
+
+两个都是必需项放dependency ，可选项目就放dependencyManagement
+都是将 实际项目模块的依赖迁移
+
+
+
+
+
 

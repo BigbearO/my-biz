@@ -1,0 +1,75 @@
+package com.bigbear.aigc.biz.manager;
+
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import dev.langchain4j.memory.chat.ChatMemoryProvider;
+import dev.langchain4j.model.openai.OpenAiChatModel;
+import dev.langchain4j.service.AiServices;
+import jakarta.annotation.Resource;
+import java.time.Duration;
+import java.util.concurrent.ExecutionException;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import lombok.val;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
+@Slf4j
+@Component
+public class AiServiceContainer {
+
+    /**
+     * 最大缓存条目数（LRU 淘汰触发点）
+     */
+    private long maximumSize = 1_00;
+
+    /**
+     * 写入后多久过期
+     */
+    private Duration ttl = Duration.ofMinutes(60);
+
+    private final Cache<String, Object> cache = CacheBuilder.newBuilder()
+        .maximumSize(maximumSize)        // LRU 淘汰
+        .expireAfterWrite(ttl)           // TTL
+        .recordStats()                   // 可选统计
+        .expireAfterAccess(ttl) //每次获取就续期
+        .build();
+
+    @Resource
+    @Qualifier("myChatModel")
+    private  OpenAiChatModel myChatModel;
+
+    @Resource
+    @Qualifier("pgChatMemory")
+    private ChatMemoryProvider pgChatMemory;
+
+
+    /* ---------- 对外 API ---------- */
+    @SuppressWarnings("unchecked")
+    public <V> V get(String key, Class<V> clazz) {
+        try {
+            val v = (V) cache.get(key, () -> AiServiceBuilder(clazz));
+            return v;
+        } catch (ExecutionException e) {
+            throw new RuntimeException("Cache loader failed for key=" + key, e.getCause());
+        }
+    }
+
+
+    public void evict(String key) {
+        cache.invalidate(key);
+    }
+
+    public void clear() {
+        cache.invalidateAll();
+
+    }
+
+
+    public   <V> V AiServiceBuilder(Class<V> clazz) {
+        return AiServices.builder(clazz)
+            .chatModel(myChatModel)
+            .chatMemoryProvider(pgChatMemory)
+            .build();
+    }
+}

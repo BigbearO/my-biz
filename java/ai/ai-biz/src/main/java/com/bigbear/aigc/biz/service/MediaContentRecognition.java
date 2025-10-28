@@ -1,6 +1,6 @@
 package com.bigbear.aigc.biz.service;
 
-import com.bigbear.aigc.biz.domain.entity.dto.AiReqDTO;
+import com.bigbear.aigc.biz.domain.dto.AiReqDTO;
 import com.bigbear.aigc.domain.enums.AiContentEnums;
 import com.bigbear.aigc.biz.manager.AiReqManager;
 import dev.langchain4j.data.message.*;
