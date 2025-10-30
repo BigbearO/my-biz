@@ -16,6 +16,9 @@
   <packaging>pom</packaging>
   <version>1.0.0</version>
   <properties>
+    <maven.compiler.source>21</maven.compiler.source>
+    <maven.compiler.target>21</maven.compiler.target>
+    <java.version>21</java.version>
     <langchain.version>1.7.1</langchain.version>
     <langgraph.version>1.7.1</langgraph.version>
     <spring-ai.version>1.0.3</spring-ai.version>
@@ -29,6 +32,7 @@
     <module>ai-api</module>
     <module>ai-biz</module>
     <module>ai-starter</module>
+<!--    <module>xxs-goodfish-starter</module>-->
   </modules>
 
   <dependencies>

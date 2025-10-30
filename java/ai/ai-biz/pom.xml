@@ -1,153 +1,157 @@
 <?xml version="1.0"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
             http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>com.bigbear</groupId>
-        <artifactId>ai</artifactId>
-        <version>1.0.0</version>
-    </parent>
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.bigbear</groupId>
+    <artifactId>ai</artifactId>
+    <version>1.0.0</version>
+  </parent>
 
-    <artifactId>ai-biz</artifactId>
-    <packaging>jar</packaging>
+  <artifactId>ai-biz</artifactId>
+  <packaging>jar</packaging>
 
-    <description>ai 业务模块</description>
-
-
-    <dependencies>
-        <!--必备: 依赖api模块-->
-        <dependency>
-            <groupId>com.bigbear</groupId>
-            <artifactId>ai-api</artifactId>
-            <version>1.0.0</version>
-        </dependency>
-
-      <dependency>
-            <groupId>com.bigbear</groupId>
-            <artifactId>ai-starter</artifactId>
-            <version>1.0.0</version>
-        </dependency>
-
-      <dependency>
-        <groupId>org.dromara</groupId>
-        <artifactId>ruoyi-common-core</artifactId>
-      </dependency>
-      <dependency>
-        <groupId>org.dromara</groupId>
-        <artifactId>ruoyi-common-redis</artifactId>
-      </dependency>
+  <description>ai 业务模块</description>
 
 
-        <dependency>
-            <groupId>com.github.yulichang</groupId>
-            <artifactId>mybatis-plus-join-boot-starter</artifactId>
-            <version>${mpj.version}</version>
-        </dependency>
-      <dependency>
-        <groupId>org.postgresql</groupId>
-        <artifactId>postgresql</artifactId>
-      </dependency>
+  <dependencies>
+    <!--必备: 依赖api模块-->
+    <dependency>
+      <groupId>com.bigbear</groupId>
+      <artifactId>ai-api</artifactId>
+      <version>1.0.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.bigbear</groupId>
+      <artifactId>ai-starter</artifactId>
+      <version>1.0.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.bigbear</groupId>
+      <artifactId>xxs-goodfish-starter</artifactId>
+      <version>1.0.0</version>
+    </dependency>
 
 
-
-      <dependency>
-        <groupId>org.dromara</groupId>
-        <artifactId>ruoyi-common-nacos</artifactId>
-      </dependency>
-
-      <!-- RuoYi Common Log -->
-      <dependency>
-        <groupId>org.dromara</groupId>
-        <artifactId>ruoyi-common-log</artifactId>
-      </dependency>
-
-      <dependency>
-        <groupId>org.dromara</groupId>
-        <artifactId>ruoyi-common-service-impl</artifactId>
-      </dependency>
-
-      <dependency>
-        <groupId>org.dromara</groupId>
-        <artifactId>ruoyi-common-doc</artifactId>
-      </dependency>
-
-      <dependency>
-        <groupId>org.dromara</groupId>
-        <artifactId>ruoyi-common-web</artifactId>
-      </dependency>
-      <dependency>
-        <groupId>org.postgresql</groupId>
-        <artifactId>postgresql</artifactId>
-      </dependency>
-      <dependency>
-        <groupId>org.dromara</groupId>
-        <artifactId>ruoyi-common-mybatis</artifactId>
-      </dependency>
-
-      <dependency>
-        <groupId>org.dromara</groupId>
-        <artifactId>ruoyi-common-dubbo</artifactId>
-      </dependency>
-
-<!--      <dependency>-->
-<!--        <groupId>org.dromara</groupId>-->
-<!--        <artifactId>ruoyi-common-seata</artifactId>-->
-<!--      </dependency>-->
-
-      <dependency>
-        <groupId>org.dromara</groupId>
-        <artifactId>ruoyi-common-idempotent</artifactId>
-      </dependency>
-
-      <dependency>
-        <groupId>org.dromara</groupId>
-        <artifactId>ruoyi-common-tenant</artifactId>
-      </dependency>
-
-      <dependency>
-        <groupId>org.dromara</groupId>
-        <artifactId>ruoyi-common-security</artifactId>
-      </dependency>
-
-      <dependency>
-        <groupId>org.dromara</groupId>
-        <artifactId>ruoyi-common-translation</artifactId>
-      </dependency>
-
-      <dependency>
-        <groupId>org.dromara</groupId>
-        <artifactId>ruoyi-common-sensitive</artifactId>
-      </dependency>
-
-      <dependency>
-        <groupId>org.dromara</groupId>
-        <artifactId>ruoyi-common-encrypt</artifactId>
-      </dependency>
-
-      <!-- RuoYi Api System -->
-      <dependency>
-        <groupId>org.dromara</groupId>
-        <artifactId>ruoyi-api-system</artifactId>
-      </dependency>
-
-      <dependency>
-        <groupId>org.dromara</groupId>
-        <artifactId>ruoyi-api-resource</artifactId>
-      </dependency>
-
-      <!-- RuoYi Api System -->
-      <dependency>
-        <groupId>org.dromara</groupId>
-        <artifactId>ruoyi-api-workflow</artifactId>
-      </dependency>
+    <dependency>
+      <groupId>org.dromara</groupId>
+      <artifactId>ruoyi-common-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.dromara</groupId>
+      <artifactId>ruoyi-common-redis</artifactId>
+    </dependency>
 
 
+    <dependency>
+      <groupId>com.github.yulichang</groupId>
+      <artifactId>mybatis-plus-join-boot-starter</artifactId>
+      <version>${mpj.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+    </dependency>
 
 
-    </dependencies>
+    <dependency>
+      <groupId>org.dromara</groupId>
+      <artifactId>ruoyi-common-nacos</artifactId>
+    </dependency>
 
-    <profiles> </profiles>
+    <!-- RuoYi Common Log -->
+    <dependency>
+      <groupId>org.dromara</groupId>
+      <artifactId>ruoyi-common-log</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.dromara</groupId>
+      <artifactId>ruoyi-common-service-impl</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.dromara</groupId>
+      <artifactId>ruoyi-common-doc</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.dromara</groupId>
+      <artifactId>ruoyi-common-web</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.dromara</groupId>
+      <artifactId>ruoyi-common-mybatis</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.dromara</groupId>
+      <artifactId>ruoyi-common-dubbo</artifactId>
+    </dependency>
+
+    <!--      <dependency>-->
+    <!--        <groupId>org.dromara</groupId>-->
+    <!--        <artifactId>ruoyi-common-seata</artifactId>-->
+    <!--      </dependency>-->
+
+    <dependency>
+      <groupId>org.dromara</groupId>
+      <artifactId>ruoyi-common-idempotent</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.dromara</groupId>
+      <artifactId>ruoyi-common-tenant</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.dromara</groupId>
+      <artifactId>ruoyi-common-security</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.dromara</groupId>
+      <artifactId>ruoyi-common-translation</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.dromara</groupId>
+      <artifactId>ruoyi-common-sensitive</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.dromara</groupId>
+      <artifactId>ruoyi-common-encrypt</artifactId>
+    </dependency>
+
+    <!-- RuoYi Api System -->
+    <dependency>
+      <groupId>org.dromara</groupId>
+      <artifactId>ruoyi-api-system</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.dromara</groupId>
+      <artifactId>ruoyi-api-resource</artifactId>
+    </dependency>
+
+    <!-- RuoYi Api System -->
+    <dependency>
+      <groupId>org.dromara</groupId>
+      <artifactId>ruoyi-api-workflow</artifactId>
+    </dependency>
+
+
+  </dependencies>
+
+  <profiles></profiles>
 
 </project>

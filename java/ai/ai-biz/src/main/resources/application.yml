@@ -8,9 +8,9 @@ spring:
     dynamic:
       seata: false
   profiles:
-    active: @profiles.active@
+    active: ai
   application:
-    name: @artifactId@
+    name: ai-biz
   data:
     redis:
         # 需要使用数字

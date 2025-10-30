@@ -1,9 +1,13 @@
 package com.bigbear.aigc.biz.service;
 
+import cn.hutool.extra.spring.SpringUtil;
+import cn.hutool.json.JSONUtil;
 import com.bigbear.aigc.biz.domain.entity.ItemEntity;
 import com.bigbear.aigc.biz.domain.entity.ItemInfo;
-import com.bigbear.aigc.biz.manager.ItemManager;
+import com.bigbear.aigc.biz.manager.AiServiceContainer;
 import com.bigbear.aigc.biz.manager.DbChatMemoryStore;
+import com.bigbear.aigc.biz.manager.ItemManager;
+import com.bigbear.aistarter.core.IAiService;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
@@ -21,6 +25,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileCopyUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * 基于RAG的商品对话服务
@@ -40,6 +45,9 @@ public class ItemChatService implements InitializingBean {
 
     public UserMessage emotionPrompt;
 
+    String sysPrompt;
+    String userPrompt;
+
     @Value("${goodfish.system-prompt}")
     Resource systemPromptResource;
 
@@ -52,10 +60,16 @@ public class ItemChatService implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        itemRolePrompt = SystemMessage.from(
-            new String(FileCopyUtils.copyToByteArray(systemPromptResource.getInputStream())));
-        emotionPrompt = UserMessage.from(
-            new String(FileCopyUtils.copyToByteArray(emotionPromptResource.getInputStream())));
+        sysPrompt = new String(
+            FileCopyUtils.copyToByteArray(systemPromptResource.getInputStream()));
+
+        itemRolePrompt = SystemMessage.from(sysPrompt);
+        userPrompt = new String(
+            FileCopyUtils.copyToByteArray(emotionPromptResource.getInputStream()));
+
+        emotionPrompt = UserMessage.from(userPrompt);
+
+
     }
 
     /**
@@ -67,6 +81,8 @@ public class ItemChatService implements InitializingBean {
      * @param userQuery      用户问题
      * @return AI回复
      */
+
+    @Deprecated
     public String chat(String tenantId, Long itemId, String conversationId, String userQuery) {
         try {
             // 生成memoryId
@@ -105,11 +121,51 @@ public class ItemChatService implements InitializingBean {
             // 保存对话历史
             chatMemory.add(response.aiMessage());
 
-
-
-
             log.info("商品对话完成: tenantId={}, itemId={}, conversationId={}",
                 tenantId, itemId, conversationId);
+
+            return aiResponse;
+
+        } catch (Exception e) {
+            log.error("商品对话失败: {}", e.getMessage(), e);
+            return "对话处理失败，请稍后重试";
+        }
+    }
+
+    // todo
+    //  1 将商品信息组织上下文  2 加上Rag
+    public String chat(Long itemId, String conversationId, String question) {
+        try {
+            // 生成memoryId
+            String memoryId;
+
+            if (StringUtils.hasLength(conversationId)) {
+                memoryId = conversationId;
+            } else {
+                memoryId = itemId + "_" + conversationId;
+            }
+
+            // 获取商品信息
+            ItemEntity itemInfo = itemManager.getById(itemId);
+            if (itemInfo == null) {
+                log.info("未找到指定商品信息:id={}", itemId);
+                return "";
+            }
+
+            AiServiceContainer serviceContainer = SpringUtil.getBean(AiServiceContainer.class);
+
+            IAiService aiService = serviceContainer.get(itemId.toString(), IAiService.class);
+
+            String formatted = """
+                基于以下要求和商品信息生成你的回复
+                要求： %s
+                商品信息: %s
+                """.formatted(userPrompt,JSONUtil.toJsonStr(itemInfo));
+            // 调用LLM进行回复
+            String aiResponse = aiService.chatWithSystem(memoryId, sysPrompt, formatted, question);
+
+            log.info("商品对话完成:, itemId={}, conversationId={}",
+                itemId, conversationId);
 
             return aiResponse;
 

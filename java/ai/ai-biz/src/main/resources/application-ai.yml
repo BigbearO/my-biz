@@ -1,0 +1,31 @@
+spring:
+  datasource:
+    dynamic:
+      # 设置默认的数据源或者数据源组,默认值即为 master
+      primary: master
+      datasource:
+        # 主库数据源
+        master:
+          type: ${spring.datasource.type}
+          driver-class-name: org.postgresql.Driver
+          url: ${datasource.system-master.url}
+          username: ${datasource.system-master.username}
+          password: ${datasource.system-master.password}
+  ai:
+    mcp:
+      server:
+        name: ${spring.application.name}
+        version: 1.0.0
+    chat:
+      client:
+        enabled: false # 禁用 ChatClient.Builder 自动配置,方便手动创建多个 ChatClient 实例。
+    openai:
+      api-key: your_openai_api_key
+      base-url: https://api.openai.com/v1
+      chat:
+        api-key: asdasda
+        options:
+          model: gpt-3.5-turbo
+      audio:
+        speech:
+          api-key: asdasda

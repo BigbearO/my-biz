@@ -20,6 +20,7 @@ public class ChatService {
 	private final SensitiveWordBs sensitiveWordBs;
 
 	private final RedisTemplate<String, Object> redisTemplate;
+
 	@Resource(name = "myChatModel")
 	private ChatModel ChatModel;
 

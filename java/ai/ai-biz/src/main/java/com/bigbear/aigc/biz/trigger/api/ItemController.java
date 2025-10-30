@@ -36,7 +36,7 @@ import org.springframework.web.bind.annotation.RestController;
  * 商品服务控制器
  */
 @RestController
-@RequestMapping("/api/item")
+@RequestMapping("/item")
 @RequiredArgsConstructor
 public class ItemController extends BaseController {
 
@@ -121,7 +121,7 @@ public class ItemController extends BaseController {
         @RequestParam Long itemId,
         @RequestParam String conversationId,
         @RequestBody ChatRequest request) {
-        return itemChatService.chat(tenantId, itemId, conversationId, request.getQuery());
+        return itemChatService.chat(itemId,conversationId, request.getQuery());
     }
 
     /**

@@ -21,6 +21,9 @@ public class ItemEntity {
     // 关联的闲鱼平台商品id
     private String itemId;
 
+    private String tenantId;
+
+
     @TableField(typeHandler = com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler.class)
     private String data;
 

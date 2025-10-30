@@ -48,8 +48,7 @@ public class AiServiceContainer {
     @SuppressWarnings("unchecked")
     public <V> V get(String key, Class<V> clazz) {
         try {
-            val v = (V) cache.get(key, () -> AiServiceBuilder(clazz));
-            return v;
+            return (V) cache.get(key, () -> AiServiceBuilder(clazz));
         } catch (ExecutionException e) {
             throw new RuntimeException("Cache loader failed for key=" + key, e.getCause());
         }
