@@ -1,0 +1,40 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/xianyu_agent
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+  application:
+    name: xianyu-auto-agent
+  sql:
+    init:
+      schema-locations: classpath:schema.sql
+      mode: always
+
+mybatis-plus:
+  mapper-locations: classpath*:mapper/**/*.xml
+  type-aliases-package: com.xianyu.agent.model
+  configuration:
+    map-underscore-to-camel-case: true
+
+xianyu:
+  websocket:
+    url: wss://wss-goofish.dingtalk.com/
+    heartbeat-interval: 15 # 心跳间隔，单位秒
+    heartbeat-timeout: 5 # 心跳超时，单位秒
+  token:
+    refresh-interval: 3600 # Token刷新间隔，单位秒
+    retry-interval: 300 # Token重试间隔，单位秒
+  message:
+    expire-time: 300000 # 消息过期时间，单位毫秒
+  manual-mode:
+    timeout: 3600 # 人工接管超时时间，单位秒
+    toggle-keywords: "。"
+
+# 日志配置
+logging:
+  level:
+    root: INFO
+    com.xianyu.agent: DEBUG
+  pattern:
+    console: '%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n'
