@@ -14,6 +14,7 @@ import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.openai.OpenAiChatModel;
+import dev.langchain4j.model.output.TokenUsage;
 import dev.langchain4j.store.embedding.EmbeddingStore;
 import java.util.ArrayList;
 import java.util.List;
@@ -116,6 +117,9 @@ public class ItemChatService implements InitializingBean {
 
             // 调用LLM进行回复
             ChatResponse response = myChatModel.chat(messages);
+            //todo 异步的 保持消耗的token
+            response.tokenUsage();
+
             String aiResponse = response.aiMessage().text();
 
             // 保存对话历史

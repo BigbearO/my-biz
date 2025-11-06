@@ -32,7 +32,8 @@
     <module>ai-api</module>
     <module>ai-biz</module>
     <module>ai-starter</module>
-<!--    <module>xxs-goodfish-starter</module>-->
+    <module>ai-goodfish</module>
+    <!--    <module>xxs-goodfish-starter</module>-->
   </modules>
 
   <dependencies>
@@ -41,6 +42,12 @@
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
       <version>33.5.0-jre</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.bigbear</groupId>
+      <artifactId>xxs-common-core</artifactId>
+      <version>1.0.0</version>
     </dependency>
   </dependencies>
 

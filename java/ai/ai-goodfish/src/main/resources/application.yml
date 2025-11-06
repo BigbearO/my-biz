@@ -1,0 +1,58 @@
+server:
+  port: 7001
+
+
+
+spring:
+  datasource:
+    dynamic:
+      seata: false
+  profiles:
+    active: ai
+  application:
+    name: ai-biz
+  data:
+    redis:
+        # 需要使用数字
+      timeout: 10000
+      database: 0
+      host: 192.168.50.45
+      port: 6379
+      # redis 密码必须配置
+      password: 123456
+      ssl.enabled: false
+  cloud:
+    nacos:
+      server-addr: @nacos.server@
+      username: @nacos.username@
+      password: @nacos.password@
+      discovery:
+        # 注册组
+        group: @nacos.discovery.group@
+        namespace: @profiles.active@
+      config:
+        # 配置组
+        group: @nacos.config.group@
+        namespace: @profiles.active@
+  config:
+    import:
+      - nacos:application-common.yml
+      - nacos:datasource.yml
+      - nacos:${spring.application.name}.yml
+
+
+
+langchain4j:
+  open-ai:
+    chat-model:
+      # 课程测试 KEY，需要更换为实际可用 KEY
+      api-key: sk-xxx
+      model-name: qwen-turbo
+      # 百炼兼容OpenAI接口规范，base_url为https://dashscope.aliyuncs.com/compatible-mode/v1
+      base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
+
+
+goodfish:
+  system-prompt: "classpath:prompts/system-prompt.txt"
+  emotion-prompt: "classpath:prompts/emotion-prompt.txt"
+

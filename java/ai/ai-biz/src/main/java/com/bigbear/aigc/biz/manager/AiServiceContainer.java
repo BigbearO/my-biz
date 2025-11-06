@@ -69,6 +69,8 @@ public class AiServiceContainer {
         return AiServices.builder(clazz)
             .chatModel(myChatModel)
             .chatMemoryProvider(pgChatMemory)
+            //todo 构建tokenlistener 参考https://langchain4j.cn/tutorials/observability.html#%E8%81%8A%E5%A4%A9%E6%A8%A1%E5%9E%8B%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7-chat-model-observability
+            .registerListeners()
             .build();
     }
 }

@@ -1,0 +1,27 @@
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.bigbear</groupId>
+    <artifactId>xxs-micro</artifactId>
+    <version>1.0.0</version>
+  </parent>
+
+
+  <artifactId>xxs-common-core</artifactId>
+
+  <name>xxs-common-core</name>
+  <modules>
+
+  </modules>
+  <build>
+    <pluginManagement>
+      <plugins>
+      </plugins>
+    </pluginManagement>
+  </build>
+  <dependencyManagement>
+    <dependencies>
+    </dependencies>
+  </dependencyManagement>
+
+</project>

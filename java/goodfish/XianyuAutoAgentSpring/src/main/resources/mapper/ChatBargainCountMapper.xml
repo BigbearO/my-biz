@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bigbear.goodfish.domain.mapper.ChatBargainCountMapper">
+
+    <select id="selectByChatId" resultType="com.bigbear.goodfish.domain.entity.ChatBargainCount">
+        SELECT * FROM chat_bargain_counts
+        WHERE chat_id = #{chatId}
+    </select>
+
+    <update id="incrementCount">
+        INSERT INTO chat_bargain_counts (chat_id, count, last_updated)
+        VALUES (#{chatId}, 1, NOW())
+        ON CONFLICT (chat_id)
+        DO UPDATE SET count = chat_bargain_counts.count + 1, last_updated = NOW()
+    </update>
+</mapper>

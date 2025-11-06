@@ -1,0 +1,1 @@
+https://githubfast.com/shaxiu/XianyuAutoAgent.git
