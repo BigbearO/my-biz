@@ -1,7 +1,7 @@
 package com.bigbear.goodfish.api.controller;
 
 import com.bigbear.goodfish.domain.service.WebSocketService;
-import com.bigbear.goodfish.infrastructure.client.XianyuApiClient;
+import com.bigbear.goodfish.infrastructure.client.GoodFishApiClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,11 +17,11 @@ import java.util.Map;
 @RequestMapping("/api/xianyu")
 public class XianyuController {
 
-    private final XianyuApiClient xianyuApiClient;
+    private final GoodFishApiClient goodFishApiClient;
     private final WebSocketService webSocketService;
 
-    public XianyuController(XianyuApiClient xianyuApiClient, WebSocketService webSocketService) {
-        this.xianyuApiClient = xianyuApiClient;
+    public XianyuController(GoodFishApiClient goodFishApiClient, WebSocketService webSocketService) {
+        this.goodFishApiClient = goodFishApiClient;
         this.webSocketService = webSocketService;
     }
 

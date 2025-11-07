@@ -4,7 +4,7 @@ package com.bigbear.goodfish.infrastructure.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.bigbear.goodfish.domain.service.WebSocketService;
-import com.bigbear.goodfish.infrastructure.client.XianyuApiClient;
+import com.bigbear.goodfish.infrastructure.client.GoodFishApiClient;
 import com.bigbear.goodfish.infrastructure.config.XianyuConfig;
 import com.bigbear.goodfish.infrastructure.util.XianyuUtils;
 import jakarta.annotation.PostConstruct;
@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit;
 public class WebSocketServiceImpl implements WebSocketService {
 
     private final XianyuConfig xianyuConfig;
-    private final XianyuApiClient xianyuApiClient;
+    private final GoodFishApiClient goodFishApiClient;
 
     private final String   baseUrl = "wss://wss-goofish.dingtalk.com/";
     private String cookiesStr;
@@ -49,12 +49,15 @@ public class WebSocketServiceImpl implements WebSocketService {
     private ScheduledExecutorService scheduler;
 
     // 人工接管相关
-    private Set<String> manualModeConversations = ConcurrentHashMap.newKeySet();
-    private Map<String, LocalDateTime> manualModeTimestamps = new ConcurrentHashMap<>();
+    private final Set<String> manualModeConversations = ConcurrentHashMap.newKeySet();
+    private final Map<String, LocalDateTime> manualModeTimestamps = new ConcurrentHashMap<>();
 
-    public WebSocketServiceImpl(XianyuConfig xianyuConfig, XianyuApiClient xianyuApiClient) {
+    //ws只能监听账号级别的，接受到消息之后再获取商品信息进行处理，key是userId,暂定userId是闲鱼的账号id,v 一个socketService，不在spring管理
+    private final Map<String, Object> accountSocketMap = new ConcurrentHashMap<>();
+
+    public WebSocketServiceImpl(XianyuConfig xianyuConfig, GoodFishApiClient goodFishApiClient) {
         this.xianyuConfig = xianyuConfig;
-        this.xianyuApiClient = xianyuApiClient;
+        this.goodFishApiClient = goodFishApiClient;
     }
 
 
@@ -70,11 +73,14 @@ public class WebSocketServiceImpl implements WebSocketService {
     @Override
     public void initConnection(String cookiesStr) {
         this.cookiesStr = cookiesStr;
+        // 构建 account
+        // todo-x 这些个之后再说回去用 那个改好了的复制一下
         this.cookies = XianyuUtils.transCookies(cookiesStr);
         this.myid = cookies.get("unb");
         this.deviceId = XianyuUtils.generateDeviceId(myid);
 
         // 获取初始token
+        // todo-x，改造成 socket 内部的方法
         refreshToken();
 
         // 建立WebSocket连接
@@ -292,7 +298,7 @@ public class WebSocketServiceImpl implements WebSocketService {
             log.info("开始刷新token...");
 
             // 调用API获取新token
-            Map<String, Object> tokenResult = xianyuApiClient.getToken(deviceId);
+            Map<String, Object> tokenResult = goodFishApiClient.getToken(deviceId);
 
             if (tokenResult != null && tokenResult.containsKey("data")) {
                 Map<String, Object> data = (Map<String, Object>) tokenResult.get("data");

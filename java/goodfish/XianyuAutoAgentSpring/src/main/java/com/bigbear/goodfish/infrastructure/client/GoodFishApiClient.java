@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Slf4j
 @Component
-public class XianyuApiClient {
+public class GoodFishApiClient {
 
     private final String url = "https://h5api.m.goofish.com/h5/mtop.taobao.idlemessage.pc.login.token/1.0/";
     private final HttpClient httpClient;
@@ -26,7 +26,7 @@ public class XianyuApiClient {
     // 存储cookies
     private final Map<String, String> cookies = new ConcurrentHashMap<>();
 
-    public XianyuApiClient() {
+    public GoodFishApiClient() {
         this.httpClient = new HttpClient();
     }
 
