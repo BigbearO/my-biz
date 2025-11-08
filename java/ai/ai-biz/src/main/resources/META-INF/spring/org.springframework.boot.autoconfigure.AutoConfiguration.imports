@@ -1,3 +1,3 @@
-com.bigbear.aigc.biz.common.config.ClientsConfig
-com.bigbear.aigc.biz.common.config.UtilConfig
-com.bigbear.aigc.biz.common.config.SpringAIConfig
+com.bigbear.ai.biz.common.config.ClientsConfig
+com.bigbear.ai.biz.common.config.UtilConfig
+com.bigbear.ai.biz.common.config.SpringAIConfig

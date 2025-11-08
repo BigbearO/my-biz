@@ -2,6 +2,7 @@ package com.bigbear.goodfish.infrastructure;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.bigbear.goodfish.domain.entity.Account;
 import com.bigbear.goodfish.domain.service.GoodFishConnectionService;
 import com.bigbear.goodfish.infrastructure.client.GoodFishApiClient;
 import com.bigbear.goodfish.infrastructure.config.XianyuConfig;
@@ -27,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 @Accessors(chain = true)
 public class GoodfishConnection implements GoodFishConnectionService {
 
-//    private Account account;
+    private Account account;
 
     private XianyuConfig xianyuConfig;
     private GoodFishApiClient goodFishApiClient;

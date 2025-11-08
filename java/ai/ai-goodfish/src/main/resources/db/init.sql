@@ -73,3 +73,15 @@ COMMENT ON COLUMN item.updated_at     IS '更新时间';
 -- 索引
 CREATE INDEX IF NOT EXISTS idx_item_item_id    ON item(item_id);
 CREATE INDEX IF NOT EXISTS idx_item_seller_id  ON item(seller_id);
+
+
+
+CREATE TABLE IF NOT EXISTS account (
+    id          BIGSERIAL PRIMARY KEY,
+    user_id     VARCHAR(64) NOT NULL,
+    device_id   VARCHAR(64) NOT NULL,
+    create_time TIMESTAMP   NOT NULL DEFAULT NOW(),
+    update_time TIMESTAMP   NOT NULL DEFAULT NOW()
+    );
+
+CREATE INDEX IF NOT EXISTS idx_account_user_id    ON account(user_id);

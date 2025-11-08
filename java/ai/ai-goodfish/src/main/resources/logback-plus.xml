@@ -16,12 +16,24 @@
 
     <include resource="logback-common.xml" />
 
-    <include resource="logback-logstash.xml" />
+<!--    <include resource="logback-logstash.xml" />-->
 
     <!-- 开启 skywalking 日志收集 -->
-    <include resource="logback-skylog.xml" />
+<!--    <include resource="logback-skylog.xml" />-->
 
-	<!--系统操作日志-->
+<!--  Fluent Bit需要开启的Forward协议 -->
+<!--  [INPUT]
+    Name        forward
+    Listen      0.0.0.0
+    Port        24224  复杂一点的参考
+    -->
+<!--  <appender name="FLUENT" class="ch.qos.logback.classic.net.SocketAppender">-->
+<!--    <remoteHost>localhost</remoteHost>-->
+<!--    <port>24224</port>-->
+<!--    <reconnectionDelay>10000</reconnectionDelay>-->
+<!--  </appender>-->
+
+  <!--系统操作日志-->
     <root level="info">
         <appender-ref ref="console" />
     </root>

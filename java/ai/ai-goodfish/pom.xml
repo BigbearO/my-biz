@@ -12,9 +12,9 @@
   <artifactId>ai-goodfish</artifactId>
 
   <properties>
-    <maven.compiler.source>21</maven.compiler.source>
-    <maven.compiler.target>21</maven.compiler.target>
+
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <msgpack.version>0.9.9</msgpack.version>
   </properties>
   <dependencies>
     <dependency>
@@ -28,6 +28,16 @@
       <version>2.5.0</version>
     </dependency>
 
+    <dependency>
+      <groupId>org.msgpack</groupId>
+      <artifactId>msgpack-core</artifactId>
+      <version>${msgpack.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.msgpack</groupId>
+      <artifactId>jackson-dataformat-msgpack</artifactId>
+      <version>${msgpack.version}</version>
+    </dependency>
   </dependencies>
 
 </project>
