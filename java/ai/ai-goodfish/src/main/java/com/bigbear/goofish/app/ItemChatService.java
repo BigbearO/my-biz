@@ -1,4 +1,4 @@
-package com.bigbear.ai.biz.service;
+package com.bigbear.goofish.app;
 
 import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.json.JSONUtil;

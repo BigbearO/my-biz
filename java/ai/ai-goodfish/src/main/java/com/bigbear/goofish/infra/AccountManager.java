@@ -1,10 +1,9 @@
 package com.bigbear.goofish.infra;
 
-import com.bigbear.ai.biz.domain.entity.ItemEntity;
-import com.bigbear.ai.biz.mapper.ItemMapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.bigbear.goofish.core.Account;
 import com.bigbear.goofish.domain.entity.AccountEntity;
-import com.github.yulichang.base.MPJBaseServiceImpl;
+import com.bigbear.goofish.infra.mapper.AccountMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -13,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class AccountManager  extends MPJBaseServiceImpl<AccountMapper, AccountEntity> {
+public class AccountManager  extends ServiceImpl<AccountMapper, AccountEntity> {
 
     public AccountEntity getByUserId(String userId) {
         // 构建lambda查询

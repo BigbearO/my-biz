@@ -1,4 +1,4 @@
-package com.bigbear.ai.biz.service;
+package com.bigbear.goofish.app;
 
 
 import com.bigbear.ai.biz.domain.bo.ItemBo;

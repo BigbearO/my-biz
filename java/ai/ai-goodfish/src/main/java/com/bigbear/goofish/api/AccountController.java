@@ -1,12 +1,19 @@
 package com.bigbear.goofish.api;
 
+import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.bigbear.goofish.app.UserWebSocketService;
+import com.bigbear.goofish.domain.bo.AccountBo;
+import com.bigbear.goofish.domain.entity.AccountEntity;
+import com.bigbear.goofish.domain.vo.AccountVo;
+import com.bigbear.goofish.infra.AccountManager;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import com.bigbear.goofish.core.Account;
 import com.bigbear.goofish.core.AccountService;
 import com.bigbear.goofish.core.ConnectionProperties;
+import org.dromara.common.mybatis.core.page.PageQuery;
+import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.bigbear.goofish.core.socket.GoofishSocket;
@@ -22,13 +29,24 @@ import java.util.UUID;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/accounts")
+@RequestMapping("/account")
 
 public class AccountController {
 
     private final AccountService accountService;
 
+    private final AccountManager accountManager;
+
     private final UserWebSocketService webSocketManager;
+
+    /**
+     * 查询账号列表
+     */
+//    @SaCheckPermission("ai:account:list")
+    @GetMapping("/list")
+    public TableDataInfo<AccountEntity> list(AccountBo bo, PageQuery pageQuery) {
+        return accountService.queryPageList(bo, pageQuery);
+    }
 
     /**
      * 注册新用户

@@ -1,4 +1,4 @@
-package com.bigbear.ai.biz.service.impl;
+package com.bigbear.goofish.app;
 
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -13,7 +13,6 @@ import com.bigbear.ai.biz.domain.vo.ItemVo;
 import com.bigbear.ai.biz.manager.ItemManager;
 import com.bigbear.ai.biz.mapper.ItemMapper;
 import com.bigbear.ai.biz.mapper.ItemVectorMapper;
-import com.bigbear.ai.biz.service.IItemService;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import java.time.LocalDateTime;
@@ -36,8 +35,8 @@ import org.springframework.stereotype.Service;
  * @date 2025-10-27
  */
 @Slf4j
-@RequiredArgsConstructor
 @Service
+@RequiredArgsConstructor
 public class ItemServiceImpl implements IItemService {
 
     private final ItemManager itemManager;
@@ -99,8 +98,8 @@ public class ItemServiceImpl implements IItemService {
         lqw.eq(StringUtils.isNotBlank(bo.getCondition()), ItemEntity::getCondition, bo.getCondition());
         lqw.eq(bo.getPublishedDate() != null, ItemEntity::getPublishedDate, bo.getPublishedDate());
         lqw.eq(StringUtils.isNotBlank(bo.getStockStatus()), ItemEntity::getStockStatus, bo.getStockStatus());
-        lqw.eq(bo.getCreatedAt() != null, ItemEntity::getCreatedAt, bo.getCreatedAt());
-        lqw.eq(bo.getUpdatedAt() != null, ItemEntity::getUpdatedAt, bo.getUpdatedAt());
+        lqw.eq(bo.getCreatedAt() != null, ItemEntity::getCreatedTime, bo.getCreatedAt());
+        lqw.eq(bo.getUpdatedAt() != null, ItemEntity::getUpdatedTime, bo.getUpdatedAt());
         return lqw;
     }
 
