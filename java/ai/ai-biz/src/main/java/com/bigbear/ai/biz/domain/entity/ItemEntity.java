@@ -47,7 +47,9 @@ public class ItemEntity {
 
     private String stockStatus;
 
-    private LocalDateTime createdAt;
+    private LocalDateTime createdTime;
 
-    private LocalDateTime updatedAt;
+    private LocalDateTime updatedTime;
+
+    private Long accountId=0L;
 }
