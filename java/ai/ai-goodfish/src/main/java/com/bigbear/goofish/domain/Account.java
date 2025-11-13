@@ -1,6 +1,8 @@
-package com.bigbear.goofish.core;
+package com.bigbear.goofish.domain;
 
-import com.bigbear.goofish.domain.entity.AccountEntity;
+import com.github.curiousoddman.rgxgen.RgxGen;
+import java.io.Serial;
+import java.io.Serializable;
 import lombok.Data;
 import org.springframework.util.DigestUtils;
 
@@ -13,7 +15,11 @@ import java.util.stream.Collectors;
  * 用户账户信息类，存储用户特定的连接和认证信息
  */
 @Data
-public class Account {
+public class Account implements Serializable {
+
+    @Serial
+    private static  final long serialVersionUID = 1243L;
+
     private Long id;
     // 用户特定属性
     private String cookieStr;
@@ -24,6 +30,7 @@ public class Account {
     private String cookie2;
     private String cna;
     private String token;
+    private String t;
     private String deviceIdDataVal;
     private String sign;
     private String userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36";
@@ -63,7 +70,10 @@ public class Account {
      */
     public String generateDeviceId(String userId) {
         // 简化实现，生成一个基本的UUID格式字符串
-        return "device-" + userId + "-" + System.currentTimeMillis();
+        final String pattern = "^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[0-9A-F][89AB][0-9A-F]{2}-[0-9A-F]{12}$";
+        RgxGen rgxGen = RgxGen.parse(pattern); // Create generator
+        String s = rgxGen.generate();
+        return "%s-%s".formatted(s, userId);
     }
 
     /**
@@ -85,17 +95,18 @@ public class Account {
             csrfToken = cookies.getOrDefault("XSRF-TOKEN", "");
             cookie2 = cookies.getOrDefault("cookie2", "");
             cna = cookies.getOrDefault("cna", "");
+            t=String.valueOf(System.currentTimeMillis());
             token = generateToken();
             deviceIdDataVal = "{\"appKey\": \"444e9908a51d1cb236a27862abc769c9\",\"deviceId\": \"" + deviceId + "\"}";
-            sign = generateSign(String.valueOf(System.currentTimeMillis()), generateToken(), deviceIdDataVal);
+            sign = generateSign(t, token, deviceIdDataVal);
         }
     }
 
     public void updateDeviceId(String deviceId) {
         this.deviceId = deviceId;
+        t=String.valueOf(System.currentTimeMillis());
         deviceIdDataVal = "{\"appKey\": \"444e9908a51d1cb236a27862abc769c9\",\"deviceId\": \"" + deviceId + "\"}";
-        sign = generateSign(String.valueOf(System.currentTimeMillis()), generateToken(), deviceIdDataVal);
-
+        sign = generateSign(t, token, deviceIdDataVal);
     }
 
 

@@ -1,7 +1,7 @@
 package com.bigbear.goofish.infra;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.bigbear.goofish.core.Account;
+import com.bigbear.goofish.domain.Account;
 import com.bigbear.goofish.domain.entity.AccountEntity;
 import com.bigbear.goofish.infra.mapper.AccountMapper;
 import lombok.RequiredArgsConstructor;
@@ -23,12 +23,11 @@ public class AccountManager  extends ServiceImpl<AccountMapper, AccountEntity> {
     @Transactional(rollbackFor = Exception.class)
     public void   registerAccount(Account account) {
         if (account != null && account.getUserId() != null) {
-            // todo 构建entity 再进行入库
             AccountEntity entity = new AccountEntity();
             entity.setUserId(account.getUserId());
             entity.setDeviceId(account.getDeviceId());
             this.save(entity);
-
+            return;
         }
 
         throw new RuntimeException("empty data");

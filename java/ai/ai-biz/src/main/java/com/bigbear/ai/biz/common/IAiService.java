@@ -1,5 +1,5 @@
 
-package com.bigbear.ai.core;
+package com.bigbear.ai.biz.common;
 
 import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.SystemMessage;

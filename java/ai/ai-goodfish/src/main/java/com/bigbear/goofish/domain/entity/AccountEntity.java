@@ -22,13 +22,4 @@ public class AccountEntity extends BaseEntity {
 
     private String deviceId;
 
-    /**
-     * 生成设备ID
-     */
-    public String generateDeviceId(String userId) {
-        // 简化实现，生成一个基本的UUID格式字符串
-        return "device-" + userId + "-" + System.currentTimeMillis();
-    }
-
-
 }

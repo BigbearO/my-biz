@@ -1,15 +1,13 @@
 package com.bigbear.goofish.api;
 
-import cn.dev33.satoken.annotation.SaCheckPermission;
 import com.bigbear.goofish.app.UserWebSocketService;
 import com.bigbear.goofish.domain.bo.AccountBo;
 import com.bigbear.goofish.domain.entity.AccountEntity;
-import com.bigbear.goofish.domain.vo.AccountVo;
 import com.bigbear.goofish.infra.AccountManager;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import com.bigbear.goofish.core.Account;
+import com.bigbear.goofish.domain.Account;
 import com.bigbear.goofish.core.AccountService;
 import com.bigbear.goofish.core.ConnectionProperties;
 import org.dromara.common.mybatis.core.page.PageQuery;
@@ -54,49 +52,13 @@ public class AccountController {
     @PostMapping("/register")
     public Mono<ResponseEntity<UserResponse>> registerUser(@RequestBody UserRegistrationRequest request) {
 
-        String userId = request.getUserId();
+        // 使用UserWebSocketManager创建用户特定的Account对象
+        Account account = webSocketManager.createUserAccount(request.getCookieStr());
 
         // 将userId声明为final以便在lambda中使用
-        final String finalUserId = userId;
+        final String finalUserId = account.getUserId();
 
         try {
-            // 使用UserWebSocketManager创建用户特定的Account对象
-            Account account = webSocketManager.createUserAccount(request.getCookieStr());
-
-            // 如果请求中提供了userId，使用请求中的userId，否则使用从cookie解析的userId
-            if (userId == null || userId.trim().isEmpty()) {
-                userId = generateUserId();
-            }
-            // 设置用户ID到Account中
-            if (account != null) {
-                account.setUserId(userId);
-
-                // 设置其他属性（如果提供）
-                if (request.getDeviceId() != null && !request.getDeviceId().isEmpty()) {
-                    account.setDeviceId(request.getDeviceId());
-                }
-                if (request.getCsrfToken() != null) {
-                    account.setCsrfToken(request.getCsrfToken());
-                }
-                if (request.getCookie2() != null) {
-                    account.setCookie2(request.getCookie2());
-                }
-                if (request.getCna() != null) {
-                    account.setCna(request.getCna());
-                }
-
-                // 注册账户到AccountService
-                accountService.registerAccount(account);
-            }
-
-            // 检查用户是否已存在
-            if (accountService.getAccount(finalUserId) != null) {
-                log.warn("用户 {} 已经注册", finalUserId);
-                return Mono.just(ResponseEntity.badRequest().body(
-                        new UserResponse(finalUserId, false, "用户已存在")
-                ));
-            }
-
             // 获取系统配置
             ConnectionProperties properties = accountService.getSystemProperties();
 
@@ -124,12 +86,6 @@ public class AccountController {
         }
     }
 
-    /**
-     * 生成用户ID
-     */
-    private String generateUserId() {
-        return "user_" + UUID.randomUUID().toString().substring(0, 8);
-    }
 
     /**
      * 获取所有用户状态

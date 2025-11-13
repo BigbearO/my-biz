@@ -1,10 +1,33 @@
 package com.bigbear.goofish.infra;
 
-import com.bigbear.goofish.core.Account;
+import static java.lang.invoke.MethodHandles.lookup;
+import static org.springframework.http.HttpHeaders.ACCEPT;
+import static org.springframework.http.HttpHeaders.ACCEPT_LANGUAGE;
+import static org.springframework.http.HttpHeaders.CACHE_CONTROL;
+import static org.springframework.http.HttpHeaders.ORIGIN;
+import static org.springframework.http.HttpHeaders.PRAGMA;
+import static org.springframework.http.HttpHeaders.REFERER;
+import static org.springframework.http.HttpHeaders.USER_AGENT;
+
 import com.bigbear.goofish.core.AccountService;
 import com.bigbear.goofish.core.ConnectionProperties;
+import com.bigbear.goofish.domain.Account;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.AbstractMap.SimpleEntry;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
+import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.apache.tika.Tika;
@@ -24,29 +47,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Component;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
-import java.io.*;
-import java.net.URI;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.AbstractMap.SimpleEntry;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
-import java.util.UUID;
-import org.springframework.util.LinkedMultiValueMap;
-import java.util.stream.Collectors;
-
-import static java.lang.invoke.MethodHandles.lookup;
-
-import static com.bigbear.goofish.core.Account.APP_KEY;
-import static org.springframework.http.HttpHeaders.*;
 
 @Lazy
 @Component
@@ -65,7 +72,8 @@ public class GoofishClient implements InitializingBean {
 
     private final Tika tika = new Tika();
 
-    public static final Map<String, String> COMMON_PARAMS = new HashMap<String, String>() {{
+
+    public static final Map<String, String> COMMON_PARAMS = new HashMap<>() {{
         put("jsv", "2.7.2");
         put("v", "1.0");
         put("type", "originaljson");
@@ -73,7 +81,7 @@ public class GoofishClient implements InitializingBean {
         put("dataType", "json");
         put("timeout", "20000");
         put("sessionOption", "AutoLoginOnly");
-        put("appKey", APP_KEY);
+        put("appKey", "34839810");
         put("api", "mtop.taobao.idlemessage.pc.login.token");
     }};
 
@@ -137,7 +145,6 @@ public class GoofishClient implements InitializingBean {
             return Mono.error(new RuntimeException("未找到用户 " + userId + " 的账户信息"));
         }
 
-        String time = String.valueOf(System.currentTimeMillis());
         String deviceIdDataVal = account.getDeviceIdDataVal();
         logger.info("start fetching access token for webSocket connection for user: {}", userId);
 
@@ -146,9 +153,12 @@ public class GoofishClient implements InitializingBean {
                     builder.path(properties.getTokenUri());
                     COMMON_PARAMS.forEach(builder::queryParam);
 
+                    String time = account.getT();
                     // 通过Account对象获取token和生成签名
-                    String token = account.generateToken();
-                    String sign = account.generateSign(time, token, deviceIdDataVal);
+//                    String token = account.generateToken();
+                    //   String sign = account.generateSign(time, token, deviceIdDataVal);
+                    String token = account.getToken();
+                    String sign = account.getSign();
 
                     return builder
                             .queryParam("sign", sign)
@@ -156,7 +166,7 @@ public class GoofishClient implements InitializingBean {
                             .queryParam("t", time)
                             .build();
                 })
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+//                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .bodyValue(createMultiValueMap("data", deviceIdDataVal))
                 .retrieve()
                 .bodyToMono(ObjectNode.class)

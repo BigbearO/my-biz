@@ -1,22 +1,20 @@
 package com.bigbear.goofish.core;
 
-import com.baomidou.mybatisplus.core.conditions.Wrapper;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.bigbear.goofish.domain.Account;
 import com.bigbear.goofish.domain.bo.AccountBo;
 import com.bigbear.goofish.domain.entity.AccountEntity;
-import com.bigbear.goofish.domain.vo.AccountVo;
 import com.bigbear.goofish.infra.AccountManager;
-import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -36,26 +34,26 @@ public class AccountService {
 
     private final AccountManager accountManager;
 
-    // 用户账户映射表，使用userId作为key
-    private final Map<String, Account> accountMap = new ConcurrentHashMap<>();
+    // 用户账户映射，使用userId作为key
+    private final RedisTemplate<String, Object> redisTemplate;
 
 
     public TableDataInfo<AccountEntity> queryPageList(AccountBo bo, PageQuery pageQuery) {
         LambdaQueryWrapper<AccountEntity> lqw = buildQueryWrapper(bo);
 
-        Page<AccountEntity> build =  pageQuery.build();
+        Page<AccountEntity> build = pageQuery.build();
         Page<AccountEntity> result = accountManager.page(build, lqw);
 
         return TableDataInfo.build(result);
     }
 
 
-
     private LambdaQueryWrapper<AccountEntity> buildQueryWrapper(AccountBo bo) {
         LambdaQueryWrapper<AccountEntity> lqw = Wrappers.lambdaQuery();
         lqw.orderByAsc(AccountEntity::getId);
         lqw.eq(StringUtils.isNotBlank(bo.getUserId()), AccountEntity::getUserId, bo.getUserId());
-        lqw.eq(StringUtils.isNotBlank(bo.getDeviceId()), AccountEntity::getDeviceId, bo.getDeviceId());
+        lqw.eq(StringUtils.isNotBlank(bo.getDeviceId()), AccountEntity::getDeviceId,
+            bo.getDeviceId());
         return lqw;
     }
 
@@ -66,13 +64,16 @@ public class AccountService {
      * @param account 用户账户实例
      */
     public void registerAccount(Account account) {
-        if (account != null && account.getUserId() != null) {
-            // todo 构建entity 再进行入库
+        accountManager.registerAccount(account);
 
-            accountMap.put(account.getUserId(), account);
-        }
+        redisTemplate.opsForValue().set(getAccountInfoKey(account.getUserId()), account);
+
     }
 
+    private String getAccountInfoKey(String  userId) {
+
+        return "USER:"+userId;
+    }
     /**
      * 获取用户账户
      *
@@ -80,7 +81,12 @@ public class AccountService {
      * @return 用户账户实例
      */
     public Account getAccount(String userId) {
-        return accountMap.get(userId);
+        Object o = redisTemplate.opsForValue().get(getAccountInfoKey(userId));
+        if(o==null){
+            return  null;
+        }
+
+        return  JSONUtil.toBean(JSONUtil.toJsonStr(o), Account.class);
     }
 
     /**
@@ -90,7 +96,7 @@ public class AccountService {
      */
     public void removeAccount(String userId) {
         if (userId != null) {
-            accountMap.remove(userId);
+            redisTemplate.delete(getAccountInfoKey(userId));
         }
     }
 

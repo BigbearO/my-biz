@@ -4,7 +4,7 @@ import static java.lang.invoke.MethodHandles.lookup;
 
 import cn.hutool.extra.spring.SpringUtil;
 import com.bigbear.ai.biz.manager.AiServiceContainer;
-import com.bigbear.ai.core.IAiService;
+import com.bigbear.ai.biz.common.IAiService;
 import com.bigbear.goofish.core.socket.msg.MsgDispatcher;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;

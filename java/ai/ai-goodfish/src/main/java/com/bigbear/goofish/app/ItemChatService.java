@@ -7,7 +7,7 @@ import com.bigbear.ai.biz.domain.entity.ItemInfo;
 import com.bigbear.ai.biz.manager.AiServiceContainer;
 import com.bigbear.ai.biz.manager.DbChatMemoryStore;
 import com.bigbear.ai.biz.manager.ItemManager;
-import com.bigbear.ai.core.IAiService;
+import com.bigbear.ai.biz.common.IAiService;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;

@@ -31,9 +31,7 @@
   <modules>
     <module>ai-api</module>
     <module>ai-biz</module>
-    <module>ai-starter</module>
     <module>ai-goodfish</module>
-    <!--    <module>xxs-goodfish-starter</module>-->
   </modules>
 
   <dependencies>

@@ -6,7 +6,7 @@ import static org.springframework.util.StringUtils.hasLength;
 import cn.hutool.json.JSONUtil;
 import com.bigbear.ai.biz.domain.entity.ItemEntity;
 import com.bigbear.ai.biz.manager.ItemManager;
-import com.bigbear.goofish.core.Account;
+import com.bigbear.goofish.domain.Account;
 import com.bigbear.goofish.core.AccountService;
 import com.bigbear.goofish.core.ConnectionProperties;
 import com.bigbear.goofish.infra.GoofishClient;
@@ -42,6 +42,8 @@ public class GoofishSocket {
 
     private AccountService accountService;
 
+    // 获取与当前Socket关联的用户ID
+    private String userId; // 存储与当前Socket关联的用户ID
 
     // 获取与当前Socket关联的用户账户
     private Account getAccount() {
@@ -60,8 +62,7 @@ public class GoofishSocket {
     private ItemManager itemManager;
 
     private ReactorNettyWebSocketClient delegate;
-    // 获取与当前Socket关联的用户ID
-    private String userId; // 存储与当前Socket关联的用户ID
+
 
     private ConcurrentHashMap<String, Boolean> manualModeChats = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Boolean> heartbeatMid = new ConcurrentHashMap<>();

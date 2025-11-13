@@ -1,6 +1,6 @@
 package com.bigbear.goofish.app;
 
-import com.bigbear.goofish.core.Account;
+import com.bigbear.goofish.domain.Account;
 import com.bigbear.goofish.core.AccountService;
 import com.bigbear.goofish.core.ConnectionProperties;
 import com.bigbear.goofish.core.ConnectionPropertiesConfig;
@@ -21,6 +21,7 @@ import org.springframework.web.reactive.socket.WebSocketSession;
 import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.SignalType;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.WebsocketClientSpec;
 
@@ -42,11 +43,8 @@ public class UserWebSocketService {
 
 
     @Autowired
-    private ConnectionPropertiesConfig propertiesConfig;
-
-    @Autowired
     private AccountService accountService;
-
+    @Autowired
     private AccountManager accountManager;
 
 
@@ -83,11 +81,6 @@ public class UserWebSocketService {
         // 声明为final以便在lambda中使用
         final ConnectionProperties finalProperties = properties;
         final Account finalAccount = account;
-
-        // 将账户注册到AccountService
-        if (finalAccount != null) {
-            accountService.registerAccount(finalAccount);
-        }
 
         // 创建特定于用户的HttpClient
         HttpClient httpClient = HttpClient.create()
@@ -140,7 +133,12 @@ public class UserWebSocketService {
                         socket.receive(session),
                         socket.heartbeat(session)
                     )).then()
-                    .doFinally(signalType -> log.info("用户 {} WebSocket会话已建立", userId));
+                    .doFinally(signalType -> {
+                            if (signalType != SignalType.ON_ERROR) {
+                                log.info("用户 {} WebSocket会话已建立", userId);
+                            }
+                        }
+                    );
             })
             // 使用保存的session引用作为返回值
             .then(Mono.defer(() -> {
@@ -172,7 +170,7 @@ public class UserWebSocketService {
         AccountEntity account1 = accountManager.getByUserId(account.getUserId());
         if(account1==null){
             // 注册到AccountService
-              accountManager.registerAccount(account);
+              accountService.registerAccount(account);
         }else {
             account.updateDeviceId(account1.getDeviceId());
         }
@@ -181,9 +179,8 @@ public class UserWebSocketService {
     }
 
     public Account createAccount(String cookieStr) {
-        Account account = new Account(cookieStr);
-        account.initialize();
-        return account;
+        //已经调用了初始化方法
+        return new Account(cookieStr);
     }
     /**
      * 获取用户的WebSocket连接
@@ -200,7 +197,7 @@ public class UserWebSocketService {
         if (socket != null) {
             log.info("断开用户 {} 的WebSocket连接", userId);
             // 同时从AccountService中移除账户
-            accountService.removeAccount(userId);
+//            accountService.removeAccount(userId);
         }
     }
 }
