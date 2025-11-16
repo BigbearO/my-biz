@@ -42,6 +42,10 @@ ChatMemoryEntity 是单个的实体，也是langchain4j对话的上下文存储�
 memId 商品id,+闲鱼买家id， 这样进行分隔 ，token计算时计算itemId,获取租户id,计算token 
 
 
+
+<!--  jtoon   参考 https://mp.weixin.qq.com/s/Z757KrakqOhewZSSc_qcjQ-->
+
+
 1 ws监听的是token 用户级别
  单独的商品id,从消息里面获取参数做隔离  ，并且也是itemId
  memporyId 策略就是  senduserId
@@ -54,11 +58,12 @@ memId 商品id,+闲鱼买家id， 这样进行分隔 ，token计算时计算item
 
 
 todo  
-1 能根据cookie str 创建账号
-2 根据账户创建 商品，
-3 被简化的看看原项目处理，
+1 能根据cookie str 创建账号 --ok
+2 根据账户创建 商品
+3 刷新token  定时任务加个延迟执行 
 
-擦，现在就是不开始就走刷新了，直接拿token进行使用， 和存储，给数据库增加一个字段，
  
 
- 加一个兼容
+ 
+
+

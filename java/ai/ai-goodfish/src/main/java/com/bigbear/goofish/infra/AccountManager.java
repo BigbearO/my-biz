@@ -26,6 +26,7 @@ public class AccountManager  extends ServiceImpl<AccountMapper, AccountEntity> {
             AccountEntity entity = new AccountEntity();
             entity.setUserId(account.getUserId());
             entity.setDeviceId(account.getDeviceId());
+            entity.setCookieStr(account.getCookieStr());
             this.save(entity);
             return;
         }

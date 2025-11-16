@@ -22,4 +22,6 @@ public class AccountEntity extends BaseEntity {
 
     private String deviceId;
 
+    private String cookieStr;
+
 }

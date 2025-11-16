@@ -30,7 +30,6 @@ public class Account implements Serializable {
     private String cookie2;
     private String cna;
     private String token;
-    private String t;
     private String deviceIdDataVal;
     private String sign;
     private String userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36";
@@ -69,6 +68,9 @@ public class Account implements Serializable {
      * 生成设备ID
      */
     public String generateDeviceId(String userId) {
+        if(1==1){
+            return "15031543-B111-42D7-B871-6320BB42DB47-2920966133";
+        }
         // 简化实现，生成一个基本的UUID格式字符串
         final String pattern = "^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[0-9A-F][89AB][0-9A-F]{2}-[0-9A-F]{12}$";
         RgxGen rgxGen = RgxGen.parse(pattern); // Create generator
@@ -95,17 +97,22 @@ public class Account implements Serializable {
             csrfToken = cookies.getOrDefault("XSRF-TOKEN", "");
             cookie2 = cookies.getOrDefault("cookie2", "");
             cna = cookies.getOrDefault("cna", "");
-            t=String.valueOf(System.currentTimeMillis());
+           String t="1763205100947";//String.valueOf(System.currentTimeMillis());
             token = generateToken();
-            deviceIdDataVal = "{\"appKey\": \"444e9908a51d1cb236a27862abc769c9\",\"deviceId\": \"" + deviceId + "\"}";
+            deviceIdDataVal =  """
+                {"appKey": "444e9908a51d1cb236a27862abc769c9","deviceId": "%s"}
+                """.trim().formatted(deviceId);
             sign = generateSign(t, token, deviceIdDataVal);
         }
     }
 
     public void updateDeviceId(String deviceId) {
         this.deviceId = deviceId;
-        t=String.valueOf(System.currentTimeMillis());
-        deviceIdDataVal = "{\"appKey\": \"444e9908a51d1cb236a27862abc769c9\",\"deviceId\": \"" + deviceId + "\"}";
+        String  t=String.valueOf(System.currentTimeMillis());
+        token = generateToken();
+        deviceIdDataVal =  """
+                {"appKey": "444e9908a51d1cb236a27862abc769c9","deviceId": "%s"}
+                """.trim().formatted(deviceId);
         sign = generateSign(t, token, deviceIdDataVal);
     }
 

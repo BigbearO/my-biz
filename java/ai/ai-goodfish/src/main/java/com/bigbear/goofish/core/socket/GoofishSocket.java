@@ -42,18 +42,15 @@ public class GoofishSocket {
 
     private AccountService accountService;
 
-    // 获取与当前Socket关联的用户ID
-    private String userId; // 存储与当前Socket关联的用户ID
+    private Account account; // 存储与当前Socket关联的用户ID
 
     // 获取与当前Socket关联的用户账户
     private Account getAccount() {
-        if (userId == null) {
-            return null;
-        }
-        return accountService.getAccount(userId);
+      return   account;
     }
 
     private GoofishClient client;
+    private RegMsg regMsg;
     private MsgDispatcher dispatcher;
     private ConnectionProperties properties;
     private AutoReplyService replyService;
@@ -62,7 +59,6 @@ public class GoofishSocket {
     private ItemManager itemManager;
 
     private ReactorNettyWebSocketClient delegate;
-
 
     private ConcurrentHashMap<String, Boolean> manualModeChats = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Boolean> heartbeatMid = new ConcurrentHashMap<>();
@@ -308,10 +304,20 @@ public class GoofishSocket {
 
 
     public Mono<Void> register(WebSocketSession session) {
-        final String userId = getAccount() != null ? getAccount().getUserId() : "unknown";
-        return client.getToken(userId).flatMap(token ->
-            new RegMsg(getAccount() != null ? getAccount().getDeviceId() : "default-device-id",
-                token).send(session));
+        this.regMsg = new RegMsg(getAccount().getDeviceId(), "");
+
+        return client.getToken(getAccount()).flatMap(token -> {
+            regMsg.updateToken(token);
+            return regMsg.send(session);
+
+        });
+    }
+
+    public void refreshToken() {
+        client.getToken(getAccount()).subscribe(token -> {
+                regMsg.updateToken(token);
+            }
+        );
     }
 
     public Flux<Void> heartbeat(WebSocketSession session) {
@@ -420,15 +426,5 @@ public class GoofishSocket {
                     )).then();
             });
     }
-//    public Mono<WebSocketSession> establish2() {
-//        return delegate.execute(properties.getSocketUrl(),
-//                session -> {
-//                    // send /reg request
-//                    return register(session)
-//                            .thenMany(Flux.merge(
-//                                    receive(session),
-//                                    heartbeat(session)
-//                            )).then();
-//                }).then(Mono.just(session));
-//    }
+
 }

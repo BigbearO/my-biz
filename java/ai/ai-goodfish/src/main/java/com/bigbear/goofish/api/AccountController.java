@@ -1,25 +1,28 @@
 package com.bigbear.goofish.api;
 
 import com.bigbear.goofish.app.UserWebSocketService;
+import com.bigbear.goofish.core.AccountService;
+import com.bigbear.goofish.core.socket.GoofishSocket;
+import com.bigbear.goofish.domain.Account;
 import com.bigbear.goofish.domain.bo.AccountBo;
 import com.bigbear.goofish.domain.entity.AccountEntity;
 import com.bigbear.goofish.infra.AccountManager;
+import com.bigbear.goofish.utils.JsonUtils;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import com.bigbear.goofish.domain.Account;
-import com.bigbear.goofish.core.AccountService;
-import com.bigbear.goofish.core.ConnectionProperties;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import com.bigbear.goofish.core.socket.GoofishSocket;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
 
 /**
  * 账户管理API控制器
@@ -48,6 +51,7 @@ public class AccountController {
 
     /**
      * 注册新用户
+     * todo 后续再兼容更新 ，现在全是注册
      */
     @PostMapping("/register")
     public Mono<ResponseEntity<UserResponse>> registerUser(@RequestBody UserRegistrationRequest request) {
@@ -55,15 +59,15 @@ public class AccountController {
         // 使用UserWebSocketManager创建用户特定的Account对象
         Account account = webSocketManager.createUserAccount(request.getCookieStr());
 
+        log.info("goodfishdata = {}", JsonUtils.toJson(account));
+
         // 将userId声明为final以便在lambda中使用
         final String finalUserId = account.getUserId();
 
         try {
-            // 获取系统配置
-            ConnectionProperties properties = accountService.getSystemProperties();
 
             // 先建立WebSocket连接
-            return webSocketManager.createWebSocketConnection(properties, account)
+            return webSocketManager.createWebSocketConnection(account)
                     .then(Mono.defer(() -> {
                         UserResponse response = new UserResponse(
                                 finalUserId,
@@ -133,9 +137,6 @@ public class AccountController {
         try {
             // 通过WebSocketManager断开用户连接
             webSocketManager.disconnectUser(userId);
-
-            // 从AccountService中移除用户账户
-            accountService.removeAccount(userId);
 
             Map<String, Object> response = new HashMap<>();
             response.put("userId", userId);

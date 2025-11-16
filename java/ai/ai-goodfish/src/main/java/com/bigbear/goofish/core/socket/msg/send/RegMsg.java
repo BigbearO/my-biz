@@ -19,6 +19,10 @@ public class RegMsg implements Message {
         headers.setMid(Message.generateMid());
     }
 
+    public void updateToken(String token){
+        headers.setToken(token);
+    }
+
     @Data
     public static class Headers {
         @JsonProperty("cache-header")

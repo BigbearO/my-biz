@@ -23,6 +23,7 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.AbstractMap.SimpleEntry;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -30,6 +31,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.Tika;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,10 +58,9 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Lazy
+@Slf4j
 @Component
 public class GoofishClient implements InitializingBean {
-
-    private static final Logger logger = LoggerFactory.getLogger(lookup().lookupClass());
 
     @Autowired
     ConnectionProperties properties;
@@ -138,43 +139,54 @@ public class GoofishClient implements InitializingBean {
 
     /*spm_pre=a21ybx.personal.sidebar.1.494f6ac2w6LFhH&log_id=494f6ac2w6LFhH*/
     //@Retryable(value = {RuntimeException.class}, maxAttempts = 3, backoff = @Backoff(delay = 1000))
-    public Mono<String> getToken(String userId) {
-        Account account = accountService.getAccount(userId);
-        if (account == null) {
-            logger.error("未找到用户 {} 的账户信息", userId);
-            return Mono.error(new RuntimeException("未找到用户 " + userId + " 的账户信息"));
-        }
+    public Mono<String> getToken(Account account) {
 
+        String userId =account.getUserId();
         String deviceIdDataVal = account.getDeviceIdDataVal();
-        logger.info("start fetching access token for webSocket connection for user: {}", userId);
+        log.info("start fetching access token for webSocket connection for user: {}", userId);
+
+       final   Map<String, String> cookies = Arrays.stream(account.getCookieStr().split("; "))
+            .map(cookie -> cookie.split("=", 2))
+            .filter(parts -> parts.length == 2)
+            .collect(Collectors.toMap(
+                parts -> parts[0],
+                parts -> parts[1],
+                (existing, replacement) -> existing
+            ));
 
         return delegate.post()
                 .uri(builder -> {
                     builder.path(properties.getTokenUri());
                     COMMON_PARAMS.forEach(builder::queryParam);
 
-                    String time = account.getT();
+//                    String time = account.getT();
+//                    String token = account.getToken();
+                    //     String sign = account.getSign();
                     // 通过Account对象获取token和生成签名
-//                    String token = account.generateToken();
-                    //   String sign = account.generateSign(time, token, deviceIdDataVal);
-                    String token = account.getToken();
-                    String sign = account.getSign();
-
-                    return builder
-                            .queryParam("sign", sign)
-                            .queryParam("spm_cnt", "a21ybx.im.0.0")
-                            .queryParam("t", time)
-                            .build();
+                    String token = account.generateToken();
+                    String time =
+//                        "1763210559524";
+                    String.valueOf(System.currentTimeMillis());
+                    String sign = account.generateSign(time, token, deviceIdDataVal);
+                    URI build = builder
+                        .queryParam("sign", sign)
+                        .queryParam("spm_cnt", "a21ybx.im.0.0")
+                        .queryParam("t", time)
+                        .build();
+                    log.info("finalUri={}",build.toString());
+                    return build;
                 })
-//                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .bodyValue(createMultiValueMap("data", deviceIdDataVal))
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+            .cookies(cookiesConsumer -> cookies.forEach(cookiesConsumer::add))
+//                .bodyValue(createMultiValueMap("data", deviceIdDataVal))
+                .bodyValue(MultiValueMap.fromSingleValue(Map.of("data", deviceIdDataVal)))
                 .retrieve()
                 .bodyToMono(ObjectNode.class)
-                .flatMap(response -> {
+                    .flatMap(response -> {
                     String ret = response.path("ret").toString();
                     if (ret.contains("SUCCESS::调用成功")) {
                         String accessToken = response.path("data").path("accessToken").asText();
-                        logger.info("用户 {} 生成令牌: {}", userId, accessToken);
+                        log.info("用户 {} 生成令牌: {}", userId, accessToken);
                         return Mono.just(accessToken);
                     }
                     return Mono.error(new RuntimeException("获取Token失败: " + response));
@@ -193,7 +205,7 @@ public class GoofishClient implements InitializingBean {
 
         String time = String.valueOf(System.currentTimeMillis());
         String itemIdDataVal = String.format("{\"itemId\": \"%s\"}", itemId);
-        logger.info("send https requests to retrieve item info for: {} by user: {}", itemId, userId);
+        log.info("send https requests to retrieve item info for: {} by user: {}", itemId, userId);
         return delegate.post()
                 .uri(builder -> {
                     builder.path(properties.getIteminfoUri());
@@ -219,7 +231,7 @@ public class GoofishClient implements InitializingBean {
                 .flatMap(response -> {
                     String ret = response.path("ret").toString();
                     if (ret.contains("SUCCESS::调用成功")) {
-                        logger.info("get item info successful for user: {}", userId);
+                        log.info("get item info successful for user: {}", userId);
                         return Mono.just(response.path("data"));
                     }
                     return Mono.error(new RuntimeException("API调用失败: " + response));
@@ -419,8 +431,6 @@ public class GoofishClient implements InitializingBean {
     @Override
     public void afterPropertiesSet() {
 
-
-
         this.delegate = WebClient.builder()
                 .baseUrl(properties.getApiUrl())
                 .defaultHeaders(headers -> {
@@ -439,7 +449,7 @@ public class GoofishClient implements InitializingBean {
                     headers.add("sec-fetch-site", "same-site");
                     headers.add(USER_AGENT, properties.getUserAgent());
                 })
-//                .defaultCookies(m ->collect.forEach(m::add))
+
             //todo  注释了cookie 调用时 改成
 //        webClient.get()
 //                .uri("/api")

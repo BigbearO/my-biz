@@ -17,9 +17,6 @@ import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * AccountService - 管理Account实例和ConnectionProperties的关联 实现Account类和ConnectionProperties类的完全分离
  */
@@ -65,7 +62,10 @@ public class AccountService {
      */
     public void registerAccount(Account account) {
         accountManager.registerAccount(account);
+        addAccCache(account);
+    }
 
+    public void addAccCache(Account account) {
         redisTemplate.opsForValue().set(getAccountInfoKey(account.getUserId()), account);
 
     }
