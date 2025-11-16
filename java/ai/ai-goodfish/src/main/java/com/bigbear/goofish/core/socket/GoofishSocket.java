@@ -286,6 +286,7 @@ public class GoofishSocket {
                 }
                 return result;
             })
+            //原本这儿会处理历史消息，去掉放到 reply service了
             // 修改第4步：处理历史查询响应
             .flatMap(Mono::just);
     }

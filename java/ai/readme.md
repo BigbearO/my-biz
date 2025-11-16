@@ -58,9 +58,16 @@ memId 商品id,+闲鱼买家id， 这样进行分隔 ，token计算时计算item
 
 
 todo  
+
+1 根据账户创建 商品
+2 msg的接收应该是由于 cookie的原因，
+
+待优化
 1 能根据cookie str 创建账号 --ok
-2 根据账户创建 商品
-3 刷新token  定时任务加个延迟执行 
+2 刷新token  定时任务加个延迟执行 
+
+
+
 
  
 
