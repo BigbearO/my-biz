@@ -7,8 +7,8 @@ import lombok.RequiredArgsConstructor;
 @Getter
 public enum MessageType {
 
-    SYSTEM(0,""),
-    USER(1,""),
+    SYSTEM(0,"SYSTEM"),
+    USER(1,"USER"),
     AI(2,""),
     TOOL_EXECUTION_RESULT(3,""),
     CUSTOM(4,"");

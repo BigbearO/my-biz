@@ -5,12 +5,14 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.time.LocalDateTime;
 import lombok.Data;
+import lombok.experimental.Accessors;
 
 /**
  * 消息实体
  */
 @Data
 @TableName("memory")
+@Accessors(chain=true)
 public class MessageHistoryEntity {
 
     @TableId(type = IdType.AUTO)
@@ -34,6 +36,7 @@ public class MessageHistoryEntity {
 
     private String fromUserId;
 
+    // todo 转string
     private Integer type;
 
 }

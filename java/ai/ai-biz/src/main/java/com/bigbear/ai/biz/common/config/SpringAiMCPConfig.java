@@ -1,8 +1,10 @@
 package com.bigbear.ai.biz.common.config;
 
+import com.bigbear.ai.biz.manager.MyChatMemory;
 import com.bigbear.ai.biz.service.CustomerService;
 import java.util.List;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.support.ToolCallbacks;
 import org.springframework.ai.tool.ToolCallback;
@@ -20,11 +22,14 @@ public class SpringAiMCPConfig {
 
 
     @Bean
-    public ChatClient openAiChatClient(OpenAiChatModel chatModel) {
+    public ChatClient openAiChatClient(OpenAiChatModel chatModel, MyChatMemory myChatMemory)  {
 
-        ChatClient chatClient = ChatClient.create(chatModel);
+        ChatClient chatClient =
+                ChatClient.create(chatModel);
         // 或使用构建器以获得更多控制
-        ChatClient.Builder builder = ChatClient.builder(chatModel);
+        ChatClient.Builder builder = ChatClient.builder(chatModel).defaultAdvisors(
+                MessageChatMemoryAdvisor.builder(myChatMemory).build()
+        );
 //          chatClient = builder
 //            .defaultSystem("你是一个乐于助人的助手。")
 //            .build();
