@@ -40,6 +40,23 @@ spring:
       - nacos:datasource.yml
       - nacos:${spring.application.name}.yml
 
+---
+spring:
+  ai:
+    mcp:
+      client:
+        enabled: false
+        name: chat-client
+        version: 1.0.0
+        request-timeout: 120s
+        type: ASYNC # 类型同步SYNC或者异步ASYNC
+        sse:
+          connections:
+            search:
+              url: http://localhost:8577/mcp/search/
+      server:
+        base-url: http://localhost:8577/mcp/search/
+        enabled: false
 
 
 langchain4j:
