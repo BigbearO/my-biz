@@ -98,8 +98,8 @@ public class ItemServiceImpl implements IItemService {
         lqw.eq(StringUtils.isNotBlank(bo.getCondition()), ItemEntity::getCondition, bo.getCondition());
         lqw.eq(bo.getPublishedDate() != null, ItemEntity::getPublishedDate, bo.getPublishedDate());
         lqw.eq(StringUtils.isNotBlank(bo.getStockStatus()), ItemEntity::getStockStatus, bo.getStockStatus());
-        lqw.eq(bo.getCreatedAt() != null, ItemEntity::getCreatedTime, bo.getCreatedAt());
-        lqw.eq(bo.getUpdatedAt() != null, ItemEntity::getUpdatedTime, bo.getUpdatedAt());
+        lqw.eq(bo.getCreateTime() != null, ItemEntity::getCreatedTime, bo.getCreateTime());
+        lqw.eq(bo.getUpdateTime() != null, ItemEntity::getUpdateTime, bo.getUpdateTime());
         return lqw;
     }
 

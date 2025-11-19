@@ -111,13 +111,13 @@ public class ItemVo implements Serializable {
      * 创建时间
      */
     @ExcelProperty(value = "创建时间")
-    private Date createdAt;
+    private Date createdTime;
 
     /**
      * 更新时间
      */
     @ExcelProperty(value = "更新时间")
-    private Date updatedAt;
+    private Date updateTime;
 
 
 }

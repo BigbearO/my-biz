@@ -90,17 +90,9 @@ public class ItemBo extends BaseEntity {
      */
     private String stockStatus;
 
-    /**
-     * 创建时间
-     */
-    @NotNull(message = "创建时间不能为空", groups = { AddGroup.class, EditGroup.class })
-    private Date createdAt;
 
-    /**
-     * 更新时间
-     */
-    @NotNull(message = "更新时间不能为空", groups = { AddGroup.class, EditGroup.class })
-    private Date updatedAt;
+
+
 
 
 

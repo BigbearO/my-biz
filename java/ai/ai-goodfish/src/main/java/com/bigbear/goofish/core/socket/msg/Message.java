@@ -36,7 +36,7 @@ public interface Message {
     @SneakyThrows
     default Mono<Void> send(WebSocketSession session) {
         String json = toJson();
-        logger.trace("sent ---> msg [{}] {}", hashCode(), JsonUtils.prettyJson(json));
+        logger.info("sent ---> msg [{}] {}", hashCode(), JsonUtils.prettyJson(json));
         return session.send(Mono.just(session.textMessage(json)));
     }
 }

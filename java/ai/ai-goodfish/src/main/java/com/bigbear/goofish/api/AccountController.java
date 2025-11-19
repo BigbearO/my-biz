@@ -1,8 +1,12 @@
 package com.bigbear.goofish.api;
 
+import cn.hutool.extra.spring.SpringUtil;
+import cn.hutool.json.JSONUtil;
+import com.bigbear.goofish.app.ItemChatService;
 import com.bigbear.goofish.app.UserWebSocketService;
 import com.bigbear.goofish.core.AccountService;
 import com.bigbear.goofish.core.socket.GoofishSocket;
+import com.bigbear.goofish.core.socket.msg.MsgDispatcher;
 import com.bigbear.goofish.domain.Account;
 import com.bigbear.goofish.domain.bo.AccountBo;
 import com.bigbear.goofish.domain.entity.AccountEntity;
@@ -40,6 +44,22 @@ public class AccountController {
 
     private final UserWebSocketService webSocketManager;
 
+
+    @GetMapping("/test")
+    public String test() {
+        String s= """
+             {"identity":258362929,"needReply":false,"redReminder":"","userId":"","userUrl":"https://www.goofish.com/personal?userId=","createTime":"1763509398807","sendUserName":"x***3","receiverId":"2221205134286","sendMessage":"确认只有这几处瑕疵哈","messageId":"3827276878171.PNM","urlInfo":"fleamarket://message_chat?itemId=995273129578&peerUserId=2221205134286&sid=55554941197&messageId=e1793c7249fe4a31a682ad82c577c187&adv=no","itemId":"995273129578","chatId":"55554941197","mid":"52370007 0"}
+            """;
+        GoofishSocket userSocket = webSocketManager.getUserSocket("2920966133");
+       try {
+           userSocket.loadItem(JSONUtil.toBean(s, MsgDispatcher.MsgContext.class));
+       }catch (Exception e){
+           log.info(JSONUtil.toJsonStr(e.getMessage()));
+       }
+
+        return "111";
+    }
+
     /**
      * 查询账号列表
      */
@@ -67,21 +87,31 @@ public class AccountController {
         try {
 
             // 先建立WebSocket连接
-            return webSocketManager.createWebSocketConnection(account)
-                    .then(Mono.defer(() -> {
-                        UserResponse response = new UserResponse(
-                                finalUserId,
-                                true,
-                                "注册成功并已连接"
-                        );
-                        return Mono.just(ResponseEntity.ok(response));
-                    }))
-                    .onErrorResume(error -> {
-                        log.error("注册用户失败", error);
-                        return Mono.just(ResponseEntity.badRequest().body(
-                                new UserResponse(finalUserId, false, "注册失败: " + error.getMessage())
-                        ));
-                    });
+             webSocketManager.createWebSocketConnection(account);
+
+            UserResponse response = new UserResponse(
+                finalUserId,
+                true,
+                "注册成功并已连接"
+            );
+            return Mono.just(ResponseEntity.ok(response));
+
+//                    .then(Mono.defer(() -> {
+//                        UserResponse response = new UserResponse(
+//                                finalUserId,
+//                                true,
+//                                "注册成功并已连接"
+//                        );
+//                        return Mono.just(ResponseEntity.ok(response));
+//                    }))
+//                    .onErrorResume(error -> {
+//                        log.error("注册用户失败", error);
+//                        return Mono.just(ResponseEntity.badRequest().body(
+//                                new UserResponse(finalUserId, false, "注册失败: " + error.getMessage())
+//                        ));
+//                    });
+
+
         } catch (Exception e) {
             log.error("处理用户注册请求时发生异常", e);
             return Mono.just(ResponseEntity.badRequest().body(

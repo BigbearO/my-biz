@@ -49,7 +49,7 @@ public class ItemEntity {
 
     private LocalDateTime createdTime;
 
-    private LocalDateTime updatedTime;
+    private LocalDateTime updateTime;
 
     private Long accountId=0L;
 }

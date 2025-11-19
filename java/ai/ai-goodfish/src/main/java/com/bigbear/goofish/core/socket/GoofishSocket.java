@@ -1,15 +1,13 @@
 package com.bigbear.goofish.core.socket;
 
-import static java.lang.invoke.MethodHandles.lookup;
 import static org.springframework.util.StringUtils.hasLength;
 
 import cn.hutool.json.JSONUtil;
 import com.bigbear.ai.biz.domain.entity.ItemEntity;
 import com.bigbear.ai.biz.manager.ItemManager;
-import com.bigbear.goofish.domain.Account;
+import com.bigbear.goofish.app.AutoReplyService;
 import com.bigbear.goofish.core.AccountService;
 import com.bigbear.goofish.core.ConnectionProperties;
-import com.bigbear.goofish.infra.GoofishClient;
 import com.bigbear.goofish.core.socket.msg.MsgDispatcher;
 import com.bigbear.goofish.core.socket.msg.receive.ReceiveMsg;
 import com.bigbear.goofish.core.socket.msg.send.AckDiffMsg;
@@ -18,36 +16,28 @@ import com.bigbear.goofish.core.socket.msg.send.GetStatMsg;
 import com.bigbear.goofish.core.socket.msg.send.HeartbeatMsg;
 import com.bigbear.goofish.core.socket.msg.send.RegMsg;
 import com.bigbear.goofish.core.socket.msg.send.ReplyTextMsg;
+import com.bigbear.goofish.domain.Account;
 import com.bigbear.goofish.domain.entity.ItemContext;
-import com.bigbear.goofish.app.AutoReplyService;
+import com.bigbear.goofish.infra.GoofishClient;
 import com.bigbear.goofish.utils.JsonUtils;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.Data;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.web.reactive.socket.WebSocketSession;
 import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-@Lazy
 @Data
+@Slf4j
 public class GoofishSocket {
-
-    private static final Logger logger = LoggerFactory.getLogger(lookup().lookupClass());
 
     private AccountService accountService;
 
     private Account account; // 存储与当前Socket关联的用户ID
-
-    // 获取与当前Socket关联的用户账户
-    private Account getAccount() {
-      return   account;
-    }
 
     private GoofishClient client;
     private RegMsg regMsg;
@@ -69,11 +59,16 @@ public class GoofishSocket {
      * 发送消息到WebSocket
      */
     public Mono<Void> reply(WebSocketSession session, MsgDispatcher.MsgContext ctx) {
-        final String userId = getAccount() != null ? getAccount().getUserId() : "unknown";
-        logger.trace("[{}] prepare to send message for chat {}", userId, ctx.getChatId());
+        final String userId =  getAccount().getUserId();
+        log.trace("[{}] prepare to send message for chat {}", userId, ctx.getChatId());
+        Mono<ItemContext> itemMono = loadItem(ctx);
+
+        if (itemMono==null) {
+            return Mono.empty();
+        }
 
         // 加载商品信息
-        return loadItem(ctx)
+        return itemMono
             .then(Mono.defer(() -> {
                 // 构建消息发送逻辑
                 return Mono.just(ctx)
@@ -81,11 +76,11 @@ public class GoofishSocket {
                         // only reply when sender in not the receiver
                         if (!Objects.equals(userId, ctx.getReceiverId())
                             && !manualModeChats.containsKey(ctx.getChatId())) {
-                            logger.info("买家: {}", ctx.getSendMessage());
+                            log.info("买家: {}", ctx.getSendMessage());
                             return botReply(session, ctx)
                                 .flatMap(message -> {
-                                    logger.info("商家: {}", message);
-                                    logger.debug(
+                                    log.info("商家: {}", message);
+                                    log.debug(
                                         "update seller's message to database in chat history table for user {}",
                                         userId);
                                     return Mono.empty().then();
@@ -94,20 +89,20 @@ public class GoofishSocket {
                             // user manually reply
                             if (Objects.equals(ctx.getSendMessage(), "[微笑]")) {
                                 // return to auto mode
-                                logger.info("received emoji [微笑], exit manual mode for chat {}",
+                                log.info("received emoji [微笑], exit manual mode for chat {}",
                                     ctx.getChatId());
                                 manualModeChats.remove(ctx.getChatId());
                             } else {
                                 // switch to manually mode
-                                logger.info(
+                                log.info(
                                     "detected user send message from other device, suspend for the chat {}",
                                     ctx.getChatId());
                                 manualModeChats.put(ctx.getChatId(), true);
                             }
                             return Mono.just(ctx.getSendMessage())
                                 .flatMap(message -> {
-                                    logger.info("商家: {}", message);
-                                    logger.debug(
+                                    log.info("商家: {}", message);
+                                    log.debug(
                                         "update seller's message to database in chat history table for user {}",
                                         userId);
                                     return Mono.empty();
@@ -118,7 +113,9 @@ public class GoofishSocket {
     }
 
     // 将商品信息加载到上下文中
-    private Mono<ItemContext> loadItem(MsgDispatcher.MsgContext msgContext) {
+    public Mono<ItemContext> loadItem(MsgDispatcher.MsgContext msgContext) {
+
+        log.info("msgContext={}", JSONUtil.toJsonStr(msgContext));
         final String itemId = msgContext.getItemId();
         final String userId =
             getAccount() != null ? getAccount().getUserId() : "unknown"; // 获取当前用户ID
@@ -134,14 +131,17 @@ public class GoofishSocket {
         }
 
         ItemEntity itemById = itemManager.getItemById(itemId);
+        if (itemById == null) {
+            return null;
+        }
 
-        ItemContext context=new ItemContext(itemId, msgContext.getUserId(), JSONUtil.toJsonStr(itemById));
+        ItemContext context= new ItemContext(itemId, msgContext.getUserId(), JSONUtil.toJsonStr(itemById));
 
 
         // 从数据库查询 - 使用正确的方法名并传入userId
         return Mono.just(context)
             .flatMap(itemCtx -> {
-                logger.debug("found valid item info in db: {} for user {}", itemCtx.getItemInfo(),
+                log.debug("found valid item info in db: {} for user {}", itemCtx.getItemInfo(),
                     userId);
                 dispatcher.getItemContextRegistry().put(cacheKey, itemCtx);
                 msgContext.setItemInfo(itemCtx.getItemInfo());
@@ -149,7 +149,7 @@ public class GoofishSocket {
             })
             .switchIfEmpty(Mono.defer(() -> {
                 // 如果数据库中不存在，则从API获取
-                logger.debug("item not found in db, try to fetch from api for itemId: {}", itemId);
+                log.debug("item not found in db, try to fetch from api for itemId: {}", itemId);
                 return client.getItemInfo(itemId, userId)
                     .flatMap(itemInfo -> {
                         if (itemInfo != null) {
@@ -170,7 +170,7 @@ public class GoofishSocket {
     // 使用上下文处理回复
     private Mono<String> botReply(WebSocketSession session, MsgDispatcher.MsgContext msgContext) {
         final String userId = getAccount() != null ? getAccount().getUserId() : "unknown";
-        logger.info("[{}][user:{}] prepare to send bot reply for chat {}", msgContext.getIdentity(),
+        log.info("[{}][user:{}] prepare to send bot reply for chat {}", msgContext.getIdentity(),
             userId, msgContext.getChatId());
 
         // 2. 构建情感提示词（流式处理）
@@ -183,7 +183,7 @@ public class GoofishSocket {
                 "商品信息: %s", em, msgContext.getItemInfo()))
             .flatMap(prompt -> replyService.generateReply(prompt,msgContext ))
             .flatMap(botMsg -> {
-                logger.info("[{}][user:{}] bot generate answer: {}", msgContext.getIdentity(),
+                log.info("[{}][user:{}] bot generate answer: {}", msgContext.getIdentity(),
                     userId, botMsg);
                 return new ReplyTextMsg(
                     msgContext.getChatId(),
@@ -201,8 +201,7 @@ public class GoofishSocket {
             // 解析消息
             .flatMap(msg -> {
                 ReceiveMsg m = ReceiveMsg.parse(msg.getPayloadAsText());
-                logger.trace("receive <--- msg [mid:{}] [id:{}] {}", m.getMid(), m.hashCode(),
-                    JsonUtils.prettyJson(m.toJson()));
+                log.info("receive msg data <--- ={}", JSONUtil.toJsonStr(m));
                 return Mono.just(m);
             })
             // 过滤心跳响应
@@ -217,7 +216,7 @@ public class GoofishSocket {
                 : Mono.just(m))
             // 发送ACK确认, 放在处理推送包前 因为推送包处理时间长的话会触发server resend package
             .flatMap(m -> {
-                logger.trace("sending ack for mid: {}", m.getMid());
+                log.trace("sending ack for mid: {}", m.getMid());
                 return new AckMsg(m).send(session).thenReturn(m);
             })
             // 3. 处理同步推送包（核心逻辑）
@@ -235,7 +234,7 @@ public class GoofishSocket {
                     try {
                         objectType = data.getObjectType();
                     } catch (Exception e) {
-                        logger.warn("无法获取SyncData的objectType: {}", e.getMessage());
+                        log.warn("无法获取SyncData的objectType: {}", e.getMessage());
                     }
 
                     switch (objectType) {
@@ -246,7 +245,7 @@ public class GoofishSocket {
                                         return Mono.just(m);
                                     }
                                     // 使用properties对象的toString()代替getUserId()
-                                    logger.debug("[user:{}] processing message for chatId: {}",
+                                    log.debug("[user:{}] processing message for chatId: {}",
                                         properties.toString(), context.getChatId());
                                     // send api request to get history
                                     return Mono.empty()
@@ -255,33 +254,33 @@ public class GoofishSocket {
                                 });
                             break;
                         case 40103:
-                            logger.debug("processing message with objectType 40103, mid: {}",
+                            log.debug("processing message with objectType 40103, mid: {}",
                                 m.getMid());
                             result = Mono.just(m);
                             break;
                         // 消息已读
                         case 40102:
-                            logger.debug("processing message with objectType 40102, mid: {}",
+                            log.debug("processing message with objectType 40102, mid: {}",
                                 m.getMid());
                             result = Mono.just(m);
                             break;
                         case 37000:
-                            logger.debug("processing message with objectType 37000, mid: {}",
+                            log.debug("processing message with objectType 37000, mid: {}",
                                 m.getMid());
                             result = Mono.just(m);
                             break;
                         case -1:
-                            logger.debug("processing default objectType (-1), mid: {}", m.getMid());
+                            log.debug("processing default objectType (-1), mid: {}", m.getMid());
                             result = Mono.just(m);
                             break;
                         default:
-                            logger.debug("unhandled objectType: {}, mid: {}", objectType,
+                            log.debug("unhandled objectType: {}, mid: {}", objectType,
                                 m.getMid());
                             result = Mono.just(m);
                             break;
                     }
                 } else {
-                    logger.warn("No sync data available, mid: {}", m.getMid());
+                    log.warn("No sync data available, mid: {}", m.getMid());
                     result = Mono.just(m);
                 }
                 return result;
@@ -291,13 +290,6 @@ public class GoofishSocket {
             .flatMap(Mono::just);
     }
 
-    public void setMsgDispatcher(MsgDispatcher dispatcher) {
-        this.dispatcher = dispatcher;
-    }
-
-    public void setConnectionProperties(ConnectionProperties properties) {
-        this.properties = properties;
-    }
 
     /**
      * 处理WebSocket会话，为特定用户服务
@@ -332,11 +324,11 @@ public class GoofishSocket {
 
     // request history chat
 //    private Mono<Void> history(ReceiveMsg recMsg, MsgDispatcher.MsgContext context, WebSocketSession session) {
-//        logger.debug("start fetching chat history process");
+//        log.debug("start fetching chat history process");
 //        final String userId = getAccount() != null ? getAccount().getUserId() : "unknown"; // 获取当前用户ID
 //
 //        if (recMsg.getMid().equals(context.getMid())) {
-//            logger.trace("[{}] process history records within received message of mid: {}", recMsg.hashCode(), recMsg.getMid());
+//            log.trace("[{}] process history records within received message of mid: {}", recMsg.hashCode(), recMsg.getMid());
 //            ListUserMessageMsg listMsg = new ListUserMessageMsg(
 //                    context.getChatId(),
 //                    historicalDataMaximum
@@ -344,26 +336,26 @@ public class GoofishSocket {
 //            return chatRepository.findByChatIdAndUserId(context.getChatId(), userId)
 //                    .doOnSuccess(chat -> {
 //                        if (chat != null) {
-//                            logger.trace("[{}] found chat history in db for chatId: {} and userId: {}",
+//                            log.trace("[{}] found chat history in db for chatId: {} and userId: {}",
 //                                    recMsg.hashCode(), context.getChatId(), userId);
 //                        }
 //                    })
 //                    .switchIfEmpty(Mono.defer(() -> {
-//                        logger.trace("[{}] querying historical chat records via api", recMsg.hashCode());
+//                        log.trace("[{}] querying historical chat records via api", recMsg.hashCode());
 //                        String mid = listMsg.getHeaders().getMid();
 //                        context.setMessagesQueryMid(mid);
 //                        dispatcher.getHistoryMsgRegistry().put(mid, context);
 //                        return listMsg.send(session)
-//                                .doOnSuccess(__ -> logger.trace("[{}] api request completed", recMsg.hashCode()))
+//                                .doOnSuccess(__ -> log.trace("[{}] api request completed", recMsg.hashCode()))
 //                                .then(Mono.empty());
 //                    }))
 //                    .flatMap(chat -> Mono.fromRunnable(() -> {
 //                        String chatHistory = chat.getChatHistory();
-//                        logger.info("loaded chat history from database for user {}", userId);
-//                        logger.trace("[{}] chat history loaded: {}", recMsg.hashCode(), chatHistory);
+//                        log.info("loaded chat history from database for user {}", userId);
+//                        log.trace("[{}] chat history loaded: {}", recMsg.hashCode(), chatHistory);
 //
 //                        if (!Objects.equals(context.getReceiverId(), userId)) {
-//                            logger.debug("[{}]from database branch: emitting chat history to context's sink", recMsg.hashCode());
+//                            log.debug("[{}]from database branch: emitting chat history to context's sink", recMsg.hashCode());
 //                            context.setHistoryChat(JsonUtils.readValue(chatHistory, ObjectNode.class));
 //                        }
 //                    }));
@@ -371,11 +363,11 @@ public class GoofishSocket {
 //
 //        // get chat history from response
 //        if (recMsg.getMid().equals(context.getMessagesQueryMid())) {
-//            logger.trace("[{}] process history records within received response of mid : {}", recMsg.hashCode(), context.getMessagesQueryMid());
+//            log.trace("[{}] process history records within received response of mid : {}", recMsg.hashCode(), context.getMessagesQueryMid());
 //
 //            if (recMsg.getBody() == null || recMsg.getBody().getUserMessageModels() == null) {
 //                if (recMsg.getCode() != 200) {
-//                    logger.error("encounter error with response of list user message, raw json: {}", recMsg.getRaw());
+//                    log.error("encounter error with response of list user message, raw json: {}", recMsg.getRaw());
 //                }
 //                return Mono.empty();
 //            }
@@ -395,7 +387,7 @@ public class GoofishSocket {
 //
 //            ObjectNode chatHistoryJson = OBJECT_MAPPER.createObjectNode();
 //            chatHistoryJson.set("messages", messagesArray);
-//            logger.trace("[{}] built history chat list json success: {}", recMsg.hashCode(), chatHistoryJson);
+//            log.trace("[{}] built history chat list json success: {}", recMsg.hashCode(), chatHistoryJson);
 //
 //            ChatContext chatContext = new ChatContext(
 //                    context.getChatId(),
@@ -405,9 +397,9 @@ public class GoofishSocket {
 //                    context.getItemId()
 //            );
 //
-//            logger.trace("[{}] insert history chat list json to database: {}", recMsg.hashCode(), chatHistoryJson);
+//            log.trace("[{}] insert history chat list json to database: {}", recMsg.hashCode(), chatHistoryJson);
 //            return Mono.defer(() -> {
-//                        logger.trace("[{}] starting db insert", recMsg.hashCode());
+//                        log.trace("[{}] starting db insert", recMsg.hashCode());
 //                        return  Mo
 //                    })
 //                    .then();
