@@ -133,7 +133,7 @@ public class GoofishSocket {
 
         ItemEntity itemById = itemManager.getItemById(itemId);
         if (itemById == null) {
-            return client.getItemInfo(itemId, userId)
+            return client.getItemInfo(getAccount(),itemId)
                 .flatMap(itemInfo -> {
                     if (itemInfo != null) {
                         String itemInfoStr = JSONUtil.toJsonStr(itemInfo);
