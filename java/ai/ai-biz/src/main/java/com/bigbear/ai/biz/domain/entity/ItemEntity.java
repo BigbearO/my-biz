@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.time.LocalDateTime;
 import lombok.Data;
+import org.apache.dubbo.common.logger.FluentLogger.S;
 
 /**
  * 商品实体
@@ -51,5 +52,9 @@ public class ItemEntity {
 
     private LocalDateTime updateTime;
 
-    private Long accountId=0L;
+    private String accountId;
+
+    private String itemInfo;
+
+    private Boolean enable;
 }

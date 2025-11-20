@@ -28,12 +28,16 @@ public class ItemVo implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
+
     /**
      * $column.columnComment
      */
     @ExcelProperty(value = "${comment}", converter = ExcelDictConvert.class)
     @ExcelDictFormat(readConverterExp = "$column.readConverterExp()")
     private Long id;
+
+
+    private String  accountId;
 
     /**
      * 关联的闲鱼平台商品id

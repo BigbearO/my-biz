@@ -4,6 +4,7 @@ import static org.springframework.util.StringUtils.hasLength;
 
 import cn.hutool.json.JSONUtil;
 import com.bigbear.ai.biz.domain.entity.ItemEntity;
+import com.bigbear.ai.biz.domain.entity.ItemInfo;
 import com.bigbear.ai.biz.manager.ItemManager;
 import com.bigbear.goofish.app.AutoReplyService;
 import com.bigbear.goofish.core.AccountService;
@@ -132,7 +133,22 @@ public class GoofishSocket {
 
         ItemEntity itemById = itemManager.getItemById(itemId);
         if (itemById == null) {
-            return null;
+            return client.getItemInfo(itemId, userId)
+                .flatMap(itemInfo -> {
+                    if (itemInfo != null) {
+                        String itemInfoStr = JSONUtil.toJsonStr(itemInfo);
+                        log.debug("api fallback success for item: {}", itemInfoStr);
+                        ItemContext newCtx = new ItemContext(itemId, getAccount().getUserId(), itemInfoStr);
+                        dispatcher.getItemContextRegistry().put(cacheKey, newCtx);
+                        ItemEntity newItem = new ItemEntity();
+                        newItem.setItemId(itemId);
+                        newItem.setItemInfo(JSONUtil.toJsonStr(itemInfo));
+                        newItem.setAccountId(getAccount().getUserId());
+                        msgContext.setItemInfo(itemInfoStr);
+                        return Mono.just(newCtx);
+                    }
+                    return Mono.empty();
+                });
         }
 
         ItemContext context= new ItemContext(itemId, msgContext.getUserId(), JSONUtil.toJsonStr(itemById));
@@ -146,25 +162,7 @@ public class GoofishSocket {
                 dispatcher.getItemContextRegistry().put(cacheKey, itemCtx);
                 msgContext.setItemInfo(itemCtx.getItemInfo());
                 return Mono.just(itemCtx);
-            })
-            .switchIfEmpty(Mono.defer(() -> {
-                // 如果数据库中不存在，则从API获取
-                log.debug("item not found in db, try to fetch from api for itemId: {}", itemId);
-                return client.getItemInfo(itemId, userId)
-                    .flatMap(itemInfo -> {
-                        if (itemInfo != null) {
-                            ItemContext newCtx = new ItemContext();
-                            newCtx.setItemId(itemId);
-                            // 修复JsonNode转换为String的问题
-                            String itemInfoStr = itemInfo.toString();
-                            newCtx.setItemInfo(itemInfoStr);
-                            dispatcher.getItemContextRegistry().put(cacheKey, newCtx);
-                            msgContext.setItemInfo(itemInfoStr);
-                            return Mono.just(newCtx);
-                        }
-                        return Mono.empty();
-                    });
-            }));
+            });
     }
 
     // 使用上下文处理回复

@@ -16,9 +16,9 @@ import jakarta.validation.constraints.*;
  * @date 2025-11-09
  */
 @Data
-@EqualsAndHashCode(callSuper = true)
+//@EqualsAndHashCode(callSuper = true)
 @AutoMapper(target = AccountEntity.class, reverseConvertGenerate = false)
-public class AccountBo extends BaseEntity {
+public class AccountBo  {
 
     /**
      * $column.columnComment
