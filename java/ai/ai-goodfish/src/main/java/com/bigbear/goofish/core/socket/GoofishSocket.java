@@ -60,57 +60,53 @@ public class GoofishSocket {
      * 发送消息到WebSocket
      */
     public Mono<Void> reply(WebSocketSession session, MsgDispatcher.MsgContext ctx) {
-        final String userId =  getAccount().getUserId();
+        final String userId = getAccount().getUserId();
         log.trace("[{}] prepare to send message for chat {}", userId, ctx.getChatId());
         Mono<ItemContext> itemMono = loadItem(ctx);
 
-        if (itemMono==null) {
-            return Mono.empty();
-        }
-
-        // 加载商品信息
+        // 响应式调用：对itemMono进行null或空数据判断
         return itemMono
-            .then(Mono.defer(() -> {
+            .filter(itemContext -> itemContext != null && hasLength(itemContext.getItemInfo()))
+            .switchIfEmpty(Mono.defer(() -> {
+                log.debug("Item context is null or empty for chat {}, skipping reply", ctx.getChatId());
+                return Mono.empty();
+            }))
+            .flatMap(itemContext -> {
                 // 构建消息发送逻辑
-                return Mono.just(ctx)
-                    .flatMap(x -> {
-                        // only reply when sender in not the receiver
-                        if (!Objects.equals(userId, ctx.getReceiverId())
-                            && !manualModeChats.containsKey(ctx.getChatId())) {
-                            log.info("买家: {}", ctx.getSendMessage());
-                            return botReply(session, ctx)
-                                .flatMap(message -> {
-                                    log.info("商家: {}", message);
-                                    log.debug(
-                                        "update seller's message to database in chat history table for user {}",
-                                        userId);
-                                    return Mono.empty().then();
-                                });
-                        } else {
-                            // user manually reply
-                            if (Objects.equals(ctx.getSendMessage(), "[微笑]")) {
-                                // return to auto mode
-                                log.info("received emoji [微笑], exit manual mode for chat {}",
-                                    ctx.getChatId());
-                                manualModeChats.remove(ctx.getChatId());
-                            } else {
-                                // switch to manually mode
-                                log.info(
-                                    "detected user send message from other device, suspend for the chat {}",
-                                    ctx.getChatId());
-                                manualModeChats.put(ctx.getChatId(), true);
-                            }
-                            return Mono.just(ctx.getSendMessage())
-                                .flatMap(message -> {
-                                    log.info("商家: {}", message);
-                                    log.debug(
-                                        "update seller's message to database in chat history table for user {}",
-                                        userId);
-                                    return Mono.empty();
-                                });
-                        }
-                    });
-            }));
+                // only reply when sender in not the receiver
+                if (!Objects.equals(userId, ctx.getReceiverId())
+                    && !manualModeChats.containsKey(ctx.getChatId())) {
+                    log.info("买家: {}", ctx.getSendMessage());
+                    return botReply(session, ctx)
+                        .flatMap(message -> {
+                            log.info("商家: {}", message);
+                            log.debug("update seller's message to database in chat history table for user {}", userId);
+                            return Mono.empty();
+                        });
+                } else {
+                    // user manually reply
+                    if (Objects.equals(ctx.getSendMessage(), "[微笑]")) {
+                        // return to auto mode
+                        log.info("received emoji [微笑], exit manual mode for chat {}",
+                            ctx.getChatId());
+                        manualModeChats.remove(ctx.getChatId());
+                    } else {
+                        // switch to manually mode
+                        log.info(
+                            "detected user send message from other device, suspend for the chat {}",
+                            ctx.getChatId());
+                        manualModeChats.put(ctx.getChatId(), true);
+                    }
+                    return Mono.just(ctx.getSendMessage())
+                        .flatMap(message -> {
+                            log.info("商家: {}", message);
+                            log.debug(
+                                "update seller's message to database in chat history table for user {}",
+                                userId);
+                            return Mono.empty();
+                        });
+                }
+            });
     }
 
     // 将商品信息加载到上下文中
@@ -133,7 +129,7 @@ public class GoofishSocket {
 
         ItemEntity itemById = itemManager.getItemById(itemId);
         if (itemById == null) {
-            return client.getItemInfo(getAccount(),itemId)
+            return client.getItemInfo(getAccount(), itemId)
                 .flatMap(itemInfo -> {
                     if (itemInfo != null) {
                         String itemInfoStr = JSONUtil.toJsonStr(itemInfo);
@@ -149,10 +145,15 @@ public class GoofishSocket {
                     }
                     return Mono.empty();
                 });
+        } else {
+            if (!Boolean.TRUE.equals(itemById.getEnable())) {
+                return Mono.empty();
+            }
+
         }
+        // todo 优化字段
 
-        ItemContext context= new ItemContext(itemId, msgContext.getUserId(), JSONUtil.toJsonStr(itemById));
-
+        ItemContext context = new ItemContext(itemId, msgContext.getUserId(), JSONUtil.toJsonStr(itemById));
 
         // 从数据库查询 - 使用正确的方法名并传入userId
         return Mono.just(context)
@@ -179,7 +180,7 @@ public class GoofishSocket {
             .map(em -> String.format("基于以下上下文生成你的回复\n" +
                 "聊天上下文: %s\n" +
                 "商品信息: %s", em, msgContext.getItemInfo()))
-            .flatMap(prompt -> replyService.generateReply(prompt,msgContext ))
+            .flatMap(prompt -> replyService.generateReply(prompt, msgContext))
             .flatMap(botMsg -> {
                 log.info("[{}][user:{}] bot generate answer: {}", msgContext.getIdentity(),
                     userId, botMsg);
