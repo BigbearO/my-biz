@@ -29,6 +29,8 @@ public class ItemBo extends BaseEntity {
     @NotNull(message = "$column.columnComment不能为空", groups = { EditGroup.class })
     private Long id;
 
+    private String accountId;
+
     /**
      * 关联的闲鱼平台商品id
      */
@@ -90,17 +92,9 @@ public class ItemBo extends BaseEntity {
      */
     private String stockStatus;
 
-    /**
-     * 创建时间
-     */
-    @NotNull(message = "创建时间不能为空", groups = { AddGroup.class, EditGroup.class })
-    private Date createdAt;
 
-    /**
-     * 更新时间
-     */
-    @NotNull(message = "更新时间不能为空", groups = { AddGroup.class, EditGroup.class })
-    private Date updatedAt;
+
+
 
 
 

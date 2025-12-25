@@ -1,11 +1,11 @@
 package com.bigbear.goofish.app;
 
-import com.bigbear.goofish.domain.Account;
+import com.bigbear.ai.biz.manager.ItemManager;
 import com.bigbear.goofish.core.AccountService;
 import com.bigbear.goofish.core.ConnectionProperties;
-import com.bigbear.goofish.core.ConnectionPropertiesConfig;
 import com.bigbear.goofish.core.socket.GoofishSocket;
 import com.bigbear.goofish.core.socket.msg.MsgDispatcher;
+import com.bigbear.goofish.domain.Account;
 import com.bigbear.goofish.domain.entity.AccountEntity;
 import com.bigbear.goofish.infra.AccountManager;
 import com.bigbear.goofish.infra.GoofishClient;
@@ -19,16 +19,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.socket.WebSocketSession;
 import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
 import reactor.core.Disposable;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.publisher.SignalType;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.WebsocketClientSpec;
 
@@ -54,11 +50,14 @@ public class UserWebSocketService {
     @Autowired
     private AccountManager accountManager;
 
-    final Integer threadNum =Runtime.getRuntime().availableProcessors()*2;
+    @Autowired
+    private ItemManager itemManager;
+
+    final Integer threadNum = Runtime.getRuntime().availableProcessors() * 2;
 
     private final ExecutorService executor = new ThreadPoolExecutor(
         threadNum,
-        threadNum,
+        threadNum+2,
         10, TimeUnit.MINUTES,
         new LinkedBlockingQueue<>(2048),
         Executors.defaultThreadFactory()
@@ -80,7 +79,7 @@ public class UserWebSocketService {
     /**
      * 为特定用户创建WebSocket连接
      */
-    public Mono<Void> createWebSocketConnection(Account account) {
+    public void createWebSocketConnection(Account account) {
         // 如果properties为null，则使用系统配置
         ConnectionProperties properties = accountService.getSystemProperties();
 
@@ -95,47 +94,47 @@ public class UserWebSocketService {
         final ConnectionProperties finalProperties = properties;
         final Account finalAccount = account;
 
-        // 创建特定于用户的HttpClient
-        HttpClient httpClient = HttpClient.create()
-            .headers(headers -> {
-                headers.add(HttpHeaderNames.COOKIE, finalAccount.getCookieStr());
-                headers.add(HttpHeaderNames.HOST, finalProperties.getSocketUrl().getHost());
-                headers.add(HttpHeaderNames.CONNECTION, "Upgrade");
-                headers.add(HttpHeaderNames.PRAGMA, "no-cache");
-                headers.add(HttpHeaderNames.USER_AGENT, finalAccount.getUserAgent());
-                headers.add(HttpHeaderNames.ORIGIN, finalProperties.getHttpsUrl());
-                headers.add(HttpHeaderNames.ACCEPT_ENCODING, "gzip, deflate, br, zstd");
-                headers.add(HttpHeaderNames.ACCEPT_LANGUAGE, "zh-CN,zh;q=0.9");
-            });
+        CompletableFuture.runAsync(() -> {
 
-        // 创建WebSocket客户端
-        ReactorNettyWebSocketClient webSocketClient = new ReactorNettyWebSocketClient(
-            httpClient,
-            () -> WebsocketClientSpec.builder().maxFramePayloadLength(1024 * 1024 * 10)
-        );
+            // 创建特定于用户的HttpClient
+            HttpClient httpClient = HttpClient.create()
+                .headers(headers -> {
+                    headers.add(HttpHeaderNames.COOKIE, finalAccount.getCookieStr());
+                    headers.add(HttpHeaderNames.HOST, finalProperties.getSocketUrl().getHost());
+                    headers.add(HttpHeaderNames.CONNECTION, "Upgrade");
+                    headers.add(HttpHeaderNames.PRAGMA, "no-cache");
+                    headers.add(HttpHeaderNames.USER_AGENT, finalAccount.getUserAgent());
+                    headers.add(HttpHeaderNames.ORIGIN, finalProperties.getHttpsUrl());
+                    headers.add(HttpHeaderNames.ACCEPT_ENCODING, "gzip, deflate, br, zstd");
+                    headers.add(HttpHeaderNames.ACCEPT_LANGUAGE, "zh-CN,zh;q=0.9");
+                });
+            // 创建WebSocket客户端
+            ReactorNettyWebSocketClient webSocketClient = new ReactorNettyWebSocketClient(
+                httpClient,
+                () -> WebsocketClientSpec.builder().maxFramePayloadLength(1024 * 1024 * 10)
+            );
 
-        // 创建用户特定的GoofishSocket实例
-        final GoofishSocket socket = new GoofishSocket();
-        socket.setClient(client);
-        socket.setMsgDispatcher(msgDispatcher);
-        socket.setConnectionProperties(properties);
-        socket.setReplyService(autoReplyService);
+            // 创建用户特定的GoofishSocket实例
+            final GoofishSocket socket = new GoofishSocket();
+            socket.setClient(client);
+            socket.setDispatcher(msgDispatcher);
+            socket.setProperties(properties);
+            socket.setReplyService(autoReplyService);
+            socket.setItemManager(itemManager);
 
-        socket.setDelegate(webSocketClient); // 设置委托
+            socket.setDelegate(webSocketClient); // 设置委托
 
-        socket.setAccount(account); // 设置用户ID，确保socket能够正确获取用户账户信息
-        socket.setAccountService(accountService);
+            socket.setAccount(account); // 设置用户ID，确保socket能够正确获取用户账户信息
+            socket.setAccountService(accountService);
 
-        // 注册到用户映射
-        userSockets.put(userId, socket);
+            // 注册到用户映射
+            userSockets.put(userId, socket);
 
-        Mono<Void> establish = socket.establish();
-        CompletableFuture.runAsync(()-> {
+            Mono<Void> establish = socket.establish();
+
             Disposable subscribe = establish.subscribe();
-        },executor);
+        }, executor);
 
-
-        return establish;
         // 连接到WebSocket服务器
 //        return webSocketClient.execute(finalProperties.getSocketUrl(), session -> {
 //                // 保存session引用
@@ -174,8 +173,6 @@ public class UserWebSocketService {
 //                log.error("用户 {} WebSocket连接失败", userId, error);
 //            });
     }
-
-
 
 
     /**
@@ -222,8 +219,8 @@ public class UserWebSocketService {
     }
 
     // todo 延迟执行
-    public void refreshToken(){
-        userSockets.forEach((userId, socket) ->{
+    public void refreshToken() {
+        userSockets.forEach((userId, socket) -> {
             socket.refreshToken();
         });
     }

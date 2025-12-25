@@ -197,15 +197,11 @@ public class GoofishClient implements InitializingBean {
             .mapToObj(i -> String.valueOf("0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz".charAt(i)))
             .collect(Collectors.joining());
 
-    public Mono<JsonNode> getItemInfo(String userId, String itemId) {
-        Account account = accountService.getAccount(userId);
-        if (account == null) {
-            return Mono.error(new RuntimeException("未找到用户 " + userId + " 的账户信息"));
-        }
+    public Mono<JsonNode> getItemInfo(Account account , String itemId) {
 
         String time = String.valueOf(System.currentTimeMillis());
         String itemIdDataVal = String.format("{\"itemId\": \"%s\"}", itemId);
-        log.info("send https requests to retrieve item info for: {} by user: {}", itemId, userId);
+        log.info("send https requests to retrieve item info for: {} by user: {}", itemId, account.getUserId());
         return delegate.post()
                 .uri(builder -> {
                     builder.path(properties.getIteminfoUri());
@@ -231,7 +227,7 @@ public class GoofishClient implements InitializingBean {
                 .flatMap(response -> {
                     String ret = response.path("ret").toString();
                     if (ret.contains("SUCCESS::调用成功")) {
-                        log.info("get item info successful for user: {}", userId);
+                        log.info("get item info successful for user: {}", account.getUserId());
                         return Mono.just(response.path("data"));
                     }
                     return Mono.error(new RuntimeException("API调用失败: " + response));

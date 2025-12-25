@@ -28,12 +28,16 @@ public class ItemVo implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
+
     /**
      * $column.columnComment
      */
     @ExcelProperty(value = "${comment}", converter = ExcelDictConvert.class)
     @ExcelDictFormat(readConverterExp = "$column.readConverterExp()")
     private Long id;
+
+
+    private String  accountId;
 
     /**
      * 关联的闲鱼平台商品id
@@ -111,13 +115,13 @@ public class ItemVo implements Serializable {
      * 创建时间
      */
     @ExcelProperty(value = "创建时间")
-    private Date createdAt;
+    private Date createdTime;
 
     /**
      * 更新时间
      */
     @ExcelProperty(value = "更新时间")
-    private Date updatedAt;
+    private Date updateTime;
 
 
 }
