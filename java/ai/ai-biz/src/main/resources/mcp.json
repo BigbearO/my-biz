@@ -1,0 +1,44 @@
+{
+  "mcpServers": {
+    "Redis MCP": {
+      "command": "uvx",
+      "transport": "stdio",
+      "args": [
+        "--from",
+        "git+",
+        "mcp-server-redis"
+      ],
+      "env": {
+        "VOLCENGINE_REGION": "",
+        "VOLCENGINE_ACCESS_KEY": "",
+        "VOLCENGINE_SECRET_KEY": ""
+      }
+    },
+    "MySQL MCP": {
+      "command": "uvx",
+      "transport": "stdio",
+      "args": [
+        "--from",
+        "git+",
+        "mcp-server-mysql"
+      ],
+      "env": {
+        "MYSQL_HOST": "localhost",
+        "MYSQL_PORT": "3306",
+        "MYSQL_USER": "root",
+        "MYSQL_PASSWORD": ""
+      }
+    },
+    "Weather MCP": {
+      "command": "python",
+      "transport": "stdio",
+      "args": [
+        "-m",
+        "weather_mcp_server"
+      ],
+      "env": {
+        "OPENWEATHER_API_KEY": ""
+      }
+    }
+  }
+}
