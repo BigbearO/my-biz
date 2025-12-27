@@ -5,7 +5,6 @@ import cn.hutool.json.JSONUtil;
 import dev.langchain4j.mcp.McpToolProvider;
 import dev.langchain4j.mcp.client.DefaultMcpClient;
 import dev.langchain4j.mcp.client.McpClient;
-//import dev.langchain4j.mcp.client.transport.McpTransport;
 import dev.langchain4j.mcp.client.transport.McpTransport;
 import dev.langchain4j.mcp.client.transport.http.StreamableHttpMcpTransport;
 import dev.langchain4j.mcp.client.transport.stdio.StdioMcpTransport;
@@ -40,6 +39,7 @@ public class McpConfigService {
 
     @Data
     public static class McpConfig {
+
         private Map<String, McpServerConfig> mcpServers;
     }
 
@@ -56,7 +56,7 @@ public class McpConfigService {
         if (toolProvider == null) {
             synchronized (McpConfig.class) {
                 if (toolProvider == null) {
-                    toolProvider =createToolProvider();
+                    toolProvider = createToolProvider();
                 }
             }
         }
@@ -120,30 +120,9 @@ public class McpConfigService {
         }
     }
 
-    /**
-     * 获取MCP服务器配置
-     *
-     * @param serverName 服务器名称
-     * @return MCP服务器配置
-     */
-    public McpServerConfig getMcpServerConfig(String serverName) {
-        if (mcpConfig == null || mcpConfig.getMcpServers() == null) {
-            return null;
-        }
-        return mcpConfig.getMcpServers().get(serverName);
-    }
 
-    /**
-     * 获取所有MCP服务器名称
-     *
-     * @return 服务器名称列表
-     */
-    public java.util.Set<String> getMcpServerNames() {
-        if (mcpConfig == null || mcpConfig.getMcpServers() == null) {
-            return java.util.Collections.emptySet();
-        }
-        return mcpConfig.getMcpServers().keySet();
-    }
+
+
 
     /**
      * 创建ToolProvider（此方法会在Java版本兼容时实现完整功能）

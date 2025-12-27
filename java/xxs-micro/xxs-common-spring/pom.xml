@@ -13,6 +13,7 @@
   <packaging>pom</packaging>
   <modules>
     <module>xxs-spring-modules</module>
+    <module>xxs-spring-ruoyi-bom</module>
 
 
   </modules>
@@ -23,11 +24,11 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
     <!-- 项目版本号 -->
-    <spring-boot.version>3.5.3</spring-boot.version>
-    <spring-cloud.version>2025.0.0</spring-cloud.version>
-    <spring-cloud-alibaba.version>2023.0.3.3</spring-cloud-alibaba.version>
+    <spring-boot.version>3.5.8</spring-boot.version>
+    <spring-cloud.version>2025.0.1</spring-cloud.version>
+    <spring-cloud-alibaba.version>2025.0.0.0</spring-cloud-alibaba.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <spring-boot-admin.version>3.5.1</spring-boot-admin.version>
+    <spring-boot-admin.version>3.5.5</spring-boot-admin.version>
     <screw.version>0.0.3</screw.version>
     <captcha.version>2.2.5</captcha.version>
     <aws.version>1.12.675</aws.version>
@@ -46,7 +47,6 @@
     <docker.password>password</docker.password>
     <git.commit.plugin>9.0.1</git.commit.plugin>
     <spring.checkstyle.plugin>0.0.43</spring.checkstyle.plugin>
-<!--    <opentelemetry.version>1.51.0</opentelemetry.version>-->
   </properties>
 
   <dependencyManagement>

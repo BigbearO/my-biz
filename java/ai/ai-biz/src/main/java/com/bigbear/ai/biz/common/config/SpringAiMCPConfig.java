@@ -15,10 +15,11 @@ import org.springframework.context.annotation.Configuration;
 public class SpringAiMCPConfig {
 
     //ToolCallbacks.from() 方法会自动查找并注册服务中所有带有 @Tool 注解的方法。
-    @Bean
-    public List<ToolCallback> crmTools(CustomerService customerService) {
-        return List.of(ToolCallbacks.from(customerService));
-    }
+    //todo
+//    @Bean
+//    public List<ToolCallback> crmTools(CustomerService customerService) {
+//        return List.of(ToolCallbacks.from(customerService));
+//    }
 
 
     @Bean

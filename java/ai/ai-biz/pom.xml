@@ -30,18 +30,6 @@
     </dependency>
 
 
-
-
-    <dependency>
-      <groupId>org.dromara</groupId>
-      <artifactId>ruoyi-common-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.dromara</groupId>
-      <artifactId>ruoyi-common-redis</artifactId>
-    </dependency>
-
-
     <dependency>
       <groupId>com.github.yulichang</groupId>
       <artifactId>mybatis-plus-join-boot-starter</artifactId>
@@ -53,97 +41,12 @@
     </dependency>
 
 
-    <dependency>
-      <groupId>org.dromara</groupId>
-      <artifactId>ruoyi-common-nacos</artifactId>
-    </dependency>
 
-    <!-- RuoYi Common Log -->
-    <dependency>
-      <groupId>org.dromara</groupId>
-      <artifactId>ruoyi-common-log</artifactId>
-    </dependency>
 
     <dependency>
-      <groupId>org.dromara</groupId>
-      <artifactId>ruoyi-common-service-impl</artifactId>
+      <groupId>com.alibaba.cloud</groupId>
+      <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
     </dependency>
-
-    <dependency>
-      <groupId>org.dromara</groupId>
-      <artifactId>ruoyi-common-doc</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.dromara</groupId>
-      <artifactId>ruoyi-common-web</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.postgresql</groupId>
-      <artifactId>postgresql</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.dromara</groupId>
-      <artifactId>ruoyi-common-mybatis</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.dromara</groupId>
-      <artifactId>ruoyi-common-dubbo</artifactId>
-    </dependency>
-
-    <!--      <dependency>-->
-    <!--        <groupId>org.dromara</groupId>-->
-    <!--        <artifactId>ruoyi-common-seata</artifactId>-->
-    <!--      </dependency>-->
-
-    <dependency>
-      <groupId>org.dromara</groupId>
-      <artifactId>ruoyi-common-idempotent</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.dromara</groupId>
-      <artifactId>ruoyi-common-tenant</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.dromara</groupId>
-      <artifactId>ruoyi-common-security</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.dromara</groupId>
-      <artifactId>ruoyi-common-translation</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.dromara</groupId>
-      <artifactId>ruoyi-common-sensitive</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.dromara</groupId>
-      <artifactId>ruoyi-common-encrypt</artifactId>
-    </dependency>
-
-    <!-- RuoYi Api System -->
-    <dependency>
-      <groupId>org.dromara</groupId>
-      <artifactId>ruoyi-api-system</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.dromara</groupId>
-      <artifactId>ruoyi-api-resource</artifactId>
-    </dependency>
-
-    <!-- RuoYi Api System -->
-    <dependency>
-      <groupId>org.dromara</groupId>
-      <artifactId>ruoyi-api-workflow</artifactId>
-    </dependency>
-
 <!--    ai -->
 
     <!--ai 相关依赖-->
@@ -178,42 +81,6 @@
       <artifactId>langchain4j-open-ai-spring-boot-starter</artifactId>
     </dependency>
 
-    <dependency>
-      <groupId>org.springframework.ai</groupId>
-      <artifactId>spring-ai-starter-model-openai</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>com.alibaba.cloud</groupId>
-      <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.ai</groupId>
-      <artifactId>spring-ai-starter-mcp-server</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.ai</groupId>
-      <artifactId>spring-ai-starter-mcp-client</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.springframework.ai</groupId>
-      <artifactId>spring-ai-starter-mcp-client-webflux</artifactId>
-    </dependency>
-
-
-
-    <!-- WebMVC MCP服务器 - 基于Spring MVC -->
-    <dependency>
-      <groupId>org.springframework.ai</groupId>
-      <artifactId>spring-ai-starter-mcp-server-webmvc</artifactId>
-    </dependency>
-
-    <!-- WebFlux MCP服务器 - 基于响应式编程 -->
-    <dependency>
-      <groupId>org.springframework.ai</groupId>
-      <artifactId>spring-ai-starter-mcp-server-webflux</artifactId>
-    </dependency>
 
 
     <dependency>
@@ -233,29 +100,51 @@
     <dependency>
       <groupId>dev.langchain4j</groupId>
       <artifactId>langchain4j-pgvector</artifactId>
-
     </dependency>
     <dependency>
       <groupId>dev.langchain4j</groupId>
       <artifactId>langchain4j-easy-rag</artifactId>
     </dependency>
 
-    <!--        <dependency>-->
-    <!--            <groupId>dev.langchain4j</groupId>-->
-    <!--            <artifactId>langchain4j-dashsco   pe</artifactId>-->
-    <!--            <version>${last.langchain.version}</version>-->
-    <!--            <exclusions>-->
-    <!--                <exclusion>-->
-    <!--                    <groupId>org.slf4j</groupId>-->
-    <!--                    <artifactId>slf4j-simple</artifactId>-->
-    <!--                </exclusion>-->
-    <!--            </exclusions>-->
-    <!--        </dependency>-->
+
+<!--    spring ai-->
+
+    <dependency>
+      <groupId>org.springframework.ai</groupId>
+      <artifactId>spring-ai-starter-model-openai</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.ai</groupId>
+      <artifactId>spring-ai-starter-mcp-server</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.ai</groupId>
+      <artifactId>spring-ai-starter-mcp-client</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.ai</groupId>
+      <artifactId>spring-ai-starter-mcp-client-webflux</artifactId>
+    </dependency>
+
+
+    <!-- WebMVC MCP服务器 - 基于Spring MVC -->
+    <dependency>
+      <groupId>org.springframework.ai</groupId>
+      <artifactId>spring-ai-starter-mcp-server-webmvc</artifactId>
+    </dependency>
+
+    <!-- WebFlux MCP服务器 - 基于响应式编程 -->
+    <dependency>
+      <groupId>org.springframework.ai</groupId>
+      <artifactId>spring-ai-starter-mcp-server-webflux</artifactId>
+    </dependency>
+
+
     <dependency>
       <groupId>com.github.houbb</groupId>
       <artifactId>sensitive-word</artifactId>
-
-
     </dependency>
 
 <!--  jtoon   参考 https://mp.weixin.qq.com/s/Z757KrakqOhewZSSc_qcjQ-->

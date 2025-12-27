@@ -10,18 +10,17 @@
   <artifactId>xxs-common-core</artifactId>
 
   <name>xxs-common-core</name>
-  <modules>
 
-  </modules>
+  <properties>
+    <guava.version>33.5.0-jre</guava.version>
+  </properties>
+
   <build>
     <pluginManagement>
       <plugins>
       </plugins>
     </pluginManagement>
   </build>
-  <dependencyManagement>
-    <dependencies>
-    </dependencies>
-  </dependencyManagement>
+
 
 </project>

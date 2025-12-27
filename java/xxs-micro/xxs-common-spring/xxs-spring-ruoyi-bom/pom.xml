@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.bigbear</groupId>
+    <artifactId>xxs-common-spring</artifactId>
+    <version>1.0.0</version>
+  </parent>
+
+  <artifactId>xxs-spring-ruoyi-bom</artifactId>
+  <!--  同ruoyi-plus 一致-->
+  <version>2.5.2</version>
+  <packaging>pom</packaging>
+
+  <properties>
+    <maven.compiler.source>21</maven.compiler.source>
+    <maven.compiler.target>21</maven.compiler.target>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.dromara</groupId>
+      <artifactId>ruoyi-common-mybatis</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.dromara</groupId>
+      <artifactId>ruoyi-common-dubbo</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <!--      <dependency>-->
+    <!--        <groupId>org.dromara</groupId>-->
+    <!--        <artifactId>ruoyi-common-seata</artifactId>-->
+    <!--     <version>${project.version}</version>
+    </dependency>-->
+
+    <dependency>
+      <groupId>org.dromara</groupId>
+      <artifactId>ruoyi-common-idempotent</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.dromara</groupId>
+      <artifactId>ruoyi-common-tenant</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.dromara</groupId>
+      <artifactId>ruoyi-common-security</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.dromara</groupId>
+      <artifactId>ruoyi-common-translation</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.dromara</groupId>
+      <artifactId>ruoyi-common-sensitive</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.dromara</groupId>
+      <artifactId>ruoyi-common-encrypt</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <!-- RuoYi Api System -->
+    <dependency>
+      <groupId>org.dromara</groupId>
+      <artifactId>ruoyi-api-system</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.dromara</groupId>
+      <artifactId>ruoyi-api-resource</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <!-- RuoYi Api System -->
+    <dependency>
+      <groupId>org.dromara</groupId>
+      <artifactId>ruoyi-api-workflow</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.dromara</groupId>
+      <artifactId>ruoyi-common-web</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+
+    <dependency>
+      <groupId>org.dromara</groupId>
+      <artifactId>ruoyi-common-nacos</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <!-- RuoYi Common Log -->
+    <dependency>
+      <groupId>org.dromara</groupId>
+      <artifactId>ruoyi-common-log</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.dromara</groupId>
+      <artifactId>ruoyi-common-service-impl</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.dromara</groupId>
+      <artifactId>ruoyi-common-doc</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.dromara</groupId>
+      <artifactId>ruoyi-common-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.dromara</groupId>
+      <artifactId>ruoyi-common-redis</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+  </dependencies>
+
+</project>
