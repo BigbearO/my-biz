@@ -1,4 +1,4 @@
-package com.bigbear.ai.biz.infra;
+package com.bigbear.langchain4j.mcp.config;
 
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
@@ -15,33 +15,15 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.PostConstruct;
-import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.stereotype.Service;
 
 @Getter
 @Slf4j
-@Service
 public class McpConfigService {
 
-    @Data
-    public static class McpServerConfig {
-
-        private String command;
-        private String type;
-        private String url; // 用于HTTP传输类型的URL
-        private List<String> args;
-        private Map<String, String> env;
-    }
-
-    @Data
-    public static class McpConfig {
-
-        private Map<String, McpServerConfig> mcpServers;
-    }
+    private static final String DEFAULT_MCP_URL ="mcp.json";
 
     /**
      * -- GETTER -- 获取MCP配置
@@ -75,14 +57,15 @@ public class McpConfigService {
      */
     private void loadMcpConfig() {
         try {
-            ClassPathResource resource = new ClassPathResource("mcp.json");
-            if (!resource.exists()) {
-                log.error("mcp.json文件不存在");
+            // 改造：不通过 ClassPathResource，使用 getClassLoader().getResourceAsStream() 从 resource 目录获取
+            InputStream inputStream = getClass().getClassLoader().getResourceAsStream(DEFAULT_MCP_URL);
+            if (inputStream == null) {
+                log.error("mcp.json文件不存在或无法读取");
                 return;
             }
 
-            try (InputStream inputStream = resource.getInputStream()) {
-                String jsonStr = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+            try (InputStream stream = inputStream) {
+                String jsonStr = new String(stream.readAllBytes(), StandardCharsets.UTF_8);
                 JSONObject jsonObject = JSONUtil.parseObj(jsonStr);
 
                 // 使用hutool的JSON工具进行序列化
@@ -90,10 +73,10 @@ public class McpConfigService {
                 JSONObject mcpServersJson = jsonObject.getJSONObject("mcpServers");
                 if (mcpServersJson != null) {
                     // 手动转换Map
-                    Map<String, McpServerConfig> mcpServersMap = new java.util.HashMap<>();
+                    Map<String, McpProperty> mcpServersMap = new java.util.HashMap<>();
                     for (Map.Entry<String, Object> entry : mcpServersJson.entrySet()) {
-                        McpServerConfig config = JSONUtil.toBean(JSONUtil.parseObj(entry.getValue()).toString(),
-                            McpServerConfig.class);
+                        McpProperty config = JSONUtil.toBean(JSONUtil.parseObj(entry.getValue()).toString(),
+                            McpProperty.class);
                         mcpServersMap.put(entry.getKey(), config);
                     }
                     mcpConfig.setMcpServers(mcpServersMap);
@@ -105,11 +88,11 @@ public class McpConfigService {
                     log.info("成功加载MCP配置，包含 {} 个服务器", mcpConfig.getMcpServers().size());
 
                     // 打印配置信息
-                    for (Map.Entry<String, McpServerConfig> entry : mcpConfig.getMcpServers().entrySet()) {
+                    for (Map.Entry<String, McpProperty> entry : mcpConfig.getMcpServers().entrySet()) {
                         String serverName = entry.getKey();
-                        McpServerConfig config = entry.getValue();
+                        McpProperty config = entry.getValue();
                         log.info("MCP服务器: {}, transport: {}, command: {}, url: {}",
-                            serverName, config.getType(), config.getCommand(), config.getUrl());
+                            serverName, config.getTransport(), config.getCommand(), config.getUrl());
                     }
                 }
             }
@@ -143,9 +126,9 @@ public class McpConfigService {
 
         java.util.List<McpClient> transportConfigs = new java.util.ArrayList<>();
 
-        for (Map.Entry<String, McpServerConfig> entry : mcpConfig.getMcpServers().entrySet()) {
+        for (Map.Entry<String, McpProperty> entry : mcpConfig.getMcpServers().entrySet()) {
             String serverName = entry.getKey();
-            McpServerConfig config = entry.getValue();
+            McpProperty config = entry.getValue();
 
             try {
                 McpClient transportConfig = createTransportConfig(serverName, config);
@@ -176,8 +159,8 @@ public class McpConfigService {
      * @param config     MCP服务器配置
      * @return 传输配置对象
      */
-    private McpClient createTransportConfig(String serverName, McpServerConfig config) {
-        String transportType = config.getType();
+    private McpClient createTransportConfig(String serverName, McpProperty config) {
+        String transportType = config.getTransport();
 
         if ("sse".equalsIgnoreCase(transportType)) {
             return createHttpTransportConfig(config);
@@ -195,7 +178,7 @@ public class McpConfigService {
      * @param config MCP服务器配置
      * @return HTTP传输配置
      */
-    private McpClient createHttpTransportConfig(McpServerConfig config) {
+    private McpClient createHttpTransportConfig(McpProperty config) {
         if (config.getUrl() == null || config.getUrl().trim().isEmpty()) {
             log.error("HTTP传输类型需要配置url字段");
             return null;
@@ -224,7 +207,7 @@ public class McpConfigService {
      * @param config MCP服务器配置
      * @return STDIO传输配置
      */
-    private McpClient createStdioTransportConfig(McpServerConfig config) {
+    private McpClient createStdioTransportConfig(McpProperty config) {
         if (config.getCommand() == null || config.getCommand().trim().isEmpty()) {
             log.error("STDIO传输类型需要配置command字段");
             return null;
@@ -246,3 +229,4 @@ public class McpConfigService {
             .build();
     }
 }
+

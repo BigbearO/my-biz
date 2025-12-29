@@ -1,0 +1,26 @@
+{
+  "mcpServers": {
+    "example": {
+      "command": "uvx",
+      "args": ["mcp-server-example"],
+      "env": {},
+      "transport": "stdio"
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "C:\\Users\\Public\\Documents"],
+      "env": {},
+      "transport": "stdio"
+    },
+    "github": {
+      "url": "https://mcp.github.com/sse",
+      "transport": "http-sse"
+    },
+    "postgres": {
+      "command": "uvx",
+      "args": ["mcp-server-postgres", "--connection-string", "postgresql://user:password@localhost:5432/database"],
+      "env": {},
+      "transport": "stdio"
+    }
+  }
+}

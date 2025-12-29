@@ -13,12 +13,28 @@ spring:
           password: ${datasource.system-master.password}
   ai:
     mcp:
-      server:
-        name: ${spring.application.name}
-        version: 1.0.0
+      client:
+        stdio:
+          servers-configuration: classpath:/mcp.json
+        sse:
+          connections:
+            server1:
+              url: http://localhost:8080
+
+
+
+        toolcallback:
+          enabled: true
+        streamable-http:
+          connections:
+            s1:
+              url: http://localhost:8080
+
     chat:
       client:
         enabled: false # 禁用 ChatClient.Builder 自动配置,方便手动创建多个 ChatClient 实例。
+
+
     openai:
       api-key: your_openai_api_key
       base-url: https://api.openai.com/v1

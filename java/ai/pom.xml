@@ -32,6 +32,8 @@
     <module>ai-api</module>
     <module>ai-biz</module>
     <module>ai-goodfish</module>
+    <module>xxs-langchain4j-mcp-config</module>
+    <module>langchain4j-mcp-spring-boot-starter</module>
   </modules>
 
   <dependencies>
