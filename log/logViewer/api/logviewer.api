@@ -1,0 +1,76 @@
+syntax = "v1";
+
+info(
+    title: "Log Viewer API"
+    desc: "日志查看器 API"
+    version: "1.0"
+);
+
+// 定义查询参数
+type QueryParam {
+    level    string `form:"level"`
+    app      string `form:"app"`
+    traceId  string `form:"traceId"`
+    messages []Tag  `form:"messages"`
+    env      string `form:"env"`
+    start    string `form:"start"`
+    end      string `form:"end"`
+    page     int    `form:"page"`
+    pageSize int    `form:"page_size"`
+}
+
+type Tag {
+    tag      string `form:"tag"`
+    op       string `form:"op"`
+    value    string `form:"value"`
+    operator string `form:"operator"`
+}
+
+// 定义响应
+type LogDoc {
+    timestamp  string `json:"@timestamp"`
+    level      string `json:"level"`
+    message    string `json:"message"`
+    app        string `json:"app"`
+    traceId    string `json:"trace_id,omitempty"`
+    loggerName string `json:"logger_name"`
+    threadName string `json:"thread_name"`
+    env        string `json:"env"`
+}
+
+type LogResponse {
+    code int    `json:"code"`
+    msg  string `json:"msg"`
+    data Data   `json:"data"`
+}
+
+type Data {
+    total int64    `json:"total"`
+    logs  []LogDoc `json:"logs"`
+}
+
+// API 路由
+@server(
+    prefix: /api
+    group: log
+)
+router {
+    // 日志查询
+    @handler SearchLogs
+    GET /view (QueryParam) returns (LogResponse);
+    
+    // 健康检查
+    @handler Health
+    GET /health returns (LogResponse);
+}
+
+// 静态文件服务
+@server(
+    prefix: /static
+    group: static
+)
+router {
+    // 静态文件代理
+    @handler StaticFileHandler
+    GET /*filepath returns ();
+}
