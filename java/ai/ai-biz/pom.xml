@@ -114,10 +114,7 @@
       <artifactId>spring-ai-starter-model-openai</artifactId>
     </dependency>
 
-    <dependency>
-      <groupId>org.springframework.ai</groupId>
-      <artifactId>spring-ai-starter-mcp-server</artifactId>
-    </dependency>
+
     <dependency>
       <groupId>org.springframework.ai</groupId>
       <artifactId>spring-ai-starter-mcp-client</artifactId>
@@ -128,17 +125,9 @@
       <artifactId>spring-ai-starter-mcp-client-webflux</artifactId>
     </dependency>
 
-
-    <!-- WebMVC MCP服务器 - 基于Spring MVC -->
     <dependency>
       <groupId>org.springframework.ai</groupId>
-      <artifactId>spring-ai-starter-mcp-server-webmvc</artifactId>
-    </dependency>
-
-    <!-- WebFlux MCP服务器 - 基于响应式编程 -->
-    <dependency>
-      <groupId>org.springframework.ai</groupId>
-      <artifactId>spring-ai-starter-mcp-server-webflux</artifactId>
+      <artifactId>spring-ai-tika-document-reader</artifactId>
     </dependency>
 
 
@@ -158,7 +147,14 @@
     <dependency>
       <groupId>ai.djl.huggingface</groupId>
       <artifactId>tokenizers</artifactId>
-      <version>0.30.0</version>
+      <version>0.31.1</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.github.victools</groupId>
+      <artifactId>jsonschema-generator</artifactId>
+      <!-- 可根据实际情况使用最新稳定版本 -->
+      <version>4.38.0</version>
     </dependency>
 
 

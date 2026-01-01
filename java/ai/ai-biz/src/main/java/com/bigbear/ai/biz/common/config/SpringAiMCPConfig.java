@@ -8,6 +8,8 @@ import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.support.ToolCallbacks;
 import org.springframework.ai.tool.ToolCallback;
+import org.springframework.ai.tool.ToolCallbackProvider;
+import org.springframework.ai.tool.method.MethodToolCallbackProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -16,10 +18,14 @@ public class SpringAiMCPConfig {
 
     //ToolCallbacks.from() 方法会自动查找并注册服务中所有带有 @Tool 注解的方法。
     //todo
-//    @Bean
-//    public List<ToolCallback> crmTools(CustomerService customerService) {
-//        return List.of(ToolCallbacks.from(customerService));
-//    }
+    @Bean
+    public ToolCallbackProvider crmTools(CustomerService customerService) {
+//
+//        ToolCallbackProvider from = ToolCallbackProvider.from(ToolCallbacks.from(customerService));
+//        return List.of();
+
+      return   MethodToolCallbackProvider.builder().toolObjects(customerService).build();
+    }
 
 
     @Bean

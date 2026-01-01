@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class CustomerService {
 
-    private List<Customer> customers = new ArrayList<>();
+    private final List<Customer> customers = new ArrayList<>();
 
     @Tool(name = "get_customers", description = "Get a list of customers from the CRM system")
     public List<Customer> getCustomers() {

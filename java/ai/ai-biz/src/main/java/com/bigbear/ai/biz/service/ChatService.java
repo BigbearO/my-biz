@@ -15,6 +15,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+
 public class ChatService {
 
 	private final SensitiveWordBs sensitiveWordBs;

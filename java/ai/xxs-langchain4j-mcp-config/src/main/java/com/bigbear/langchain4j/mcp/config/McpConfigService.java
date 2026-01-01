@@ -17,7 +17,6 @@ import java.util.Map;
 import javax.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.io.ClassPathResource;
 
 @Getter
 @Slf4j

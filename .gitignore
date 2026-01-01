@@ -10,6 +10,10 @@ __pycache__/
 **/.idea/
 **/.vscode/
 
+
+**/.codebudy/
+**/codebudy*
+
 **/node_modules
 
 **/.flattened-pom.xml

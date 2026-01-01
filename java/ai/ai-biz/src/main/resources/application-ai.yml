@@ -15,24 +15,20 @@ spring:
     mcp:
       client:
         stdio:
-          servers-configuration: classpath:/mcp.json
-        sse:
-          connections:
-            server1:
-              url: http://localhost:8080
-
-
-
-        toolcallback:
-          enabled: true
-        streamable-http:
-          connections:
-            s1:
-              url: http://localhost:8080
+          servers-configuration: classpath:/mcp2.json
+#        sse:
+#          connections:
+#            server1:
+#              url: http://localhost:8080
+#        streamable-http:
+#          connections:
+#            s1:
+#              url: http://localhost:8080
 
     chat:
       client:
         enabled: false # 禁用 ChatClient.Builder 自动配置,方便手动创建多个 ChatClient 实例。
+
 
 
     openai:
