@@ -4,7 +4,6 @@ import (
 	"logViewer/gin/api"
 	"logViewer/infra/es"
 	"mime"
-	"net/http"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -15,7 +14,7 @@ func init() {
 	_ = mime.AddExtensionType(".js", "application/javascript")
 }
 
-func main() {
+func main2() {
 	InitConfig()
 	InitEs()
 
@@ -44,8 +43,8 @@ func main() {
 
 func InitConfig() {
 	viper.SetConfigName("config")
-	viper.SetConfigType("yml")
-	viper.AddConfigPath("../etc/gin")
+	viper.SetConfigType("yaml")
+	viper.AddConfigPath("etc")
 	if err := viper.ReadInConfig(); err != nil {
 		panic("Failed to read config: " + err.Error())
 	}

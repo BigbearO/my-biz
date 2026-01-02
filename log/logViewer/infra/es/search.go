@@ -8,7 +8,6 @@ import (
 	"log"
 
 	elasticsearch "github.com/elastic/go-elasticsearch/v8"
-	"github.com/spf13/viper"
 )
 
 // ExecuteSearch 执行 ES 查询，返回日志列表和总数

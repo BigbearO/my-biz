@@ -65,10 +65,8 @@ func convertToESQueryParam(req types.QueryParam) es.QueryParam {
 	messages := make([]es.Tag, len(req.Messages))
 	for i, msg := range req.Messages {
 		messages[i] = es.Tag{
-			Tag:      msg.Tag,
-			Op:       msg.Op,
-			Value:    msg.Value,
-			Operator: msg.Operator,
+			Op:    msg.Op,
+			Value: msg.Value,
 		}
 	}
 

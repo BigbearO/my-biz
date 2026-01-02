@@ -1,4 +1,4 @@
-package main
+package gozero
 
 import (
 	"flag"
@@ -12,9 +12,9 @@ import (
 	"github.com/zeromicro/go-zero/rest"
 )
 
-var configFile = flag.String("f", "../etc/gozero/logviewer.yaml", "the config file")
+var configFile = flag.String("f", "etc/logviewer.yaml", "the config file")
 
-func main() {
+func StartServer() {
 	flag.Parse()
 
 	var c config.Config

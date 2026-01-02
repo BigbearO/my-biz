@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"logViewer/internal/svc"
+	"logViewer/gozero/internal/svc"
 	"net/http"
 
 	"github.com/zeromicro/go-zero/rest"

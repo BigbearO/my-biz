@@ -17,7 +17,7 @@ import (
 func InsertDemo(client *elasticsearch.Client) {
 	docs := []es.LogDoc{
 		{
-			Timestamp: time.Date(2025, 9, 26, 14, 10, 0, 0, time.UTC),
+			Timestamp: time.Date(2025, 9, 26, 14, 10, 0, 0, time.UTC).String(),
 			Level:     "info",
 			Message:   "user login succeeded",
 			//Service:   "auth",
@@ -26,7 +26,7 @@ func InsertDemo(client *elasticsearch.Client) {
 			Env:     "prod",
 		},
 		{
-			Timestamp: time.Date(2025, 9, 26, 14, 9, 0, 0, time.UTC),
+			Timestamp: time.Date(2025, 9, 26, 14, 9, 0, 0, time.UTC).String(),
 			Level:     "debug",
 			Message:   "cache hit for product:sku123",
 			//Service:   "catalog",
@@ -35,7 +35,7 @@ func InsertDemo(client *elasticsearch.Client) {
 			Env:     "staging",
 		},
 		{
-			Timestamp: time.Date(2025, 9, 26, 14, 8, 0, 0, time.UTC),
+			Timestamp: time.Date(2025, 9, 26, 14, 8, 0, 0, time.UTC).String(),
 			Level:     "warn",
 			Message:   "slow query took 1.2s",
 			//Service:   "order",
@@ -44,7 +44,7 @@ func InsertDemo(client *elasticsearch.Client) {
 			Env:     "prod",
 		},
 		{
-			Timestamp: time.Date(2025, 9, 26, 16, 7, 0, 0, time.UTC),
+			Timestamp: time.Date(2025, 9, 26, 16, 7, 0, 0, time.UTC).String(),
 			Level:     "error",
 			Message:   "payment provider timeout",
 			//Service:   "payment",
@@ -53,7 +53,7 @@ func InsertDemo(client *elasticsearch.Client) {
 			Env:     "prod",
 		},
 		{
-			Timestamp: time.Date(2025, 9, 26, 14, 6, 0, 0, time.UTC),
+			Timestamp: time.Date(2025, 9, 26, 14, 6, 0, 0, time.UTC).String(),
 			Level:     "info",
 			Message:   "order #1001 created",
 			//Service:   "order",
@@ -62,7 +62,7 @@ func InsertDemo(client *elasticsearch.Client) {
 			Env:     "prod",
 		},
 		{
-			Timestamp: time.Date(2025, 9, 26, 14, 5, 0, 0, time.UTC),
+			Timestamp: time.Date(2025, 9, 26, 14, 5, 0, 0, time.UTC).String(),
 			Level:     "debug",
 			Message:   "received webhook from stripe",
 			//Service:   "payment",
@@ -71,7 +71,7 @@ func InsertDemo(client *elasticsearch.Client) {
 			Env:     "staging",
 		},
 		{
-			Timestamp: time.Date(2025, 9, 26, 17, 4, 0, 0, time.UTC),
+			Timestamp: time.Date(2025, 9, 26, 17, 4, 0, 0, time.UTC).String(),
 			Level:     "warn",
 			Message:   "invalid jwt token",
 			//Service:   "auth",
@@ -80,7 +80,7 @@ func InsertDemo(client *elasticsearch.Client) {
 			Env:     "prod",
 		},
 		{
-			Timestamp: time.Date(2025, 9, 26, 17, 3, 0, 0, time.UTC),
+			Timestamp: time.Date(2025, 9, 26, 17, 3, 0, 0, time.UTC).String(),
 			Level:     "error",
 			Message:   "sku not found in inventory",
 			//Service:   "inventory",
@@ -89,7 +89,7 @@ func InsertDemo(client *elasticsearch.Client) {
 			Env:     "staging",
 		},
 		{
-			Timestamp: time.Date(2025, 9, 26, 17, 2, 0, 0, time.UTC),
+			Timestamp: time.Date(2025, 9, 26, 17, 2, 0, 0, time.UTC).String(),
 			Level:     "info",
 			Message:   "shipment #200 dispatched",
 			//Service:   "logistics",
@@ -98,7 +98,7 @@ func InsertDemo(client *elasticsearch.Client) {
 			Env:     "prod",
 		},
 		{
-			Timestamp: time.Date(2025, 9, 26, 17, 1, 0, 0, time.UTC),
+			Timestamp: time.Date(2025, 9, 26, 17, 1, 0, 0, time.UTC).String(),
 			Level:     "debug",
 			Message:   "health check ok",
 			//Service:   "monitor",
@@ -111,7 +111,7 @@ func InsertDemo(client *elasticsearch.Client) {
 	for _, doc := range docs {
 		body, _ := json.Marshal(doc)
 		req := esapi.IndexRequest{
-			Index:      fmt.Sprintf("log-%s", doc.Timestamp.Format("2006-01-02")),
+			Index:      fmt.Sprintf("log-%s", "2026-01-02"),
 			DocumentID: "", // 让 ES 自动生成
 			Body:       bytes.NewReader(body),
 			Refresh:    "true",
