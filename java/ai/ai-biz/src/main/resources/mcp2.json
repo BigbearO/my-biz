@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "gitee": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "@gitee/mcp-gitee@latest"
+      ],
+      "env": {
+        "GITEE_ACCESS_TOKEN": "111"
+      }
+    }
+  }
+}
