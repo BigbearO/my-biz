@@ -4,6 +4,6 @@ import (
 	"logViewer/gozero"
 )
 
-func main() {
+func main3() {
 	gozero.StartServer()
 }

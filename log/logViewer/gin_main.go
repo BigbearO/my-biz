@@ -14,7 +14,7 @@ func init() {
 	_ = mime.AddExtensionType(".js", "application/javascript")
 }
 
-func main2() {
+func main() {
 	InitConfig()
 	InitEs()
 
@@ -26,7 +26,7 @@ func main2() {
 
 	log := router.Group("/log")
 	{
-		log.GET("/view", api.SearchLogs)
+		log.POST("/view", api.SearchLogs)
 		log.GET("/add", api.InsertDemo)
 		log.GET("/test", api.TestHealth)
 	}

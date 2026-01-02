@@ -20,19 +20,28 @@ func BuildESQuery(qp QueryParam, indexPrefix string) (map[string]interface{}, st
 
 	if qp.Messages != nil && len(qp.Messages) > 0 {
 		msgBool := buildMessageBool(qp.Messages)
-		if len(msgBool["must"]) > 0 || len(msgBool["should"]) > 0 || len(msgBool["must_not"]) > 0 {
-			boolRoot := boolQ["bool"].(map[string]interface{})
-			if len(msgBool["must"]) > 0 {
-				boolRoot["must"] = msgBool["must"]
-			}
-			if len(msgBool["should"]) > 0 {
-				boolRoot["should"] = msgBool["should"]
+		boolRoot := boolQ["bool"].(map[string]interface{})
+
+		// 处理must条件
+		if mustClauses, ok := msgBool["must"].([]interface{}); ok && len(mustClauses) > 0 {
+			boolRoot["must"] = mustClauses
+		}
+
+		// 处理should条件
+		if shouldClauses, ok := msgBool["should"].([]interface{}); ok && len(shouldClauses) > 0 {
+			boolRoot["should"] = shouldClauses
+			// 检查是否已经设置了minimum_should_match
+			if minShouldMatch, ok := msgBool["minimum_should_match"]; ok {
+				boolRoot["minimum_should_match"] = minShouldMatch
+			} else {
 				// 默认 should 至少匹配 1 条
 				boolRoot["minimum_should_match"] = 1
 			}
-			if len(msgBool["must_not"]) > 0 {
-				boolRoot["must_not"] = msgBool["must_not"]
-			}
+		}
+
+		// 处理must_not条件
+		if mustNotClauses, ok := msgBool["must_not"].([]interface{}); ok && len(mustNotClauses) > 0 {
+			boolRoot["must_not"] = mustNotClauses
 		}
 	}
 
@@ -116,50 +125,110 @@ func BuildESQuery(qp QueryParam, indexPrefix string) (map[string]interface{}, st
 	return query, indexPattern, nil
 }
 
-// buildMessageBool 把 MessageCond 数组转换成 ES bool 查询
-func buildMessageBool(message []Tag) map[string][]interface{} {
+// buildMessageBool 把 MessageCond 数组转换成 ES bool 查询，实现从左到右的过滤器流水线
+func buildMessageBool(message []Tag) map[string]interface{} {
 	// 结果：must / should / must_not
-	result := map[string][]interface{}{
-		"must":     {},
-		"should":   {},
-		"must_not": {},
+	result := map[string]interface{}{
+		"must":     []interface{}{},
+		"should":   []interface{}{},
+		"must_not": []interface{}{},
 	}
 
-	for _, cond := range message {
-		if cond.Tag == "" || cond.Value == "" {
+	if len(message) == 0 {
+		return result
+	}
+
+	// 处理第一个条件
+	firstCond := message[0]
+	if firstCond.Value == "" {
+		return result
+	}
+
+	// 根据 op 生成第一个条件的子句
+	firstClause := buildClause(firstCond)
+
+	// 处理第一个条件的逻辑运算符
+	switch strings.ToLower(firstCond.Op) {
+	case "and":
+		result["must"] = append(result["must"].([]interface{}), firstClause)
+	case "or":
+		result["should"] = append(result["should"].([]interface{}), firstClause)
+		result["minimum_should_match"] = 1
+	case "not":
+		result["must_not"] = append(result["must_not"].([]interface{}), firstClause)
+	default:
+		// 默认使用AND逻辑
+		result["must"] = append(result["must"].([]interface{}), firstClause)
+	}
+
+	// 如果只有一个条件，直接返回
+	if len(message) == 1 {
+		return result
+	}
+
+	// 从第二个条件开始，构建流水线
+	for i := 1; i < len(message); i++ {
+		currentCond := message[i]
+		if currentCond.Value == "" {
 			continue
 		}
 
-		// 根据 op 生成子句
-		var clause map[string]interface{}
-		switch strings.ToLower(cond.Op) {
-		case "match":
-			clause = map[string]interface{}{"match": map[string]interface{}{cond.Tag: cond.Value}}
-		case "wildcard":
-			clause = map[string]interface{}{"wildcard": map[string]interface{}{cond.Tag: cond.Value}}
-		case "regexp":
-			clause = map[string]interface{}{"regexp": map[string]interface{}{cond.Tag: cond.Value}}
-		case "prefix":
-			clause = map[string]interface{}{"prefix": map[string]interface{}{cond.Tag: cond.Value}}
-		case "term":
-			clause = map[string]interface{}{"term": map[string]interface{}{cond.Tag: cond.Value}}
-		default:
-			clause = map[string]interface{}{"match": map[string]interface{}{cond.Tag: cond.Value}}
+		// 构建当前条件的子句
+		currentClause := buildClause(currentCond)
+
+		// 创建新的bool查询，将上一步的结果作为一个子句
+		prevResult := map[string]interface{}{}
+		// 复制当前result的内容到prevResult
+		for k, v := range result {
+			prevResult[k] = v
 		}
 
-		// 根据 operator 放入对应数组
-		switch strings.ToLower(cond.Operator) {
-		case "must":
-			result["must"] = append(result["must"], clause)
-		case "should":
-			result["should"] = append(result["should"], clause)
-		case "must_not":
-			result["must_not"] = append(result["must_not"], clause)
+		// 重置result，准备构建新的bool查询
+		result = map[string]interface{}{
+			"must":     []interface{}{},
+			"should":   []interface{}{},
+			"must_not": []interface{}{},
+		}
+
+		// 将上一步的结果包装成一个bool查询子句
+		prevBoolClause := map[string]interface{}{
+			"bool": prevResult,
+		}
+
+		// 根据当前条件的逻辑运算符，与上一步结果组合
+		switch strings.ToLower(currentCond.Op) {
+		case "and":
+			// AND逻辑：将上一步结果和当前条件都放入must数组
+			result["must"] = append(result["must"].([]interface{}), prevBoolClause)
+			result["must"] = append(result["must"].([]interface{}), currentClause)
+		case "or":
+			// OR逻辑：将上一步结果和当前条件都放入should数组
+			result["should"] = append(result["should"].([]interface{}), prevBoolClause)
+			result["should"] = append(result["should"].([]interface{}), currentClause)
+			result["minimum_should_match"] = 1
+		case "not":
+			// NOT逻辑：在must数组中放入上一步结果，以及一个包含must_not的bool查询
+			result["must"] = append(result["must"].([]interface{}), prevBoolClause)
+			notBoolClause := map[string]interface{}{
+				"bool": map[string]interface{}{
+					"must_not": []interface{}{currentClause},
+				},
+			}
+			result["must"] = append(result["must"].([]interface{}), notBoolClause)
 		default:
-			result["must"] = append(result["must"], clause)
+			// 默认使用AND逻辑
+			result["must"] = append(result["must"].([]interface{}), prevBoolClause)
+			result["must"] = append(result["must"].([]interface{}), currentClause)
 		}
 	}
+
 	return result
+}
+
+// buildClause 根据Tag生成查询子句，只使用value字段进行ES文字匹配
+func buildClause(cond Tag) map[string]interface{} {
+	// 默认使用message字段进行匹配
+	return map[string]interface{}{"match": map[string]interface{}{"message": cond.Value}}
 }
 
 // parseTime 将字符串时间转为 time.Time

@@ -19,7 +19,7 @@ func SetESClient(client *elasticsearch.Client) {
 // SearchLogs 日志查询 Handler（使用共享的查询逻辑）
 func SearchLogs(c *gin.Context) {
 	var qp es.QueryParam
-	if err := c.ShouldBindQuery(&qp); err != nil {
+	if err := c.ShouldBind(&qp); err != nil {
 		c.JSON(http.StatusBadRequest, es.Resp{
 			Code: 400,
 			Msg:  err.Error(),
