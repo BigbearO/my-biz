@@ -225,10 +225,10 @@ func buildMessageBool(message []Tag) map[string]interface{} {
 	return result
 }
 
-// buildClause 根据Tag生成查询子句，只使用value字段进行ES文字匹配
+// buildClause 根据Tag生成查询子句，只使用value字段进行ES文字匹配，实现全匹配
 func buildClause(cond Tag) map[string]interface{} {
-	// 默认使用message字段进行匹配
-	return map[string]interface{}{"match": map[string]interface{}{"message": cond.Value}}
+	// 默认使用message字段进行精确短语匹配
+	return map[string]interface{}{"match_phrase": map[string]interface{}{"message": cond.Value}}
 }
 
 // parseTime 将字符串时间转为 time.Time
