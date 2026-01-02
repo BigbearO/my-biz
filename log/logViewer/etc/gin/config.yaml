@@ -1,0 +1,12 @@
+
+server:
+  port: 8008
+
+
+elasticsearch:
+  addresses:         # ES地址，可以是多个
+    - http://192.168.1.12:9200
+  username: ""       # ES用户名，如果有的话
+  password: ""       # ES密码，如果有的话
+  api_key: ""        # ES API密钥，如果有的话
+  index_prefix: logs-  # 索引前缀
