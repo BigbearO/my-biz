@@ -10,13 +10,12 @@ __pycache__/
 **/.idea/
 **/.vscode/
 
-**/openspec
-**/openspec2
-
+# **/openspec
+**/CODEBUDDY.md
+# **/AGENTS.md
 
 **/.codebudy/
-**/CODEBUDDY.md
-**/AGENTS.md
+
 
 **/node_modules
 
