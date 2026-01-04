@@ -1,161 +1,126 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-  <modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <groupId>org.dromara</groupId>
-    <artifactId>ruoyi-cloud-plus</artifactId>
-    <version>2.5.2</version>
-  </parent>
-  <groupId>com.bigbear</groupId>
-  <artifactId>ai</artifactId>
-  <description>1</description>
-  <packaging>pom</packaging>
-  <version>1.0.0</version>
-  <properties>
-    <maven.compiler.source>21</maven.compiler.source>
-    <maven.compiler.target>21</maven.compiler.target>
-    <java.version>21</java.version>
-    <langchain.version>1.9.1</langchain.version>
-    <langgraph.version>1.7.8</langgraph.version>
-    <spring-ai.version>1.1.2</spring-ai.version>
-    <spring-ai-ali.version>1.0.0.4</spring-ai-ali.version>
-    <last.langchain.version>1.9.1-beta17</last.langchain.version>
-    <sensitive.version>0.29.3</sensitive.version>
-    <mpj.version>1.5.4</mpj.version>
-  </properties>
-  <!--项目子模块-->
-  <modules>
-    <module>ai-api</module>
-    <module>ai-biz</module>
-    <module>ai-goodfish</module>
-    <module>xxs-langchain4j-mcp-config</module>
-    <module>langchain4j-mcp-spring-boot-starter</module>
-  </modules>
+    <parent>
+        <groupId>org.dromara</groupId>
+        <artifactId>ruoyi-cloud-plus</artifactId>
+        <version>2.5.2</version>
+    </parent>
+    <groupId>com.bigbear</groupId>
+    <artifactId>ai</artifactId>
+    <description>1</description>
+    <packaging>pom</packaging>
+    <version>1.0.0</version>
+    <properties>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <java.version>21</java.version>
+        <langchain.version>1.10.0</langchain.version>
+        <langgraph.version>1.7.9</langgraph.version>
+        <spring-ai.version>1.1.2</spring-ai.version>
+        <spring-ai-ali.version>1.0.0.4</spring-ai-ali.version>
+        <last.langchain.version>1.10.0-beta18</last.langchain.version>
+        <sensitive.version>0.29.3</sensitive.version>
+        <mpj.version>1.5.4</mpj.version>
+    </properties>
+    <!--项目子模块-->
+    <modules>
+        <module>ai-api</module>
+        <module>ai-biz</module>
+        <module>ai-goodfish</module>
+        <module>langchain4j-mcp-config</module>
+        <module>langchain4j-mcp-spring-boot-starter</module>
+    </modules>
 
-  <dependencies>
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>com.bigbear</groupId>
-      <artifactId>xxs-common-core</artifactId>
-      <version>1.0.0</version>
-    </dependency>
-    <dependency>
-      <groupId>com.bigbear</groupId>
-      <artifactId>xxs-spring-ruoyi-bom</artifactId>
-      <version>2.5.2</version>
-      <type>pom</type>
-    </dependency>
-  </dependencies>
-
-  <dependencyManagement>
     <dependencies>
-      <!--            社区支持不在bom里面-->
-      <dependency>
-        <groupId>dev.langchain4j</groupId>
-        <artifactId>langchain4j-community-dashscope</artifactId>
-        <version>${last.langchain.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.bigbear</groupId>
-        <artifactId>xxs-common-bom</artifactId>
-        <version>1.0.0</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-      <dependency>
-        <groupId>dev.langchain4j</groupId>
-        <artifactId>langchain4j-bom</artifactId>
-        <version>${langchain.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-      <dependency>
-        <groupId>com.github.houbb</groupId>
-        <artifactId>sensitive-word</artifactId>
-        <version>${sensitive.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.bsc.langgraph4j</groupId>
-        <artifactId>langgraph4j-bom</artifactId>
-        <version>${langgraph.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.springframework.ai</groupId>
-        <artifactId>spring-ai-bom</artifactId>
-        <version>${spring-ai.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-      <dependency>
-        <groupId>com.alibaba.cloud.ai</groupId>
-        <artifactId>spring-ai-alibaba-bom</artifactId>
-        <version>${spring-ai-ali.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
 
+        </dependency>
+        <dependency>
+            <groupId>com.bigbear</groupId>
+            <artifactId>xxs-common-core</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.bigbear</groupId>
+            <artifactId>xxs-spring-ruoyi-bom</artifactId>
+            <version>2.5.2</version>
+            <type>pom</type>
+        </dependency>
     </dependencies>
-  </dependencyManagement>
 
-  <profiles>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.bigbear</groupId>
+                <artifactId>xxs-common-bom</artifactId>
+                <version>1.0.0</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
-    <profile>
-      <id>xhf</id>
-      <properties>
-        <!-- 环境标识，需要与配置文件的名称相对应 -->
-        <profiles.active>xhf</profiles.active>
-        <nacos.server>127.0.0.1:8848</nacos.server>
-        <nacos.discovery.group>DEFAULT_GROUP</nacos.discovery.group>
-        <nacos.config.group>DEFAULT_GROUP</nacos.config.group>
-        <nacos.username>nacos</nacos.username>
-        <nacos.password>nacos</nacos.password>
-        <logstash.address>127.0.0.1:4560</logstash.address>
-      </properties>
-      <activation>
-        <!-- 默认环境 -->
-        <activeByDefault>true</activeByDefault>
-      </activation>
-    </profile>
+    <profiles>
 
-    <profile>
-      <id>dev</id>
-      <properties>
-        <!-- 环境标识，需要与配置文件的名称相对应 -->
-        <profiles.active>dev</profiles.active>
-        <nacos.server>127.0.0.1:8848</nacos.server>
-        <nacos.discovery.group>DEFAULT_GROUP</nacos.discovery.group>
-        <nacos.config.group>DEFAULT_GROUP</nacos.config.group>
-        <nacos.username>nacos</nacos.username>
-        <nacos.password>nacos</nacos.password>
-        <logstash.address>127.0.0.1:4560</logstash.address>
-      </properties>
-      <activation>
-        <!-- 默认环境 -->
-        <!--                <activeByDefault>true</activeByDefault>-->
-      </activation>
-    </profile>
-    <profile>
-      <id>prod</id>
-      <properties>
-        <profiles.active>prod</profiles.active>
-        <nacos.server>127.0.0.1:8848</nacos.server>
-        <nacos.discovery.group>DEFAULT_GROUP</nacos.discovery.group>
-        <nacos.config.group>DEFAULT_GROUP</nacos.config.group>
-        <nacos.username>nacos</nacos.username>
-        <nacos.password>nacos</nacos.password>
-        <logstash.address>127.0.0.1:4560</logstash.address>
-      </properties>
-    </profile>
+        <profile>
+            <id>xhf</id>
+            <properties>
+                <!-- 环境标识，需要与配置文件的名称相对应 -->
+                <profiles.active>xhf</profiles.active>
+                <nacos.server>127.0.0.1:8848</nacos.server>
+                <nacos.discovery.group>DEFAULT_GROUP</nacos.discovery.group>
+                <nacos.config.group>DEFAULT_GROUP</nacos.config.group>
+                <nacos.username>nacos</nacos.username>
+                <nacos.password>nacos</nacos.password>
+                <logstash.address>127.0.0.1:4560</logstash.address>
+            </properties>
+            <activation>
+                <!-- 默认环境 -->
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
 
-  </profiles>
+        <profile>
+            <id>dev</id>
+            <properties>
+                <!-- 环境标识，需要与配置文件的名称相对应 -->
+                <profiles.active>dev</profiles.active>
+                <nacos.server>127.0.0.1:8848</nacos.server>
+                <nacos.discovery.group>DEFAULT_GROUP</nacos.discovery.group>
+                <nacos.config.group>DEFAULT_GROUP</nacos.config.group>
+                <nacos.username>nacos</nacos.username>
+                <nacos.password>nacos</nacos.password>
+                <logstash.address>127.0.0.1:4560</logstash.address>
+            </properties>
+            <activation>
+                <!-- 默认环境 -->
+                <!--                <activeByDefault>true</activeByDefault>-->
+            </activation>
+        </profile>
+        <profile>
+            <id>prod</id>
+            <properties>
+                <profiles.active>prod</profiles.active>
+                <nacos.server>127.0.0.1:8848</nacos.server>
+                <nacos.discovery.group>DEFAULT_GROUP</nacos.discovery.group>
+                <nacos.config.group>DEFAULT_GROUP</nacos.config.group>
+                <nacos.username>nacos</nacos.username>
+                <nacos.password>nacos</nacos.password>
+                <logstash.address>127.0.0.1:4560</logstash.address>
+            </properties>
+        </profile>
+
+    </profiles>
 </project>

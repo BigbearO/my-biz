@@ -12,7 +12,7 @@
   <name>xxs-common-core</name>
 
   <properties>
-    <guava.version>33.5.0-jre</guava.version>
+
   </properties>
 
   <build>

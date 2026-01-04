@@ -11,17 +11,13 @@
 
   <artifactId>langchain4j-mcp-spring-boot-starter</artifactId>
 
-  <properties>
-    <maven.compiler.source>25</maven.compiler.source>
-    <maven.compiler.target>25</maven.compiler.target>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
+  <properties> </properties>
 
 
   <dependencies>
     <dependency>
       <groupId>com.bigbear</groupId>
-      <artifactId>xxs-langchain4j-mcp-config</artifactId>
+      <artifactId>langchain4j-mcp-config</artifactId>
       <version>${project.version}</version>
     </dependency>
   </dependencies>
