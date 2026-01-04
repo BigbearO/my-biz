@@ -1,206 +1,205 @@
 <project>
-    <modelVersion>4.0.0</modelVersion>
-    <groupId>com.bigbear</groupId>
-    <artifactId>xxs-micro</artifactId>
-    <version>${revision}</version>
-    <packaging>pom</packaging>
-    <name>project</name>
-    <properties>
-        <revision>1.0.0</revision>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.bigbear</groupId>
+  <artifactId>xxs-micro</artifactId>
+  <version>${revision}</version>
+  <packaging>pom</packaging>
+  <name>project</name>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
-        <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
+    <revision>1.0.0</revision>
+    <maven.compiler.source>21</maven.compiler.source>
+    <maven.compiler.target>21</maven.compiler.target>
+    <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
+    <surefire-plugin.version>3.5.3</surefire-plugin.version>
 
-        <surefire-plugin.version>3.5.3</surefire-plugin.version>
 
-        <flatten-maven-plugin.version>1.6.0</flatten-maven-plugin.version>
-        <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
-        <docker.plugin.version>0.45.1</docker.plugin.version>
-        <docker.host>http://192.168.0.100:2375</docker.host>
-        <docker.registry>registry.cn-shanghai.aliyuncs.com</docker.registry>
-        <docker.namespace>pig4cloud</docker.namespace>
-        <docker.username>username</docker.username>
-        <docker.password>password</docker.password>
+    <flatten-maven-plugin.version>1.6.0</flatten-maven-plugin.version>
 
-        <hutool.version>5.8.40</hutool.version>
 
-        <lombok.version>1.18.36</lombok.version>
-        <mapstruct-plus.version>1.4.8</mapstruct-plus.version>
-        <mapstruct-plus.lombok.version>0.2.0</mapstruct-plus.lombok.version>
-    </properties>
+    <docker.plugin.version>0.45.1</docker.plugin.version>
+    <docker.host>http://192.168.0.100:2375</docker.host>
+    <docker.registry>registry.cn-shanghai.aliyuncs.com</docker.registry>
+    <docker.namespace>pig4cloud</docker.namespace>
+    <docker.username>username</docker.username>
+    <docker.password>password</docker.password>
 
-    <modules>
-        <module>xxs-common-quarkus</module>
-        <module>xxs-common-spring</module>
-        <module>xxs-component</module>
-        <module>xxs-common-core</module>
-        <module>xxs-common-bom</module>
-    </modules>
-    <dependencyManagement>
-        <dependencies>
-            <!-- hutool 的依赖配置-->
-            <dependency>
-                <groupId>cn.hutool</groupId>
-                <artifactId>hutool-bom</artifactId>
-                <version>${hutool.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
+    <hutool.version>5.8.40</hutool.version>
 
+    <lombok.version>1.18.36</lombok.version>
+    <mapstruct-plus.version>1.4.8</mapstruct-plus.version>
+    <mapstruct-plus.lombok.version>0.2.0</mapstruct-plus.lombok.version>
+  </properties>
+
+  <modules>
+    <module>xxs-common-quarkus</module>
+    <module>xxs-common-spring</module>
+    <module>xxs-component</module>
+    <module>xxs-common-core</module>
+    <module>xxs-common-bom</module>
+  </modules>
+  <dependencyManagement>
     <dependencies>
-        <dependency>
-            <groupId>cn.hutool</groupId>
-            <artifactId>hutool-core</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>cn.hutool</groupId>
-            <artifactId>hutool-http</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>${lombok.version}</version>
-        </dependency>
-
-
+      <!-- hutool 的依赖配置-->
+      <dependency>
+        <groupId>cn.hutool</groupId>
+        <artifactId>hutool-bom</artifactId>
+        <version>${hutool.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
     </dependencies>
+  </dependencyManagement>
 
-    <build>
-        <finalName>${project.name}</finalName>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>true</filtering>
-            </resource>
-        </resources>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>io.fabric8</groupId>
-                    <artifactId>docker-maven-plugin</artifactId>
-                    <version>${docker.plugin.version}</version>
-                    <configuration>
-                        <!-- Docker Remote Api-->
-                        <dockerHost>${docker.host}</dockerHost>
-                        <!-- Docker 镜像私服-->
-                        <registry>${docker.registry}</registry>
-                        <!-- 认证信息-->
-                        <authConfig>
-                            <push>
-                                <username>${docker.username}</username>
-                                <password>${docker.password}</password>
-                            </push>
-                        </authConfig>
-                        <images>
-                            <image>
-                                <!-- 镜像名称： 172.17.0.111/library/pig-gateway:2.6.3-->
-                                <name>${docker.registry}/${docker.namespace}/${project.name}:${project.version}
-                                </name>
-                                <build>
-                                    <dockerFile>${project.basedir}/Dockerfile</dockerFile>
-                                </build>
-                            </image>
-                        </images>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-        <plugins>
+  <dependencies>
+    <dependency>
+      <groupId>cn.hutool</groupId>
+      <artifactId>hutool-core</artifactId>
+    </dependency>
 
-            <!-- 统一 revision 版本 -->
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>flatten-maven-plugin</artifactId>
-                <version>${flatten-maven-plugin.version}</version>
-                <configuration>
-                    <flattenMode>resolveCiFriendliesOnly</flattenMode>
-                    <updatePomFile>true</updatePomFile>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>flatten</id>
-                        <phase>process-resources</phase>
-                        <goals>
-                            <goal>flatten</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>flatten.clean</id>
-                        <phase>clean</phase>
-                        <goals>
-                            <goal>clean</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>${maven-compiler-plugin.version}</version>
-                <configuration>
-                    <target>${maven.compiler.target}</target>
-                    <source>${maven.compiler.source}</source>
-                    <encoding>UTF-8</encoding>
-                    <!--          <parameters>true</parameters>-->
-                    <annotationProcessorPaths>
-                        <!--            <path>-->
-                        <!--              <groupId>com.github.therapi</groupId>-->
-                        <!--              <artifactId>therapi-runtime-javadoc-scribe</artifactId>-->
-                        <!--              <version>0.15.0</version>-->
-                        <!--            </path>-->
-                        <path>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                            <version>${lombok.version}</version>
-                        </path>
+    <dependency>
+      <groupId>cn.hutool</groupId>
+      <artifactId>hutool-http</artifactId>
+    </dependency>
 
-                    </annotationProcessorPaths>
-                    <compilerArgs>
-                        <arg>-parameters</arg>
-                    </compilerArgs>
-                </configuration>
-            </plugin>
-            <plugin>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>${surefire-plugin.version}</version>
-                <configuration>
-                    <systemPropertyVariables>
-                        <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
-                        <maven.home>${maven.home}</maven.home>
-                    </systemPropertyVariables>
-                </configuration>
-            </plugin>
-            <plugin>
-                <artifactId>maven-failsafe-plugin</artifactId>
-                <version>${surefire-plugin.version}</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>integration-test</goal>
-                            <goal>verify</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <systemPropertyVariables>
-                        <native.image.path>${project.build.directory}/${project.build.finalName}-runner
-                        </native.image.path>
-                        <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
-                        <maven.home>${maven.home}</maven.home>
-                    </systemPropertyVariables>
-                </configuration>
-            </plugin>
-        </plugins>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>${lombok.version}</version>
+    </dependency>
 
-    </build>
+
+  </dependencies>
+
+  <build>
+    <finalName>${project.name}</finalName>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+      </resource>
+    </resources>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>io.fabric8</groupId>
+          <artifactId>docker-maven-plugin</artifactId>
+          <version>${docker.plugin.version}</version>
+          <configuration>
+            <!-- Docker Remote Api-->
+            <dockerHost>${docker.host}</dockerHost>
+            <!-- Docker 镜像私服-->
+            <registry>${docker.registry}</registry>
+            <!-- 认证信息-->
+            <authConfig>
+              <push>
+                <username>${docker.username}</username>
+                <password>${docker.password}</password>
+              </push>
+            </authConfig>
+            <images>
+              <image>
+                <!-- 镜像名称： 172.17.0.111/library/pig-gateway:2.6.3-->
+                <name>${docker.registry}/${docker.namespace}/${project.name}:${project.version}
+                </name>
+                <build>
+                  <dockerFile>${project.basedir}/Dockerfile</dockerFile>
+                </build>
+              </image>
+            </images>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+    <plugins>
+
+      <!-- 统一 revision 版本 -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>flatten-maven-plugin</artifactId>
+        <version>${flatten-maven-plugin.version}</version>
+        <configuration>
+          <flattenMode>resolveCiFriendliesOnly</flattenMode>
+          <updatePomFile>true</updatePomFile>
+        </configuration>
+        <executions>
+          <execution>
+            <id>flatten</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>flatten</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>flatten.clean</id>
+            <phase>clean</phase>
+            <goals>
+              <goal>clean</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>${maven-compiler-plugin.version}</version>
+        <configuration>
+          <target>${maven.compiler.target}</target>
+          <source>${maven.compiler.source}</source>
+          <encoding>UTF-8</encoding>
+          <!--          <parameters>true</parameters>-->
+          <annotationProcessorPaths>
+            <!--            <path>-->
+            <!--              <groupId>com.github.therapi</groupId>-->
+            <!--              <artifactId>therapi-runtime-javadoc-scribe</artifactId>-->
+            <!--              <version>0.15.0</version>-->
+            <!--            </path>-->
+            <path>
+              <groupId>org.projectlombok</groupId>
+              <artifactId>lombok</artifactId>
+              <version>${lombok.version}</version>
+            </path>
+
+          </annotationProcessorPaths>
+          <compilerArgs>
+            <arg>-parameters</arg>
+          </compilerArgs>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${surefire-plugin.version}</version>
+        <configuration>
+          <systemPropertyVariables>
+            <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+            <maven.home>${maven.home}</maven.home>
+          </systemPropertyVariables>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>${surefire-plugin.version}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <systemPropertyVariables>
+            <native.image.path>${project.build.directory}/${project.build.finalName}-runner
+            </native.image.path>
+            <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+            <maven.home>${maven.home}</maven.home>
+          </systemPropertyVariables>
+        </configuration>
+      </plugin>
+    </plugins>
+
+  </build>
 
 
 </project>
