@@ -18,6 +18,31 @@
 
     <include resource="logback-logstash.xml" />
 
+  <!-- 新增：JSON 滚动文件，只给 Fluent-bit 读 -->
+  <appender name="json" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>${log.path}/app.json</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>${log.path}/app.%d{yyyy-MM-dd}.json.gz</fileNamePattern>
+      <maxHistory>7</maxHistory>
+    </rollingPolicy>
+    <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+      <!-- 只保留必要字段，缩短字段名 -->
+      <includeMdc>true</includeMdc>
+      <includeMdcKeyName>trace_id</includeMdcKeyName>
+      <includeContext>true</includeContext>
+      <customFields>{"app":"${app}","env":"${env}"}</customFields>
+
+      <!-- 关键：开启 caller 数据输出类、方法、行号  -->
+      <includeCallerData>true</includeCallerData>
+      <!-- 把类名、方法、行号拼成 location 字段 -->
+      <pattern>
+        {
+        "location": "%class.%method\\(%file:%line\\)"
+        }
+      </pattern>
+    </encoder>
+  </appender>
+
     <!-- 开启 skywalking 日志收集 -->
     <include resource="logback-skylog.xml" />
 
