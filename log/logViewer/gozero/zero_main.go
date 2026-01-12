@@ -1,4 +1,4 @@
-package gozero
+package main
 
 import (
 	"flag"
@@ -13,6 +13,10 @@ import (
 )
 
 var configFile = flag.String("f", "etc/logviewer.yaml", "the config file")
+
+func main() {
+	StartServer()
+}
 
 func StartServer() {
 	flag.Parse()
