@@ -1,0 +1,8 @@
+nacos:
+  addr: 192.168.1.85
+  port: 8848
+  baseYaml:
+    # Notice 需要替换成自己nacos的namespaceId
+    namespaceId: xhf
+    group: DEFAULT_GROUP
+    dataId: baseConfig.yaml
