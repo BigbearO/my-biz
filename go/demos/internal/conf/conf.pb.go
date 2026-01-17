@@ -765,7 +765,7 @@ func (x *Registry_Nacos_ClientConfig) GetMaxAge() int32 {
 type Registry_Nacos_ConfigConfig struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Group         string                 `protobuf:"bytes,1,opt,name=group,proto3" json:"group,omitempty"`
-	DataId        string                 `protobuf:"bytes,2,opt,name=data_id,json=dataId,proto3" json:"data_id,omitempty"`
+	DataId        []string               `protobuf:"bytes,2,rep,name=data_id,json=dataId,proto3" json:"data_id,omitempty"`
 	Enable        bool                   `protobuf:"varint,3,opt,name=enable,proto3" json:"enable,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -808,11 +808,11 @@ func (x *Registry_Nacos_ConfigConfig) GetGroup() string {
 	return ""
 }
 
-func (x *Registry_Nacos_ConfigConfig) GetDataId() string {
+func (x *Registry_Nacos_ConfigConfig) GetDataId() []string {
 	if x != nil {
 		return x.DataId
 	}
-	return ""
+	return nil
 }
 
 func (x *Registry_Nacos_ConfigConfig) GetEnable() bool {
@@ -889,7 +889,7 @@ const file_conf_conf_proto_rawDesc = "" +
 	"\amax_age\x18\x0f \x01(\x05R\x06maxAge\x1aU\n" +
 	"\fConfigConfig\x12\x14\n" +
 	"\x05group\x18\x01 \x01(\tR\x05group\x12\x17\n" +
-	"\adata_id\x18\x02 \x01(\tR\x06dataId\x12\x16\n" +
+	"\adata_id\x18\x02 \x03(\tR\x06dataId\x12\x16\n" +
 	"\x06enable\x18\x03 \x01(\bR\x06enableB\x1aZ\x18demos/internal/conf;confb\x06proto3"
 
 var (

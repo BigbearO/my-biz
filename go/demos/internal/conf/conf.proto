@@ -69,7 +69,7 @@ message Registry {
     }
     message ConfigConfig {
       string group = 1;
-      string data_id = 2;
+      repeated string data_id = 2;
       bool enable = 3;
     }
     repeated ServerConfig server = 1;
