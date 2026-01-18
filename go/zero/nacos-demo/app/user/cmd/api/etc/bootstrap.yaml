@@ -1,0 +1,18 @@
+#nacos config.go
+NacosConfig:
+  DataId: user.yaml
+  Group: DEFAULT_GROUP
+  ServerConfigs:
+    - IpAddr: 127.0.0.1
+      Port: 8848
+  ClientConfig:
+    Username: nacos
+    Password: nacos
+    NamespaceId: xhf
+    TimeoutMs: 5000
+    NotLoadCacheAtStart: true
+    LogDir: logs
+    CacheDir: cache
+    RotateTime: 1h
+    MaxAge: 3
+    LogLevel: debug

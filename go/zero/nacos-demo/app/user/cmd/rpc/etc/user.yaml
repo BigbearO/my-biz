@@ -1,0 +1,16 @@
+## 这个配置是放在nacos上的
+#Name: user-rpc
+#ListenOn: 0.0.0.0:8889
+#
+#NacosConfig:
+#  Host: 127.0.0.1
+#  Port: 8848
+#  Username: nacos
+#  Password: nacos
+#  NamespaceId: xhf
+#  TimeoutMs: 5000
+#  NotLoadCacheAtStart: true
+#  LogLevel: debug
+#
+#Log:
+#  Encoding: plain

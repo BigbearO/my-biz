@@ -1,0 +1,11 @@
+# 这个配置是放在nacos上的
+Name: user-api
+Host: 0.0.0.0
+Port: 8888
+
+# nacos://[user:passwd]@host/service?param=value'
+UserRpcConfig:
+  Target: nacos://nacos:nacos@127.0.0.1:8848/user-rpc?timeout=5000ms&namespaceid=xhf
+
+Log:
+  Encoding: plain
