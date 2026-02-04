@@ -3,7 +3,8 @@
   怎么使用
 
 1 引入 当前包
-
+然后在项目下执行 go get github.com/zeromicro/zero-contrib/zrpc/registry/nacos@latest
+保证go。sum有 这个包
 
 
 

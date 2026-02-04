@@ -1,4 +1,4 @@
-module zero-nacos
+module github.com/bigBear520/zero-nacos
 
 go 1.25.5
 
