@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bigbear.mall.biz.mapper.EmulatorMapper">
+
+    <!-- 查询模拟器当前承载的账号数量 -->
+    <select id="selectEmulatorAccountCount" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM account
+        WHERE emulator_id = #{emulatorId}
+          AND enabled = 1
+          AND del_flag = 0
+    </select>
+
+</mapper>

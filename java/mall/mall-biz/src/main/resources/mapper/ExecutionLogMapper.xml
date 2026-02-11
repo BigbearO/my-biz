@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bigbear.mall.biz.mapper.ExecutionLogMapper">
+
+    <!-- 按月统计账号有效执行次数（按游戏类型区分） -->
+    <select id="selectMonthlyStatistics" resultType="com.bigbear.mall.biz.domain.vo.MonthlyStatisticsVO">
+        SELECT
+            el.account_id AS accountId,
+            a.user_account AS accountName,
+            el.game_type AS gameType,
+            COUNT(DISTINCT DATE(el.create_time)) AS validDays
+        FROM execution_log el
+                 LEFT JOIN account a ON el.account_id = a.id
+        WHERE DATE_FORMAT(el.create_time, '%Y-%m') = #{yearMonth}
+        <if test="accountId != null">
+            AND el.account_id = #{accountId}
+        </if>
+        <if test="gameType != null">
+            AND el.game_type = #{gameType}
+        </if>
+        GROUP BY el.account_id, el.game_type
+    </select>
+
+    <!-- 统计总有效次数（支持按游戏类型筛选） -->
+    <select id="selectTotalValidCount" resultType="java.lang.Long">
+        SELECT
+            COUNT(*)
+        FROM (
+                 SELECT DISTINCT
+                     account_id,
+                     DATE(create_time)
+                 FROM execution_log
+                 WHERE DATE_FORMAT(create_time, '%Y-%m') = #{yearMonth}
+                 <if test="gameType != null">
+                     AND game_type = #{gameType}
+                 </if>
+             ) t
+    </select>
+
+    <!-- 按游戏类型分组统计 -->
+    <select id="selectStatisticsByGameType" resultType="com.bigbear.mall.biz.domain.vo.GameTypeStatisticsVO">
+        SELECT
+            game_type AS gameType,
+            COUNT(*) AS count
+        FROM (
+                 SELECT DISTINCT
+                     game_type,
+                     account_id,
+                     DATE(create_time)
+                 FROM execution_log
+                 WHERE DATE_FORMAT(create_time, '%Y-%m') = #{yearMonth}
+             ) t
+        GROUP BY game_type
+    </select>
+
+</mapper>

@@ -1,0 +1,752 @@
+2026-02-11 13:34:48 [background-preinit] INFO  o.h.validator.internal.util.Version - HV000001: Hibernate Validator 8.0.3.Final
+2026-02-11 13:34:48 [main] INFO  c.bigbear.mall.biz.MallApplication - Starting MallApplication using Java 21.0.2 with PID 54708 (E:\project\my-biz\java\mall\mall-biz\target\classes started by Administrator in E:\project\my-biz\java\mall)
+2026-02-11 13:34:48 [main] INFO  c.bigbear.mall.biz.MallApplication - No active profile set, falling back to 1 default profile: "default"
+2026-02-11 13:34:48 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=ai-biz.yml, group=DEFAULT_GROUP] success
+2026-02-11 13:34:48 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=datasource.yml, group=DEFAULT_GROUP] success
+2026-02-11 13:34:48 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=application-common.yml, group=DEFAULT_GROUP] success
+2026-02-11 13:34:49 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - MPJ SqlSessionFactory bean definition: sqlSessionFactory factoryBeanName: com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration factoryMethodName: sqlSessionFactory source: com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration.sqlSessionFactory(javax.sql.DataSource)
+2026-02-11 13:34:50 [main] INFO  io.undertow.servlet - Initializing Spring embedded WebApplicationContext
+2026-02-11 13:34:51 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource detect P6SPY plugin and enabled it
+2026-02-11 13:34:51 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Starting...
+2026-02-11 13:34:51 [main] INFO  com.zaxxer.hikari.pool.HikariPool - master - Added connection org.postgresql.jdbc.PgConnection@4e387da1
+2026-02-11 13:34:51 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Start completed.
+2026-02-11 13:34:51 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource - add a datasource named [master] success
+2026-02-11 13:34:51 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource initial loaded [1] datasource,primary datasource named [master]
+2026-02-11 13:34:51 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - mybatis plus join properties config complete
+2026-02-11 13:34:51 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - mybatis plus join SqlInjector init
+2026-02-11 13:34:52 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource start closing ....
+2026-02-11 13:34:52 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Shutdown initiated...
+2026-02-11 13:34:52 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Shutdown completed.
+2026-02-11 13:34:52 [main] INFO  c.b.d.d.d.DefaultDataSourceDestroyer - dynamic-datasource close the datasource named [master] success,
+2026-02-11 13:34:52 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource all closed success,bye
+2026-02-11 13:36:39 [background-preinit] INFO  o.h.validator.internal.util.Version - HV000001: Hibernate Validator 8.0.3.Final
+2026-02-11 13:36:39 [main] INFO  c.bigbear.mall.biz.MallApplication - Starting MallApplication using Java 21.0.2 with PID 22448 (E:\project\my-biz\java\mall\mall-biz\target\classes started by Administrator in E:\project\my-biz\java\mall)
+2026-02-11 13:36:39 [main] INFO  c.bigbear.mall.biz.MallApplication - No active profile set, falling back to 1 default profile: "default"
+2026-02-11 13:36:39 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=ai-biz.yml, group=DEFAULT_GROUP] success
+2026-02-11 13:36:39 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=datasource.yml, group=DEFAULT_GROUP] success
+2026-02-11 13:36:39 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=application-common.yml, group=DEFAULT_GROUP] success
+2026-02-11 13:36:40 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - MPJ SqlSessionFactory bean definition: sqlSessionFactory factoryBeanName: com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration factoryMethodName: sqlSessionFactory source: com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration.sqlSessionFactory(javax.sql.DataSource)
+2026-02-11 13:36:42 [main] INFO  io.undertow.servlet - Initializing Spring embedded WebApplicationContext
+2026-02-11 13:36:42 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource detect P6SPY plugin and enabled it
+2026-02-11 13:36:42 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Starting...
+2026-02-11 13:36:42 [main] INFO  com.zaxxer.hikari.pool.HikariPool - master - Added connection org.postgresql.jdbc.PgConnection@7edab945
+2026-02-11 13:36:42 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Start completed.
+2026-02-11 13:36:42 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource - add a datasource named [master] success
+2026-02-11 13:36:42 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource initial loaded [1] datasource,primary datasource named [master]
+2026-02-11 13:36:42 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - mybatis plus join properties config complete
+2026-02-11 13:36:42 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - mybatis plus join SqlInjector init
+2026-02-11 13:36:43 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource start closing ....
+2026-02-11 13:36:43 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Shutdown initiated...
+2026-02-11 13:36:43 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Shutdown completed.
+2026-02-11 13:36:43 [main] INFO  c.b.d.d.d.DefaultDataSourceDestroyer - dynamic-datasource close the datasource named [master] success,
+2026-02-11 13:36:43 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource all closed success,bye
+2026-02-11 13:54:41 [background-preinit] INFO  o.h.validator.internal.util.Version - HV000001: Hibernate Validator 8.0.3.Final
+2026-02-11 13:54:42 [main] INFO  c.bigbear.mall.biz.MallApplication - Starting MallApplication using Java 21.0.2 with PID 53820 (E:\project\my-biz\java\mall\mall-biz\target\classes started by Administrator in E:\project\my-biz\java\mall)
+2026-02-11 13:54:42 [main] INFO  c.bigbear.mall.biz.MallApplication - No active profile set, falling back to 1 default profile: "default"
+2026-02-11 13:54:42 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=ai-biz.yml, group=DEFAULT_GROUP] success
+2026-02-11 13:54:42 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=datasource.yml, group=DEFAULT_GROUP] success
+2026-02-11 13:54:42 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=application-common.yml, group=DEFAULT_GROUP] success
+2026-02-11 13:54:44 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - MPJ SqlSessionFactory bean definition: sqlSessionFactory factoryBeanName: com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration factoryMethodName: sqlSessionFactory source: com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration.sqlSessionFactory(javax.sql.DataSource)
+2026-02-11 13:54:45 [main] INFO  io.undertow.servlet - Initializing Spring embedded WebApplicationContext
+2026-02-11 13:54:45 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource detect P6SPY plugin and enabled it
+2026-02-11 13:54:45 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Starting...
+2026-02-11 13:54:45 [main] INFO  com.zaxxer.hikari.pool.HikariPool - master - Added connection org.postgresql.jdbc.PgConnection@14f1db20
+2026-02-11 13:54:45 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Start completed.
+2026-02-11 13:54:45 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource - add a datasource named [master] success
+2026-02-11 13:54:45 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource initial loaded [1] datasource,primary datasource named [master]
+2026-02-11 13:54:46 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - mybatis plus join properties config complete
+2026-02-11 13:54:46 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - mybatis plus join SqlInjector init
+2026-02-11 13:54:46 [main] INFO  o.a.r.s.a.RocketMQAutoConfiguration - a producer (auto-games) init on namesrv 192.168.50.77:9876
+2026-02-11 13:54:49 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource start closing ....
+2026-02-11 13:54:49 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Shutdown initiated...
+2026-02-11 13:54:49 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Shutdown completed.
+2026-02-11 13:54:49 [main] INFO  c.b.d.d.d.DefaultDataSourceDestroyer - dynamic-datasource close the datasource named [master] success,
+2026-02-11 13:54:49 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource all closed success,bye
+2026-02-11 13:58:03 [background-preinit] INFO  o.h.validator.internal.util.Version - HV000001: Hibernate Validator 8.0.3.Final
+2026-02-11 13:58:03 [main] INFO  c.bigbear.mall.biz.MallApplication - Starting MallApplication using Java 21.0.2 with PID 45188 (E:\project\my-biz\java\mall\mall-biz\target\classes started by Administrator in E:\project\my-biz\java\mall)
+2026-02-11 13:58:03 [main] INFO  c.bigbear.mall.biz.MallApplication - No active profile set, falling back to 1 default profile: "default"
+2026-02-11 13:58:03 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=ai-biz.yml, group=DEFAULT_GROUP] success
+2026-02-11 13:58:03 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=datasource.yml, group=DEFAULT_GROUP] success
+2026-02-11 13:58:03 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=application-common.yml, group=DEFAULT_GROUP] success
+2026-02-11 13:58:05 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - MPJ SqlSessionFactory bean definition: sqlSessionFactory factoryBeanName: com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration factoryMethodName: sqlSessionFactory source: com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration.sqlSessionFactory(javax.sql.DataSource)
+2026-02-11 13:58:06 [main] INFO  io.undertow.servlet - Initializing Spring embedded WebApplicationContext
+2026-02-11 13:58:06 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource detect P6SPY plugin and enabled it
+2026-02-11 13:58:06 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Starting...
+2026-02-11 13:58:07 [main] INFO  com.zaxxer.hikari.pool.HikariPool - master - Added connection org.postgresql.jdbc.PgConnection@1c298769
+2026-02-11 13:58:07 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Start completed.
+2026-02-11 13:58:07 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource - add a datasource named [master] success
+2026-02-11 13:58:07 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource initial loaded [1] datasource,primary datasource named [master]
+2026-02-11 13:58:07 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - mybatis plus join properties config complete
+2026-02-11 13:58:07 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - mybatis plus join SqlInjector init
+2026-02-11 13:58:07 [main] INFO  o.a.r.s.a.RocketMQAutoConfiguration - a producer (auto-games) init on namesrv 192.168.50.77:9876
+2026-02-11 13:58:07 [main] INFO  o.a.r.s.s.RocketMQMessageListenerContainerRegistrar - Register the listener to container, listenerBeanName:orderConsumer, containerBeanName:org.apache.rocketmq.spring.support.DefaultRocketMQListenerContainer_1
+2026-02-11 13:58:07 [main] INFO  o.d.c.r.config.RedisConfiguration - 初始化 redis 配置
+2026-02-11 13:58:08 [main] INFO  org.redisson.Version - Redisson 3.52.0
+2026-02-11 13:58:08 [redisson-netty-2-4] INFO  o.r.connection.ConnectionsHolder - 1 connections initialized for 192.168.50.45/192.168.50.45:6379
+2026-02-11 13:58:08 [redisson-netty-2-3] INFO  o.r.connection.ConnectionsHolder - 8 connections initialized for 192.168.50.45/192.168.50.45:6379
+2026-02-11 13:58:08 [main] INFO  o.d.common.json.config.JacksonConfig - 初始化 jackson 配置
+2026-02-11 13:58:08 [main] INFO  c.b.m.e.s.MybatisPlusApplicationContextAware - Register ApplicationContext instances org.springframework.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext@2f677247
+2026-02-11 13:58:09 [main] INFO  i.o.sdk.logs.SdkLoggerProvider - Calling shutdown() multiple times.
+2026-02-11 13:58:09 [main] INFO  o.d.c.core.config.ThreadPoolConfig - ====关闭后台任务任务线程池====
+2026-02-11 13:58:09 [main] INFO  o.a.r.s.s.DefaultRocketMQListenerContainer - container destroyed, DefaultRocketMQListenerContainer{consumerGroup='mall-auto-games', namespace='', namespaceV2='', nameServer='192.168.50.77:9876', topic='order', consumeMode=CONCURRENTLY, selectorType=TAG, selectorExpression='*', messageModel=CLUSTERING', tlsEnable=false, instanceName=DEFAULT}
+2026-02-11 13:58:10 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource start closing ....
+2026-02-11 13:58:10 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Shutdown initiated...
+2026-02-11 13:58:10 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Shutdown completed.
+2026-02-11 13:58:10 [main] INFO  c.b.d.d.d.DefaultDataSourceDestroyer - dynamic-datasource close the datasource named [master] success,
+2026-02-11 13:58:10 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource all closed success,bye
+2026-02-11 13:59:33 [background-preinit] INFO  o.h.validator.internal.util.Version - HV000001: Hibernate Validator 8.0.3.Final
+2026-02-11 13:59:33 [main] INFO  c.bigbear.mall.biz.MallApplication - Starting MallApplication using Java 21.0.2 with PID 54572 (E:\project\my-biz\java\mall\mall-biz\target\classes started by Administrator in E:\project\my-biz\java\mall)
+2026-02-11 13:59:33 [main] INFO  c.bigbear.mall.biz.MallApplication - No active profile set, falling back to 1 default profile: "default"
+2026-02-11 13:59:33 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=ai-biz.yml, group=DEFAULT_GROUP] success
+2026-02-11 13:59:33 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=datasource.yml, group=DEFAULT_GROUP] success
+2026-02-11 13:59:33 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=application-common.yml, group=DEFAULT_GROUP] success
+2026-02-11 13:59:35 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - MPJ SqlSessionFactory bean definition: sqlSessionFactory factoryBeanName: com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration factoryMethodName: sqlSessionFactory source: com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration.sqlSessionFactory(javax.sql.DataSource)
+2026-02-11 13:59:36 [main] INFO  io.undertow.servlet - Initializing Spring embedded WebApplicationContext
+2026-02-11 13:59:37 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource detect P6SPY plugin and enabled it
+2026-02-11 13:59:37 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Starting...
+2026-02-11 13:59:37 [main] INFO  com.zaxxer.hikari.pool.HikariPool - master - Added connection org.postgresql.jdbc.PgConnection@56034552
+2026-02-11 13:59:37 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Start completed.
+2026-02-11 13:59:37 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource - add a datasource named [master] success
+2026-02-11 13:59:37 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource initial loaded [1] datasource,primary datasource named [master]
+2026-02-11 13:59:37 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - mybatis plus join properties config complete
+2026-02-11 13:59:37 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - mybatis plus join SqlInjector init
+2026-02-11 13:59:37 [main] INFO  o.a.r.s.a.RocketMQAutoConfiguration - a producer (auto-games) init on namesrv 192.168.50.77:9876
+2026-02-11 13:59:38 [main] INFO  o.a.r.s.s.RocketMQMessageListenerContainerRegistrar - Register the listener to container, listenerBeanName:orderConsumer, containerBeanName:org.apache.rocketmq.spring.support.DefaultRocketMQListenerContainer_1
+2026-02-11 13:59:38 [main] INFO  o.d.c.r.config.RedisConfiguration - 初始化 redis 配置
+2026-02-11 13:59:38 [main] INFO  org.redisson.Version - Redisson 3.52.0
+2026-02-11 13:59:38 [redisson-netty-2-4] INFO  o.r.connection.ConnectionsHolder - 1 connections initialized for 192.168.50.45/192.168.50.45:6379
+2026-02-11 13:59:38 [redisson-netty-2-3] INFO  o.r.connection.ConnectionsHolder - 8 connections initialized for 192.168.50.45/192.168.50.45:6379
+2026-02-11 13:59:38 [main] INFO  o.d.common.json.config.JacksonConfig - 初始化 jackson 配置
+2026-02-11 13:59:39 [main] INFO  c.b.m.e.s.MybatisPlusApplicationContextAware - Register ApplicationContext instances org.springframework.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext@3d40a3b4
+2026-02-11 13:59:39 [main] INFO  io.undertow - starting server: Undertow - 2.3.20.Final
+2026-02-11 13:59:39 [main] INFO  org.xnio - XNIO version 3.8.16.Final
+2026-02-11 13:59:39 [main] INFO  org.xnio.nio - XNIO NIO Implementation Version 3.8.16.Final
+2026-02-11 13:59:39 [main] INFO  org.jboss.threads - JBoss Threads version 3.7.0.Final
+2026-02-11 13:59:40 [main] INFO  c.a.c.n.r.NacosServiceRegistry - nacos registry, DEFAULT_GROUP mall-biz 192.168.171.1:8200 register finished
+2026-02-11 13:59:43 [main] INFO  io.undertow - stopping server: Undertow - 2.3.20.Final
+2026-02-11 13:59:43 [main] INFO  o.d.c.core.config.ThreadPoolConfig - ====关闭后台任务任务线程池====
+2026-02-11 13:59:43 [main] INFO  c.a.c.n.r.NacosServiceRegistry - De-registering from Nacos Server now...
+2026-02-11 13:59:43 [main] INFO  c.a.c.n.r.NacosServiceRegistry - De-registration finished.
+2026-02-11 13:59:43 [main] INFO  o.a.r.s.s.DefaultRocketMQListenerContainer - container destroyed, DefaultRocketMQListenerContainer{consumerGroup='mall-auto-games', namespace='', namespaceV2='', nameServer='192.168.50.77:9876', topic='order', consumeMode=CONCURRENTLY, selectorType=TAG, selectorExpression='*', messageModel=CLUSTERING', tlsEnable=false, instanceName=DEFAULT}
+2026-02-11 13:59:44 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource start closing ....
+2026-02-11 13:59:44 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Shutdown initiated...
+2026-02-11 13:59:44 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Shutdown completed.
+2026-02-11 13:59:44 [main] INFO  c.b.d.d.d.DefaultDataSourceDestroyer - dynamic-datasource close the datasource named [master] success,
+2026-02-11 13:59:44 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource all closed success,bye
+2026-02-11 14:05:29 [background-preinit] INFO  o.h.validator.internal.util.Version - HV000001: Hibernate Validator 8.0.3.Final
+2026-02-11 14:05:29 [main] INFO  c.bigbear.mall.biz.MallApplication - Starting MallApplication using Java 21.0.2 with PID 53608 (E:\project\my-biz\java\mall\mall-biz\target\classes started by Administrator in E:\project\my-biz\java\mall)
+2026-02-11 14:05:29 [main] INFO  c.bigbear.mall.biz.MallApplication - No active profile set, falling back to 1 default profile: "default"
+2026-02-11 14:05:29 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=ai-biz.yml, group=DEFAULT_GROUP] success
+2026-02-11 14:05:29 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=datasource.yml, group=DEFAULT_GROUP] success
+2026-02-11 14:05:29 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=application-common.yml, group=DEFAULT_GROUP] success
+2026-02-11 14:05:31 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - MPJ SqlSessionFactory bean definition: sqlSessionFactory factoryBeanName: com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration factoryMethodName: sqlSessionFactory source: com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration.sqlSessionFactory(javax.sql.DataSource)
+2026-02-11 14:05:32 [main] INFO  io.undertow.servlet - Initializing Spring embedded WebApplicationContext
+2026-02-11 14:05:33 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource detect P6SPY plugin and enabled it
+2026-02-11 14:05:33 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Starting...
+2026-02-11 14:05:33 [main] INFO  com.zaxxer.hikari.pool.HikariPool - master - Added connection org.postgresql.jdbc.PgConnection@6dbfd081
+2026-02-11 14:05:33 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Start completed.
+2026-02-11 14:05:33 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource - add a datasource named [master] success
+2026-02-11 14:05:33 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource initial loaded [1] datasource,primary datasource named [master]
+2026-02-11 14:05:33 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - mybatis plus join properties config complete
+2026-02-11 14:05:33 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - mybatis plus join SqlInjector init
+2026-02-11 14:05:34 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource start closing ....
+2026-02-11 14:05:34 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Shutdown initiated...
+2026-02-11 14:05:34 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Shutdown completed.
+2026-02-11 14:05:34 [main] INFO  c.b.d.d.d.DefaultDataSourceDestroyer - dynamic-datasource close the datasource named [master] success,
+2026-02-11 14:05:34 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource all closed success,bye
+2026-02-11 14:19:50 [background-preinit] INFO  o.h.validator.internal.util.Version - HV000001: Hibernate Validator 8.0.3.Final
+2026-02-11 14:19:51 [main] INFO  c.bigbear.mall.biz.MallApplication - Starting MallApplication using Java 21.0.2 with PID 39872 (E:\project\my-biz\java\mall\mall-biz\target\classes started by Administrator in E:\project\my-biz\java\mall)
+2026-02-11 14:19:51 [main] INFO  c.bigbear.mall.biz.MallApplication - No active profile set, falling back to 1 default profile: "default"
+2026-02-11 14:19:51 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=ai-biz.yml, group=DEFAULT_GROUP] success
+2026-02-11 14:19:51 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=datasource.yml, group=DEFAULT_GROUP] success
+2026-02-11 14:19:51 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=application-common.yml, group=DEFAULT_GROUP] success
+2026-02-11 14:19:57 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - MPJ SqlSessionFactory bean definition: sqlSessionFactory factoryBeanName: com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration factoryMethodName: sqlSessionFactory source: com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration.sqlSessionFactory(javax.sql.DataSource)
+2026-02-11 14:20:01 [main] INFO  io.undertow.servlet - Initializing Spring embedded WebApplicationContext
+2026-02-11 14:20:02 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource detect P6SPY plugin and enabled it
+2026-02-11 14:20:02 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Starting...
+2026-02-11 14:20:02 [main] INFO  com.zaxxer.hikari.pool.HikariPool - master - Added connection org.postgresql.jdbc.PgConnection@21e72fb2
+2026-02-11 14:20:02 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Start completed.
+2026-02-11 14:20:02 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource - add a datasource named [master] success
+2026-02-11 14:20:02 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource initial loaded [1] datasource,primary datasource named [master]
+2026-02-11 14:20:02 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - mybatis plus join properties config complete
+2026-02-11 14:20:03 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - mybatis plus join SqlInjector init
+2026-02-11 14:20:06 [main] INFO  o.a.r.s.a.RocketMQAutoConfiguration - a producer (auto-games) init on namesrv 192.168.50.77:9876
+2026-02-11 14:20:06 [main] INFO  o.a.r.s.s.RocketMQMessageListenerContainerRegistrar - Register the listener to container, listenerBeanName:orderConsumer, containerBeanName:org.apache.rocketmq.spring.support.DefaultRocketMQListenerContainer_1
+2026-02-11 14:20:07 [main] INFO  o.d.c.r.config.RedisConfiguration - 初始化 redis 配置
+2026-02-11 14:20:07 [main] INFO  org.redisson.Version - Redisson 3.52.0
+2026-02-11 14:20:08 [redisson-netty-2-4] INFO  o.r.connection.ConnectionsHolder - 1 connections initialized for 192.168.50.45/192.168.50.45:6379
+2026-02-11 14:20:08 [redisson-netty-2-3] INFO  o.r.connection.ConnectionsHolder - 8 connections initialized for 192.168.50.45/192.168.50.45:6379
+2026-02-11 14:20:09 [main] INFO  o.d.common.json.config.JacksonConfig - 初始化 jackson 配置
+2026-02-11 14:20:09 [main] INFO  c.b.m.e.s.MybatisPlusApplicationContextAware - Register ApplicationContext instances org.springframework.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext@67bb4dcd
+2026-02-11 14:20:11 [main] INFO  io.undertow - starting server: Undertow - 2.3.20.Final
+2026-02-11 14:20:11 [main] INFO  org.xnio - XNIO version 3.8.16.Final
+2026-02-11 14:20:11 [main] INFO  org.xnio.nio - XNIO NIO Implementation Version 3.8.16.Final
+2026-02-11 14:20:11 [main] INFO  org.jboss.threads - JBoss Threads version 3.7.0.Final
+2026-02-11 14:20:11 [main] INFO  c.a.c.n.r.NacosServiceRegistry - nacos registry, DEFAULT_GROUP mall-biz 192.168.171.1:8200 register finished
+2026-02-11 14:20:14 [main] INFO  io.undertow - stopping server: Undertow - 2.3.20.Final
+2026-02-11 14:20:14 [main] INFO  o.d.c.core.config.ThreadPoolConfig - ====关闭后台任务任务线程池====
+2026-02-11 14:20:14 [main] INFO  c.a.c.n.r.NacosServiceRegistry - De-registering from Nacos Server now...
+2026-02-11 14:20:14 [main] INFO  c.a.c.n.r.NacosServiceRegistry - De-registration finished.
+2026-02-11 14:20:14 [main] INFO  o.a.r.s.s.DefaultRocketMQListenerContainer - container destroyed, DefaultRocketMQListenerContainer{consumerGroup='mall-auto-games', namespace='', namespaceV2='', nameServer='192.168.50.77:9876', topic='order', consumeMode=CONCURRENTLY, selectorType=TAG, selectorExpression='*', messageModel=CLUSTERING', tlsEnable=false, instanceName=DEFAULT}
+2026-02-11 14:20:15 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource start closing ....
+2026-02-11 14:20:15 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Shutdown initiated...
+2026-02-11 14:20:15 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Shutdown completed.
+2026-02-11 14:20:15 [main] INFO  c.b.d.d.d.DefaultDataSourceDestroyer - dynamic-datasource close the datasource named [master] success,
+2026-02-11 14:20:15 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource all closed success,bye
+2026-02-11 14:25:42 [background-preinit] INFO  o.h.validator.internal.util.Version - HV000001: Hibernate Validator 8.0.3.Final
+2026-02-11 14:25:42 [main] INFO  c.bigbear.mall.biz.MallApplication - Starting MallApplication using Java 21.0.2 with PID 53208 (E:\project\my-biz\java\mall\mall-biz\target\classes started by Administrator in E:\project\my-biz\java\mall)
+2026-02-11 14:25:42 [main] INFO  c.bigbear.mall.biz.MallApplication - No active profile set, falling back to 1 default profile: "default"
+2026-02-11 14:25:42 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=ai-biz.yml, group=DEFAULT_GROUP] success
+2026-02-11 14:25:42 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=datasource.yml, group=DEFAULT_GROUP] success
+2026-02-11 14:25:42 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=application-common.yml, group=DEFAULT_GROUP] success
+2026-02-11 14:25:44 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - MPJ SqlSessionFactory bean definition: sqlSessionFactory factoryBeanName: com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration factoryMethodName: sqlSessionFactory source: com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration.sqlSessionFactory(javax.sql.DataSource)
+2026-02-11 14:25:45 [main] INFO  io.undertow.servlet - Initializing Spring embedded WebApplicationContext
+2026-02-11 14:25:45 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource detect P6SPY plugin and enabled it
+2026-02-11 14:25:45 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Starting...
+2026-02-11 14:25:46 [main] INFO  com.zaxxer.hikari.pool.HikariPool - master - Added connection org.postgresql.jdbc.PgConnection@6bfa228c
+2026-02-11 14:25:46 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Start completed.
+2026-02-11 14:25:46 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource - add a datasource named [master] success
+2026-02-11 14:25:46 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource initial loaded [1] datasource,primary datasource named [master]
+2026-02-11 14:25:46 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - mybatis plus join properties config complete
+2026-02-11 14:25:46 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - mybatis plus join SqlInjector init
+2026-02-11 14:25:46 [main] INFO  o.a.r.s.a.RocketMQAutoConfiguration - a producer (auto-games) init on namesrv 192.168.50.77:9876
+2026-02-11 14:25:47 [main] INFO  o.a.r.s.s.RocketMQMessageListenerContainerRegistrar - Register the listener to container, listenerBeanName:orderConsumer, containerBeanName:org.apache.rocketmq.spring.support.DefaultRocketMQListenerContainer_1
+2026-02-11 14:25:47 [main] INFO  o.d.c.r.config.RedisConfiguration - 初始化 redis 配置
+2026-02-11 14:25:47 [main] INFO  org.redisson.Version - Redisson 3.52.0
+2026-02-11 14:25:47 [redisson-netty-2-4] INFO  o.r.connection.ConnectionsHolder - 1 connections initialized for 192.168.50.45/192.168.50.45:6379
+2026-02-11 14:25:47 [redisson-netty-2-3] INFO  o.r.connection.ConnectionsHolder - 8 connections initialized for 192.168.50.45/192.168.50.45:6379
+2026-02-11 14:25:47 [main] INFO  o.d.common.json.config.JacksonConfig - 初始化 jackson 配置
+2026-02-11 14:25:47 [main] INFO  c.b.m.e.s.MybatisPlusApplicationContextAware - Register ApplicationContext instances org.springframework.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext@3a4aadf8
+2026-02-11 14:25:48 [main] INFO  io.undertow - starting server: Undertow - 2.3.20.Final
+2026-02-11 14:25:48 [main] INFO  org.xnio - XNIO version 3.8.16.Final
+2026-02-11 14:25:48 [main] INFO  org.xnio.nio - XNIO NIO Implementation Version 3.8.16.Final
+2026-02-11 14:25:48 [main] INFO  org.jboss.threads - JBoss Threads version 3.7.0.Final
+2026-02-11 14:25:48 [main] INFO  c.a.c.n.r.NacosServiceRegistry - nacos registry, DEFAULT_GROUP mall-biz 192.168.171.1:8200 register finished
+2026-02-11 14:25:49 [main] INFO  o.a.r.s.s.DefaultRocketMQListenerContainer - running container: DefaultRocketMQListenerContainer{consumerGroup='mall-auto-games', namespace='', namespaceV2='', nameServer='192.168.50.77:9876', topic='order', consumeMode=CONCURRENTLY, selectorType=TAG, selectorExpression='*', messageModel=CLUSTERING', tlsEnable=false, instanceName=DEFAULT}
+2026-02-11 14:25:51 [main] INFO  i.o.sdk.logs.SdkLoggerProvider - Calling shutdown() multiple times.
+2026-02-11 14:25:51 [main] INFO  o.d.c.core.config.ThreadPoolConfig - ====关闭后台任务任务线程池====
+2026-02-11 14:25:51 [main] INFO  c.a.c.n.r.NacosServiceRegistry - De-registering from Nacos Server now...
+2026-02-11 14:25:51 [main] INFO  c.a.c.n.r.NacosServiceRegistry - De-registration finished.
+2026-02-11 14:25:51 [main] INFO  o.a.r.s.s.DefaultRocketMQListenerContainer - container destroyed, DefaultRocketMQListenerContainer{consumerGroup='mall-auto-games', namespace='', namespaceV2='', nameServer='192.168.50.77:9876', topic='order', consumeMode=CONCURRENTLY, selectorType=TAG, selectorExpression='*', messageModel=CLUSTERING', tlsEnable=false, instanceName=DEFAULT}
+2026-02-11 14:25:52 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource start closing ....
+2026-02-11 14:25:52 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Shutdown initiated...
+2026-02-11 14:25:52 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Shutdown completed.
+2026-02-11 14:25:52 [main] INFO  c.b.d.d.d.DefaultDataSourceDestroyer - dynamic-datasource close the datasource named [master] success,
+2026-02-11 14:25:52 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource all closed success,bye
+2026-02-11 14:25:52 [main] INFO  io.undertow - stopping server: Undertow - 2.3.20.Final
+2026-02-11 14:29:01 [background-preinit] INFO  o.h.validator.internal.util.Version - HV000001: Hibernate Validator 8.0.3.Final
+2026-02-11 14:29:01 [main] INFO  c.bigbear.mall.biz.MallApplication - Starting MallApplication using Java 21.0.2 with PID 20584 (E:\project\my-biz\java\mall\mall-biz\target\classes started by Administrator in E:\project\my-biz\java\mall)
+2026-02-11 14:29:01 [main] INFO  c.bigbear.mall.biz.MallApplication - No active profile set, falling back to 1 default profile: "default"
+2026-02-11 14:29:01 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=ai-biz.yml, group=DEFAULT_GROUP] success
+2026-02-11 14:29:01 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=datasource.yml, group=DEFAULT_GROUP] success
+2026-02-11 14:29:01 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=application-common.yml, group=DEFAULT_GROUP] success
+2026-02-11 14:29:02 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - MPJ SqlSessionFactory bean definition: sqlSessionFactory factoryBeanName: com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration factoryMethodName: sqlSessionFactory source: com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration.sqlSessionFactory(javax.sql.DataSource)
+2026-02-11 14:29:02 [main] INFO  io.undertow.servlet - Initializing Spring embedded WebApplicationContext
+2026-02-11 14:29:03 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource detect P6SPY plugin and enabled it
+2026-02-11 14:29:03 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Starting...
+2026-02-11 14:29:03 [main] INFO  com.zaxxer.hikari.pool.HikariPool - master - Added connection org.postgresql.jdbc.PgConnection@49231d79
+2026-02-11 14:29:03 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Start completed.
+2026-02-11 14:29:03 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource - add a datasource named [master] success
+2026-02-11 14:29:03 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource initial loaded [1] datasource,primary datasource named [master]
+2026-02-11 14:29:03 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - mybatis plus join properties config complete
+2026-02-11 14:29:03 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - mybatis plus join SqlInjector init
+2026-02-11 14:29:04 [main] INFO  o.a.r.s.a.RocketMQAutoConfiguration - a producer (auto-games) init on namesrv 192.168.50.77:9876
+2026-02-11 14:29:04 [main] INFO  o.a.r.s.s.RocketMQMessageListenerContainerRegistrar - Register the listener to container, listenerBeanName:orderConsumer, containerBeanName:org.apache.rocketmq.spring.support.DefaultRocketMQListenerContainer_1
+2026-02-11 14:29:04 [main] INFO  o.d.c.r.config.RedisConfiguration - 初始化 redis 配置
+2026-02-11 14:29:04 [main] INFO  org.redisson.Version - Redisson 3.52.0
+2026-02-11 14:29:04 [redisson-netty-2-4] INFO  o.r.connection.ConnectionsHolder - 1 connections initialized for 192.168.50.45/192.168.50.45:6379
+2026-02-11 14:29:04 [redisson-netty-2-3] INFO  o.r.connection.ConnectionsHolder - 8 connections initialized for 192.168.50.45/192.168.50.45:6379
+2026-02-11 14:29:05 [main] INFO  o.d.common.json.config.JacksonConfig - 初始化 jackson 配置
+2026-02-11 14:29:05 [main] INFO  c.b.m.e.s.MybatisPlusApplicationContextAware - Register ApplicationContext instances org.springframework.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext@38f981b6
+2026-02-11 14:29:06 [main] INFO  io.undertow - starting server: Undertow - 2.3.20.Final
+2026-02-11 14:29:06 [main] INFO  org.xnio - XNIO version 3.8.16.Final
+2026-02-11 14:29:06 [main] INFO  org.xnio.nio - XNIO NIO Implementation Version 3.8.16.Final
+2026-02-11 14:29:06 [main] INFO  org.jboss.threads - JBoss Threads version 3.7.0.Final
+2026-02-11 14:29:06 [main] INFO  c.a.c.n.r.NacosServiceRegistry - nacos registry, DEFAULT_GROUP mall-biz 192.168.171.1:8200 register finished
+2026-02-11 14:29:06 [main] INFO  o.a.r.s.s.DefaultRocketMQListenerContainer - running container: DefaultRocketMQListenerContainer{consumerGroup='mall-auto-games', namespace='', namespaceV2='', nameServer='192.168.50.77:9876', topic='order', consumeMode=CONCURRENTLY, selectorType=TAG, selectorExpression='*', messageModel=CLUSTERING', tlsEnable=false, instanceName=DEFAULT}
+2026-02-11 14:29:06 [main] INFO  c.bigbear.mall.biz.MallApplication - Started MallApplication in 6.94 seconds (process running for 7.767)
+2026-02-11 14:29:06 [main] INFO  c.a.c.n.r.NacosContextRefresher - [Nacos Config] Listening config: dataId=datasource.yml, group=DEFAULT_GROUP
+2026-02-11 14:29:06 [main] INFO  c.a.c.n.r.NacosContextRefresher - [Nacos Config] Listening config: dataId=application-common.yml, group=DEFAULT_GROUP
+2026-02-11 14:29:06 [main] INFO  c.a.c.n.r.NacosContextRefresher - [Nacos Config] Listening config: dataId=mall-biz.yml, group=DEFAULT_GROUP
+2026-02-11 14:29:06 [main] INFO  c.a.c.n.r.NacosContextRefresher - [Nacos Config] Listening config: dataId=ai-biz.yml, group=DEFAULT_GROUP
+2026-02-11 14:29:06 [RMI TCP Connection(4)-192.168.209.1] INFO  io.undertow.servlet - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-02-11 15:04:57 [SpringApplicationShutdownHook] INFO  c.a.c.n.r.NacosServiceRegistry - De-registering from Nacos Server now...
+2026-02-11 15:04:57 [SpringApplicationShutdownHook] INFO  c.a.c.n.r.NacosServiceRegistry - De-registration finished.
+2026-02-11 15:05:07 [SpringApplicationShutdownHook] INFO  c.a.c.n.r.NacosGracefulShutdownDelegate - Nacos client graceful shutdown has been executed successfully. Graceful shutdown wait time is 10000
+2026-02-11 15:05:07 [SpringApplicationShutdownHook] INFO  io.undertow - stopping server: Undertow - 2.3.20.Final
+2026-02-11 15:05:07 [SpringApplicationShutdownHook] INFO  o.d.c.core.config.ThreadPoolConfig - ====关闭后台任务任务线程池====
+2026-02-11 15:05:07 [SpringApplicationShutdownHook] INFO  o.a.r.s.s.DefaultRocketMQListenerContainer - container destroyed, DefaultRocketMQListenerContainer{consumerGroup='mall-auto-games', namespace='', namespaceV2='', nameServer='192.168.50.77:9876', topic='order', consumeMode=CONCURRENTLY, selectorType=TAG, selectorExpression='*', messageModel=CLUSTERING', tlsEnable=false, instanceName=DEFAULT}
+2026-02-11 15:05:07 [SpringApplicationShutdownHook] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource start closing ....
+2026-02-11 15:05:07 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - master - Shutdown initiated...
+2026-02-11 15:05:07 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - master - Shutdown completed.
+2026-02-11 15:05:07 [SpringApplicationShutdownHook] INFO  c.b.d.d.d.DefaultDataSourceDestroyer - dynamic-datasource close the datasource named [master] success,
+2026-02-11 15:05:07 [SpringApplicationShutdownHook] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource all closed success,bye
+2026-02-11 15:05:07 [SpringApplicationShutdownHook] INFO  io.undertow.servlet - Destroying Spring FrameworkServlet 'dispatcherServlet'
+2026-02-11 15:05:12 [background-preinit] INFO  o.h.validator.internal.util.Version - HV000001: Hibernate Validator 8.0.3.Final
+2026-02-11 15:05:12 [main] INFO  c.bigbear.mall.biz.MallApplication - Starting MallApplication using Java 21.0.2 with PID 49768 (E:\project\my-biz\java\mall\mall-biz\target\classes started by Administrator in E:\project\my-biz\java\mall)
+2026-02-11 15:05:12 [main] INFO  c.bigbear.mall.biz.MallApplication - No active profile set, falling back to 1 default profile: "default"
+2026-02-11 15:05:12 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=ai-biz.yml, group=DEFAULT_GROUP] success
+2026-02-11 15:05:12 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=datasource.yml, group=DEFAULT_GROUP] success
+2026-02-11 15:05:12 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=application-common.yml, group=DEFAULT_GROUP] success
+2026-02-11 15:05:14 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - MPJ SqlSessionFactory bean definition: sqlSessionFactory factoryBeanName: com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration factoryMethodName: sqlSessionFactory source: com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration.sqlSessionFactory(javax.sql.DataSource)
+2026-02-11 15:05:14 [main] INFO  io.undertow.servlet - Initializing Spring embedded WebApplicationContext
+2026-02-11 15:05:14 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource detect P6SPY plugin and enabled it
+2026-02-11 15:05:14 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Starting...
+2026-02-11 15:05:15 [main] INFO  com.zaxxer.hikari.pool.HikariPool - master - Added connection org.postgresql.jdbc.PgConnection@6287e312
+2026-02-11 15:05:15 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Start completed.
+2026-02-11 15:05:15 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource - add a datasource named [master] success
+2026-02-11 15:05:15 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource initial loaded [1] datasource,primary datasource named [master]
+2026-02-11 15:05:15 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - mybatis plus join properties config complete
+2026-02-11 15:05:15 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - mybatis plus join SqlInjector init
+2026-02-11 15:05:15 [main] INFO  o.a.r.s.a.RocketMQAutoConfiguration - a producer (auto-games) init on namesrv 192.168.50.77:9876
+2026-02-11 15:05:15 [main] INFO  o.a.r.s.s.RocketMQMessageListenerContainerRegistrar - Register the listener to container, listenerBeanName:orderConsumer, containerBeanName:org.apache.rocketmq.spring.support.DefaultRocketMQListenerContainer_1
+2026-02-11 15:05:16 [main] INFO  o.d.c.r.config.RedisConfiguration - 初始化 redis 配置
+2026-02-11 15:05:16 [main] INFO  org.redisson.Version - Redisson 3.52.0
+2026-02-11 15:05:16 [redisson-netty-2-4] INFO  o.r.connection.ConnectionsHolder - 1 connections initialized for 192.168.50.45/192.168.50.45:6379
+2026-02-11 15:05:16 [redisson-netty-2-3] INFO  o.r.connection.ConnectionsHolder - 8 connections initialized for 192.168.50.45/192.168.50.45:6379
+2026-02-11 15:05:16 [main] INFO  o.d.common.json.config.JacksonConfig - 初始化 jackson 配置
+2026-02-11 15:05:16 [main] INFO  c.b.m.e.s.MybatisPlusApplicationContextAware - Register ApplicationContext instances org.springframework.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext@12f279b5
+2026-02-11 15:05:17 [main] INFO  io.undertow - starting server: Undertow - 2.3.20.Final
+2026-02-11 15:05:17 [main] INFO  org.xnio - XNIO version 3.8.16.Final
+2026-02-11 15:05:17 [main] INFO  org.xnio.nio - XNIO NIO Implementation Version 3.8.16.Final
+2026-02-11 15:05:17 [main] INFO  org.jboss.threads - JBoss Threads version 3.7.0.Final
+2026-02-11 15:05:17 [main] INFO  c.a.c.n.r.NacosServiceRegistry - nacos registry, DEFAULT_GROUP mall-biz 192.168.171.1:8200 register finished
+2026-02-11 15:05:18 [main] INFO  o.a.r.s.s.DefaultRocketMQListenerContainer - running container: DefaultRocketMQListenerContainer{consumerGroup='mall-auto-games', namespace='', namespaceV2='', nameServer='192.168.50.77:9876', topic='order', consumeMode=CONCURRENTLY, selectorType=TAG, selectorExpression='*', messageModel=CLUSTERING', tlsEnable=false, instanceName=DEFAULT}
+2026-02-11 15:05:18 [main] INFO  c.bigbear.mall.biz.MallApplication - Started MallApplication in 6.655 seconds (process running for 7.408)
+2026-02-11 15:05:18 [main] INFO  c.a.c.n.r.NacosContextRefresher - [Nacos Config] Listening config: dataId=datasource.yml, group=DEFAULT_GROUP
+2026-02-11 15:05:18 [main] INFO  c.a.c.n.r.NacosContextRefresher - [Nacos Config] Listening config: dataId=application-common.yml, group=DEFAULT_GROUP
+2026-02-11 15:05:18 [main] INFO  c.a.c.n.r.NacosContextRefresher - [Nacos Config] Listening config: dataId=mall-biz.yml, group=DEFAULT_GROUP
+2026-02-11 15:05:18 [main] INFO  c.a.c.n.r.NacosContextRefresher - [Nacos Config] Listening config: dataId=ai-biz.yml, group=DEFAULT_GROUP
+2026-02-11 15:05:18 [RMI TCP Connection(4)-192.168.209.1] INFO  io.undertow.servlet - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-02-11 15:26:42 [SpringApplicationShutdownHook] INFO  c.a.c.n.r.NacosServiceRegistry - De-registering from Nacos Server now...
+2026-02-11 15:26:42 [SpringApplicationShutdownHook] INFO  c.a.c.n.r.NacosServiceRegistry - De-registration finished.
+2026-02-11 15:26:52 [SpringApplicationShutdownHook] INFO  c.a.c.n.r.NacosGracefulShutdownDelegate - Nacos client graceful shutdown has been executed successfully. Graceful shutdown wait time is 10000
+2026-02-11 15:26:52 [SpringApplicationShutdownHook] INFO  io.undertow - stopping server: Undertow - 2.3.20.Final
+2026-02-11 15:26:52 [SpringApplicationShutdownHook] INFO  o.d.c.core.config.ThreadPoolConfig - ====关闭后台任务任务线程池====
+2026-02-11 15:26:52 [SpringApplicationShutdownHook] INFO  o.a.r.s.s.DefaultRocketMQListenerContainer - container destroyed, DefaultRocketMQListenerContainer{consumerGroup='mall-auto-games', namespace='', namespaceV2='', nameServer='192.168.50.77:9876', topic='order', consumeMode=CONCURRENTLY, selectorType=TAG, selectorExpression='*', messageModel=CLUSTERING', tlsEnable=false, instanceName=DEFAULT}
+2026-02-11 15:26:52 [SpringApplicationShutdownHook] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource start closing ....
+2026-02-11 15:26:52 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - master - Shutdown initiated...
+2026-02-11 15:26:52 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - master - Shutdown completed.
+2026-02-11 15:26:52 [SpringApplicationShutdownHook] INFO  c.b.d.d.d.DefaultDataSourceDestroyer - dynamic-datasource close the datasource named [master] success,
+2026-02-11 15:26:52 [SpringApplicationShutdownHook] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource all closed success,bye
+2026-02-11 15:26:52 [SpringApplicationShutdownHook] INFO  io.undertow.servlet - Destroying Spring FrameworkServlet 'dispatcherServlet'
+2026-02-11 15:26:56 [background-preinit] INFO  o.h.validator.internal.util.Version - HV000001: Hibernate Validator 8.0.3.Final
+2026-02-11 15:26:56 [main] INFO  c.bigbear.mall.biz.MallApplication - Starting MallApplication using Java 21.0.2 with PID 3440 (E:\project\my-biz\java\mall\mall-biz\target\classes started by Administrator in E:\project\my-biz\java\mall)
+2026-02-11 15:26:56 [main] INFO  c.bigbear.mall.biz.MallApplication - No active profile set, falling back to 1 default profile: "default"
+2026-02-11 15:26:56 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=ai-biz.yml, group=DEFAULT_GROUP] success
+2026-02-11 15:26:56 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=datasource.yml, group=DEFAULT_GROUP] success
+2026-02-11 15:26:56 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=application-common.yml, group=DEFAULT_GROUP] success
+2026-02-11 15:26:57 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - MPJ SqlSessionFactory bean definition: sqlSessionFactory factoryBeanName: com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration factoryMethodName: sqlSessionFactory source: com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration.sqlSessionFactory(javax.sql.DataSource)
+2026-02-11 15:26:57 [main] INFO  io.undertow.servlet - Initializing Spring embedded WebApplicationContext
+2026-02-11 15:26:58 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource detect P6SPY plugin and enabled it
+2026-02-11 15:26:58 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Starting...
+2026-02-11 15:26:58 [main] INFO  com.zaxxer.hikari.pool.HikariPool - master - Added connection org.postgresql.jdbc.PgConnection@102dff25
+2026-02-11 15:26:58 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Start completed.
+2026-02-11 15:26:58 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource - add a datasource named [master] success
+2026-02-11 15:26:58 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource initial loaded [1] datasource,primary datasource named [master]
+2026-02-11 15:26:58 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - mybatis plus join properties config complete
+2026-02-11 15:26:58 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - mybatis plus join SqlInjector init
+2026-02-11 15:26:58 [main] INFO  o.a.r.s.a.RocketMQAutoConfiguration - a producer (auto-games) init on namesrv 192.168.50.77:9876
+2026-02-11 15:26:59 [main] INFO  o.a.r.s.s.RocketMQMessageListenerContainerRegistrar - Register the listener to container, listenerBeanName:orderConsumer, containerBeanName:org.apache.rocketmq.spring.support.DefaultRocketMQListenerContainer_1
+2026-02-11 15:26:59 [main] INFO  o.d.c.r.config.RedisConfiguration - 初始化 redis 配置
+2026-02-11 15:26:59 [main] INFO  org.redisson.Version - Redisson 3.52.0
+2026-02-11 15:26:59 [redisson-netty-2-4] INFO  o.r.connection.ConnectionsHolder - 1 connections initialized for 192.168.50.45/192.168.50.45:6379
+2026-02-11 15:26:59 [redisson-netty-2-3] INFO  o.r.connection.ConnectionsHolder - 8 connections initialized for 192.168.50.45/192.168.50.45:6379
+2026-02-11 15:26:59 [main] INFO  o.d.common.json.config.JacksonConfig - 初始化 jackson 配置
+2026-02-11 15:27:00 [main] INFO  c.b.m.e.s.MybatisPlusApplicationContextAware - Register ApplicationContext instances org.springframework.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext@5d7d8613
+2026-02-11 15:27:01 [main] INFO  io.undertow - starting server: Undertow - 2.3.20.Final
+2026-02-11 15:27:01 [main] INFO  org.xnio - XNIO version 3.8.16.Final
+2026-02-11 15:27:01 [main] INFO  org.xnio.nio - XNIO NIO Implementation Version 3.8.16.Final
+2026-02-11 15:27:01 [main] INFO  org.jboss.threads - JBoss Threads version 3.7.0.Final
+2026-02-11 15:27:01 [main] INFO  c.a.c.n.r.NacosServiceRegistry - nacos registry, DEFAULT_GROUP mall-biz 192.168.171.1:8200 register finished
+2026-02-11 15:27:01 [main] INFO  o.a.r.s.s.DefaultRocketMQListenerContainer - running container: DefaultRocketMQListenerContainer{consumerGroup='mall-auto-games', namespace='', namespaceV2='', nameServer='192.168.50.77:9876', topic='order', consumeMode=CONCURRENTLY, selectorType=TAG, selectorExpression='*', messageModel=CLUSTERING', tlsEnable=false, instanceName=DEFAULT}
+2026-02-11 15:27:01 [main] INFO  c.bigbear.mall.biz.MallApplication - Started MallApplication in 6.701 seconds (process running for 7.583)
+2026-02-11 15:27:01 [main] INFO  c.a.c.n.r.NacosContextRefresher - [Nacos Config] Listening config: dataId=datasource.yml, group=DEFAULT_GROUP
+2026-02-11 15:27:01 [main] INFO  c.a.c.n.r.NacosContextRefresher - [Nacos Config] Listening config: dataId=application-common.yml, group=DEFAULT_GROUP
+2026-02-11 15:27:01 [main] INFO  c.a.c.n.r.NacosContextRefresher - [Nacos Config] Listening config: dataId=mall-biz.yml, group=DEFAULT_GROUP
+2026-02-11 15:27:01 [main] INFO  c.a.c.n.r.NacosContextRefresher - [Nacos Config] Listening config: dataId=ai-biz.yml, group=DEFAULT_GROUP
+2026-02-11 15:27:01 [RMI TCP Connection(3)-192.168.209.1] INFO  io.undertow.servlet - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-02-11 15:29:50 [SpringApplicationShutdownHook] INFO  c.a.c.n.r.NacosServiceRegistry - De-registering from Nacos Server now...
+2026-02-11 15:29:50 [SpringApplicationShutdownHook] INFO  c.a.c.n.r.NacosServiceRegistry - De-registration finished.
+2026-02-11 15:30:00 [SpringApplicationShutdownHook] INFO  c.a.c.n.r.NacosGracefulShutdownDelegate - Nacos client graceful shutdown has been executed successfully. Graceful shutdown wait time is 10000
+2026-02-11 15:30:00 [SpringApplicationShutdownHook] INFO  io.undertow - stopping server: Undertow - 2.3.20.Final
+2026-02-11 15:30:00 [SpringApplicationShutdownHook] INFO  o.d.c.core.config.ThreadPoolConfig - ====关闭后台任务任务线程池====
+2026-02-11 15:30:00 [SpringApplicationShutdownHook] INFO  o.a.r.s.s.DefaultRocketMQListenerContainer - container destroyed, DefaultRocketMQListenerContainer{consumerGroup='mall-auto-games', namespace='', namespaceV2='', nameServer='192.168.50.77:9876', topic='order', consumeMode=CONCURRENTLY, selectorType=TAG, selectorExpression='*', messageModel=CLUSTERING', tlsEnable=false, instanceName=DEFAULT}
+2026-02-11 15:30:02 [SpringApplicationShutdownHook] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource start closing ....
+2026-02-11 15:30:02 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - master - Shutdown initiated...
+2026-02-11 15:30:02 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - master - Shutdown completed.
+2026-02-11 15:30:02 [SpringApplicationShutdownHook] INFO  c.b.d.d.d.DefaultDataSourceDestroyer - dynamic-datasource close the datasource named [master] success,
+2026-02-11 15:30:02 [SpringApplicationShutdownHook] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource all closed success,bye
+2026-02-11 15:30:02 [SpringApplicationShutdownHook] INFO  io.undertow.servlet - Destroying Spring FrameworkServlet 'dispatcherServlet'
+2026-02-11 15:30:06 [background-preinit] INFO  o.h.validator.internal.util.Version - HV000001: Hibernate Validator 8.0.3.Final
+2026-02-11 15:30:06 [main] INFO  c.bigbear.mall.biz.MallApplication - Starting MallApplication using Java 21.0.2 with PID 55512 (E:\project\my-biz\java\mall\mall-biz\target\classes started by Administrator in E:\project\my-biz\java\mall)
+2026-02-11 15:30:06 [main] INFO  c.bigbear.mall.biz.MallApplication - No active profile set, falling back to 1 default profile: "default"
+2026-02-11 15:30:06 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=ai-biz.yml, group=DEFAULT_GROUP] success
+2026-02-11 15:30:06 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=datasource.yml, group=DEFAULT_GROUP] success
+2026-02-11 15:30:06 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=application-common.yml, group=DEFAULT_GROUP] success
+2026-02-11 15:30:08 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - MPJ SqlSessionFactory bean definition: sqlSessionFactory factoryBeanName: com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration factoryMethodName: sqlSessionFactory source: com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration.sqlSessionFactory(javax.sql.DataSource)
+2026-02-11 15:30:08 [main] INFO  io.undertow.servlet - Initializing Spring embedded WebApplicationContext
+2026-02-11 15:30:09 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource detect P6SPY plugin and enabled it
+2026-02-11 15:30:09 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Starting...
+2026-02-11 15:30:09 [main] INFO  com.zaxxer.hikari.pool.HikariPool - master - Added connection org.postgresql.jdbc.PgConnection@6238b10a
+2026-02-11 15:30:09 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Start completed.
+2026-02-11 15:30:09 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource - add a datasource named [master] success
+2026-02-11 15:30:09 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource initial loaded [1] datasource,primary datasource named [master]
+2026-02-11 15:30:09 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - mybatis plus join properties config complete
+2026-02-11 15:30:09 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - mybatis plus join SqlInjector init
+2026-02-11 15:30:09 [main] INFO  o.a.r.s.a.RocketMQAutoConfiguration - a producer (auto-games) init on namesrv 192.168.50.77:9876
+2026-02-11 15:30:10 [main] INFO  o.a.r.s.s.RocketMQMessageListenerContainerRegistrar - Register the listener to container, listenerBeanName:orderConsumer, containerBeanName:org.apache.rocketmq.spring.support.DefaultRocketMQListenerContainer_1
+2026-02-11 15:30:10 [main] INFO  o.d.c.r.config.RedisConfiguration - 初始化 redis 配置
+2026-02-11 15:30:10 [main] INFO  org.redisson.Version - Redisson 3.52.0
+2026-02-11 15:30:10 [redisson-netty-2-4] INFO  o.r.connection.ConnectionsHolder - 1 connections initialized for 192.168.50.45/192.168.50.45:6379
+2026-02-11 15:30:10 [redisson-netty-2-3] INFO  o.r.connection.ConnectionsHolder - 8 connections initialized for 192.168.50.45/192.168.50.45:6379
+2026-02-11 15:30:10 [main] INFO  o.d.common.json.config.JacksonConfig - 初始化 jackson 配置
+2026-02-11 15:30:11 [main] INFO  c.b.m.e.s.MybatisPlusApplicationContextAware - Register ApplicationContext instances org.springframework.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext@75aea2ba
+2026-02-11 15:30:11 [main] INFO  io.undertow - starting server: Undertow - 2.3.20.Final
+2026-02-11 15:30:11 [main] INFO  org.xnio - XNIO version 3.8.16.Final
+2026-02-11 15:30:11 [main] INFO  org.xnio.nio - XNIO NIO Implementation Version 3.8.16.Final
+2026-02-11 15:30:11 [main] INFO  org.jboss.threads - JBoss Threads version 3.7.0.Final
+2026-02-11 15:30:12 [main] INFO  c.a.c.n.r.NacosServiceRegistry - nacos registry, DEFAULT_GROUP mall-biz 192.168.171.1:8200 register finished
+2026-02-11 15:30:12 [main] INFO  o.a.r.s.s.DefaultRocketMQListenerContainer - running container: DefaultRocketMQListenerContainer{consumerGroup='mall-auto-games', namespace='', namespaceV2='', nameServer='192.168.50.77:9876', topic='order', consumeMode=CONCURRENTLY, selectorType=TAG, selectorExpression='*', messageModel=CLUSTERING', tlsEnable=false, instanceName=DEFAULT}
+2026-02-11 15:30:12 [main] INFO  c.bigbear.mall.biz.MallApplication - Started MallApplication in 6.698 seconds (process running for 7.482)
+2026-02-11 15:30:12 [main] INFO  c.a.c.n.r.NacosContextRefresher - [Nacos Config] Listening config: dataId=datasource.yml, group=DEFAULT_GROUP
+2026-02-11 15:30:12 [main] INFO  c.a.c.n.r.NacosContextRefresher - [Nacos Config] Listening config: dataId=application-common.yml, group=DEFAULT_GROUP
+2026-02-11 15:30:12 [main] INFO  c.a.c.n.r.NacosContextRefresher - [Nacos Config] Listening config: dataId=mall-biz.yml, group=DEFAULT_GROUP
+2026-02-11 15:30:12 [main] INFO  c.a.c.n.r.NacosContextRefresher - [Nacos Config] Listening config: dataId=ai-biz.yml, group=DEFAULT_GROUP
+2026-02-11 15:30:12 [RMI TCP Connection(2)-192.168.209.1] INFO  io.undertow.servlet - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-02-11 15:52:09 [SpringApplicationShutdownHook] INFO  c.a.c.n.r.NacosServiceRegistry - De-registering from Nacos Server now...
+2026-02-11 15:52:09 [SpringApplicationShutdownHook] INFO  c.a.c.n.r.NacosServiceRegistry - De-registration finished.
+2026-02-11 15:52:19 [SpringApplicationShutdownHook] INFO  c.a.c.n.r.NacosGracefulShutdownDelegate - Nacos client graceful shutdown has been executed successfully. Graceful shutdown wait time is 10000
+2026-02-11 15:52:19 [SpringApplicationShutdownHook] INFO  io.undertow - stopping server: Undertow - 2.3.20.Final
+2026-02-11 15:52:19 [SpringApplicationShutdownHook] INFO  o.d.c.core.config.ThreadPoolConfig - ====关闭后台任务任务线程池====
+2026-02-11 15:52:19 [SpringApplicationShutdownHook] INFO  o.a.r.s.s.DefaultRocketMQListenerContainer - container destroyed, DefaultRocketMQListenerContainer{consumerGroup='mall-auto-games', namespace='', namespaceV2='', nameServer='192.168.50.77:9876', topic='order', consumeMode=CONCURRENTLY, selectorType=TAG, selectorExpression='*', messageModel=CLUSTERING', tlsEnable=false, instanceName=DEFAULT}
+2026-02-11 15:52:21 [SpringApplicationShutdownHook] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource start closing ....
+2026-02-11 15:52:21 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - master - Shutdown initiated...
+2026-02-11 15:52:21 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - master - Shutdown completed.
+2026-02-11 15:52:21 [SpringApplicationShutdownHook] INFO  c.b.d.d.d.DefaultDataSourceDestroyer - dynamic-datasource close the datasource named [master] success,
+2026-02-11 15:52:21 [SpringApplicationShutdownHook] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource all closed success,bye
+2026-02-11 15:52:21 [SpringApplicationShutdownHook] INFO  io.undertow.servlet - Destroying Spring FrameworkServlet 'dispatcherServlet'
+2026-02-11 15:52:26 [background-preinit] INFO  o.h.validator.internal.util.Version - HV000001: Hibernate Validator 8.0.3.Final
+2026-02-11 15:52:26 [main] INFO  c.bigbear.mall.biz.MallApplication - Starting MallApplication using Java 21.0.2 with PID 21788 (E:\project\my-biz\java\mall\mall-biz\target\classes started by Administrator in E:\project\my-biz\java\mall)
+2026-02-11 15:52:26 [main] INFO  c.bigbear.mall.biz.MallApplication - No active profile set, falling back to 1 default profile: "default"
+2026-02-11 15:52:26 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=ai-biz.yml, group=DEFAULT_GROUP] success
+2026-02-11 15:52:26 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=datasource.yml, group=DEFAULT_GROUP] success
+2026-02-11 15:52:26 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=application-common.yml, group=DEFAULT_GROUP] success
+2026-02-11 15:52:27 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - MPJ SqlSessionFactory bean definition: sqlSessionFactory factoryBeanName: com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration factoryMethodName: sqlSessionFactory source: com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration.sqlSessionFactory(javax.sql.DataSource)
+2026-02-11 15:52:28 [main] INFO  io.undertow.servlet - Initializing Spring embedded WebApplicationContext
+2026-02-11 15:52:28 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource detect P6SPY plugin and enabled it
+2026-02-11 15:52:28 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Starting...
+2026-02-11 15:52:29 [main] INFO  com.zaxxer.hikari.pool.HikariPool - master - Added connection org.postgresql.jdbc.PgConnection@1545ef47
+2026-02-11 15:52:29 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Start completed.
+2026-02-11 15:52:29 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource - add a datasource named [master] success
+2026-02-11 15:52:29 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource initial loaded [1] datasource,primary datasource named [master]
+2026-02-11 15:52:29 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - mybatis plus join properties config complete
+2026-02-11 15:52:29 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - mybatis plus join SqlInjector init
+2026-02-11 15:52:29 [main] INFO  o.a.r.s.a.RocketMQAutoConfiguration - a producer (auto-games) init on namesrv 192.168.50.77:9876
+2026-02-11 15:52:30 [main] INFO  o.a.r.s.s.RocketMQMessageListenerContainerRegistrar - Register the listener to container, listenerBeanName:orderConsumer, containerBeanName:org.apache.rocketmq.spring.support.DefaultRocketMQListenerContainer_1
+2026-02-11 15:52:30 [main] INFO  o.d.c.r.config.RedisConfiguration - 初始化 redis 配置
+2026-02-11 15:52:30 [main] INFO  org.redisson.Version - Redisson 3.52.0
+2026-02-11 15:52:30 [redisson-netty-2-4] INFO  o.r.connection.ConnectionsHolder - 1 connections initialized for 192.168.50.45/192.168.50.45:6379
+2026-02-11 15:52:30 [redisson-netty-2-3] INFO  o.r.connection.ConnectionsHolder - 8 connections initialized for 192.168.50.45/192.168.50.45:6379
+2026-02-11 15:52:30 [main] INFO  o.d.common.json.config.JacksonConfig - 初始化 jackson 配置
+2026-02-11 15:52:30 [main] INFO  c.b.m.e.s.MybatisPlusApplicationContextAware - Register ApplicationContext instances org.springframework.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext@3a4aadf8
+2026-02-11 15:52:31 [main] INFO  io.undertow - starting server: Undertow - 2.3.20.Final
+2026-02-11 15:52:31 [main] INFO  org.xnio - XNIO version 3.8.16.Final
+2026-02-11 15:52:31 [main] INFO  org.xnio.nio - XNIO NIO Implementation Version 3.8.16.Final
+2026-02-11 15:52:31 [main] INFO  org.jboss.threads - JBoss Threads version 3.7.0.Final
+2026-02-11 15:52:31 [main] INFO  c.a.c.n.r.NacosServiceRegistry - nacos registry, DEFAULT_GROUP mall-biz 192.168.171.1:8200 register finished
+2026-02-11 15:52:32 [main] INFO  o.a.r.s.s.DefaultRocketMQListenerContainer - running container: DefaultRocketMQListenerContainer{consumerGroup='mall-auto-games', namespace='', namespaceV2='', nameServer='192.168.50.77:9876', topic='order', consumeMode=CONCURRENTLY, selectorType=TAG, selectorExpression='*', messageModel=CLUSTERING', tlsEnable=false, instanceName=DEFAULT}
+2026-02-11 15:52:32 [main] INFO  c.bigbear.mall.biz.MallApplication - Started MallApplication in 6.787 seconds (process running for 7.544)
+2026-02-11 15:52:32 [main] INFO  c.a.c.n.r.NacosContextRefresher - [Nacos Config] Listening config: dataId=datasource.yml, group=DEFAULT_GROUP
+2026-02-11 15:52:32 [main] INFO  c.a.c.n.r.NacosContextRefresher - [Nacos Config] Listening config: dataId=application-common.yml, group=DEFAULT_GROUP
+2026-02-11 15:52:32 [main] INFO  c.a.c.n.r.NacosContextRefresher - [Nacos Config] Listening config: dataId=mall-biz.yml, group=DEFAULT_GROUP
+2026-02-11 15:52:32 [main] INFO  c.a.c.n.r.NacosContextRefresher - [Nacos Config] Listening config: dataId=ai-biz.yml, group=DEFAULT_GROUP
+2026-02-11 15:52:32 [RMI TCP Connection(2)-192.168.209.1] INFO  io.undertow.servlet - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-02-11 17:07:16 [SpringApplicationShutdownHook] INFO  c.a.c.n.r.NacosServiceRegistry - De-registering from Nacos Server now...
+2026-02-11 17:07:16 [SpringApplicationShutdownHook] INFO  c.a.c.n.r.NacosServiceRegistry - De-registration finished.
+2026-02-11 17:07:26 [SpringApplicationShutdownHook] INFO  c.a.c.n.r.NacosGracefulShutdownDelegate - Nacos client graceful shutdown has been executed successfully. Graceful shutdown wait time is 10000
+2026-02-11 17:07:26 [SpringApplicationShutdownHook] INFO  io.undertow - stopping server: Undertow - 2.3.20.Final
+2026-02-11 17:07:26 [SpringApplicationShutdownHook] INFO  o.d.c.core.config.ThreadPoolConfig - ====关闭后台任务任务线程池====
+2026-02-11 17:07:26 [SpringApplicationShutdownHook] INFO  o.a.r.s.s.DefaultRocketMQListenerContainer - container destroyed, DefaultRocketMQListenerContainer{consumerGroup='mall-auto-games', namespace='', namespaceV2='', nameServer='192.168.50.77:9876', topic='order', consumeMode=CONCURRENTLY, selectorType=TAG, selectorExpression='*', messageModel=CLUSTERING', tlsEnable=false, instanceName=DEFAULT}
+2026-02-11 17:07:27 [SpringApplicationShutdownHook] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource start closing ....
+2026-02-11 17:07:27 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - master - Shutdown initiated...
+2026-02-11 17:07:27 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - master - Shutdown completed.
+2026-02-11 17:07:27 [SpringApplicationShutdownHook] INFO  c.b.d.d.d.DefaultDataSourceDestroyer - dynamic-datasource close the datasource named [master] success,
+2026-02-11 17:07:27 [SpringApplicationShutdownHook] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource all closed success,bye
+2026-02-11 17:07:27 [SpringApplicationShutdownHook] INFO  io.undertow.servlet - Destroying Spring FrameworkServlet 'dispatcherServlet'
+2026-02-11 17:07:32 [background-preinit] INFO  o.h.validator.internal.util.Version - HV000001: Hibernate Validator 8.0.3.Final
+2026-02-11 17:07:32 [main] INFO  c.bigbear.mall.biz.MallApplication - Starting MallApplication using Java 21.0.2 with PID 45196 (E:\project\my-biz\java\mall\mall-biz\target\classes started by Administrator in E:\project\my-biz\java\mall)
+2026-02-11 17:07:32 [main] INFO  c.bigbear.mall.biz.MallApplication - No active profile set, falling back to 1 default profile: "default"
+2026-02-11 17:07:32 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=ai-biz.yml, group=DEFAULT_GROUP] success
+2026-02-11 17:07:32 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=datasource.yml, group=DEFAULT_GROUP] success
+2026-02-11 17:07:32 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=application-common.yml, group=DEFAULT_GROUP] success
+2026-02-11 17:07:34 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - MPJ SqlSessionFactory bean definition: sqlSessionFactory factoryBeanName: com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration factoryMethodName: sqlSessionFactory source: com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration.sqlSessionFactory(javax.sql.DataSource)
+2026-02-11 17:07:34 [main] INFO  io.undertow.servlet - Initializing Spring embedded WebApplicationContext
+2026-02-11 17:07:34 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource detect P6SPY plugin and enabled it
+2026-02-11 17:07:34 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Starting...
+2026-02-11 17:07:35 [main] INFO  com.zaxxer.hikari.pool.HikariPool - master - Added connection org.postgresql.jdbc.PgConnection@66075347
+2026-02-11 17:07:35 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Start completed.
+2026-02-11 17:07:35 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource - add a datasource named [master] success
+2026-02-11 17:07:35 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource initial loaded [1] datasource,primary datasource named [master]
+2026-02-11 17:07:35 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - mybatis plus join properties config complete
+2026-02-11 17:07:35 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - mybatis plus join SqlInjector init
+2026-02-11 17:07:35 [main] INFO  o.a.r.s.a.RocketMQAutoConfiguration - a producer (auto-games) init on namesrv 192.168.50.77:9876
+2026-02-11 17:07:35 [main] INFO  o.a.r.s.s.RocketMQMessageListenerContainerRegistrar - Register the listener to container, listenerBeanName:orderConsumer, containerBeanName:org.apache.rocketmq.spring.support.DefaultRocketMQListenerContainer_1
+2026-02-11 17:07:36 [main] INFO  o.d.c.r.config.RedisConfiguration - 初始化 redis 配置
+2026-02-11 17:07:36 [main] INFO  org.redisson.Version - Redisson 3.52.0
+2026-02-11 17:07:36 [redisson-netty-2-4] INFO  o.r.connection.ConnectionsHolder - 1 connections initialized for 192.168.50.45/192.168.50.45:6379
+2026-02-11 17:07:36 [redisson-netty-2-3] INFO  o.r.connection.ConnectionsHolder - 8 connections initialized for 192.168.50.45/192.168.50.45:6379
+2026-02-11 17:07:36 [main] INFO  o.d.common.json.config.JacksonConfig - 初始化 jackson 配置
+2026-02-11 17:07:36 [main] INFO  c.b.m.e.s.MybatisPlusApplicationContextAware - Register ApplicationContext instances org.springframework.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext@75aea2ba
+2026-02-11 17:07:37 [main] INFO  io.undertow - starting server: Undertow - 2.3.20.Final
+2026-02-11 17:07:37 [main] INFO  org.xnio - XNIO version 3.8.16.Final
+2026-02-11 17:07:37 [main] INFO  org.xnio.nio - XNIO NIO Implementation Version 3.8.16.Final
+2026-02-11 17:07:37 [main] INFO  org.jboss.threads - JBoss Threads version 3.7.0.Final
+2026-02-11 17:07:37 [main] INFO  c.a.c.n.r.NacosServiceRegistry - nacos registry, DEFAULT_GROUP mall-biz 192.168.171.1:8200 register finished
+2026-02-11 17:07:37 [main] INFO  o.a.r.s.s.DefaultRocketMQListenerContainer - running container: DefaultRocketMQListenerContainer{consumerGroup='mall-auto-games', namespace='', namespaceV2='', nameServer='192.168.50.77:9876', topic='order', consumeMode=CONCURRENTLY, selectorType=TAG, selectorExpression='*', messageModel=CLUSTERING', tlsEnable=false, instanceName=DEFAULT}
+2026-02-11 17:07:38 [main] INFO  c.bigbear.mall.biz.MallApplication - Started MallApplication in 6.657 seconds (process running for 7.452)
+2026-02-11 17:07:38 [main] INFO  c.a.c.n.r.NacosContextRefresher - [Nacos Config] Listening config: dataId=datasource.yml, group=DEFAULT_GROUP
+2026-02-11 17:07:38 [main] INFO  c.a.c.n.r.NacosContextRefresher - [Nacos Config] Listening config: dataId=application-common.yml, group=DEFAULT_GROUP
+2026-02-11 17:07:38 [main] INFO  c.a.c.n.r.NacosContextRefresher - [Nacos Config] Listening config: dataId=mall-biz.yml, group=DEFAULT_GROUP
+2026-02-11 17:07:38 [main] INFO  c.a.c.n.r.NacosContextRefresher - [Nacos Config] Listening config: dataId=ai-biz.yml, group=DEFAULT_GROUP
+2026-02-11 17:07:38 [RMI TCP Connection(3)-192.168.209.1] INFO  io.undertow.servlet - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-02-11 17:12:28 [SpringApplicationShutdownHook] INFO  c.a.c.n.r.NacosServiceRegistry - De-registering from Nacos Server now...
+2026-02-11 17:12:28 [SpringApplicationShutdownHook] INFO  c.a.c.n.r.NacosServiceRegistry - De-registration finished.
+2026-02-11 17:12:38 [SpringApplicationShutdownHook] INFO  c.a.c.n.r.NacosGracefulShutdownDelegate - Nacos client graceful shutdown has been executed successfully. Graceful shutdown wait time is 10000
+2026-02-11 17:12:41 [SpringApplicationShutdownHook] INFO  io.undertow - stopping server: Undertow - 2.3.20.Final
+2026-02-11 17:12:41 [SpringApplicationShutdownHook] INFO  o.d.c.core.config.ThreadPoolConfig - ====关闭后台任务任务线程池====
+2026-02-11 17:12:41 [SpringApplicationShutdownHook] INFO  o.a.r.s.s.DefaultRocketMQListenerContainer - container destroyed, DefaultRocketMQListenerContainer{consumerGroup='mall-auto-games', namespace='', namespaceV2='', nameServer='192.168.50.77:9876', topic='order', consumeMode=CONCURRENTLY, selectorType=TAG, selectorExpression='*', messageModel=CLUSTERING', tlsEnable=false, instanceName=DEFAULT}
+2026-02-11 17:12:42 [SpringApplicationShutdownHook] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource start closing ....
+2026-02-11 17:12:42 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - master - Shutdown initiated...
+2026-02-11 17:12:42 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - master - Shutdown completed.
+2026-02-11 17:12:42 [SpringApplicationShutdownHook] INFO  c.b.d.d.d.DefaultDataSourceDestroyer - dynamic-datasource close the datasource named [master] success,
+2026-02-11 17:12:42 [SpringApplicationShutdownHook] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource all closed success,bye
+2026-02-11 17:12:42 [SpringApplicationShutdownHook] INFO  io.undertow.servlet - Destroying Spring FrameworkServlet 'dispatcherServlet'
+2026-02-11 17:12:47 [background-preinit] INFO  o.h.validator.internal.util.Version - HV000001: Hibernate Validator 8.0.3.Final
+2026-02-11 17:12:47 [main] INFO  c.bigbear.mall.biz.MallApplication - Starting MallApplication using Java 21.0.2 with PID 57276 (E:\project\my-biz\java\mall\mall-biz\target\classes started by Administrator in E:\project\my-biz\java\mall)
+2026-02-11 17:12:47 [main] INFO  c.bigbear.mall.biz.MallApplication - No active profile set, falling back to 1 default profile: "default"
+2026-02-11 17:12:47 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=ai-biz.yml, group=DEFAULT_GROUP] success
+2026-02-11 17:12:47 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=datasource.yml, group=DEFAULT_GROUP] success
+2026-02-11 17:12:47 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=application-common.yml, group=DEFAULT_GROUP] success
+2026-02-11 17:12:48 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - MPJ SqlSessionFactory bean definition: sqlSessionFactory factoryBeanName: com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration factoryMethodName: sqlSessionFactory source: com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration.sqlSessionFactory(javax.sql.DataSource)
+2026-02-11 17:12:49 [main] INFO  io.undertow.servlet - Initializing Spring embedded WebApplicationContext
+2026-02-11 17:12:49 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource detect P6SPY plugin and enabled it
+2026-02-11 17:12:49 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Starting...
+2026-02-11 17:12:50 [main] INFO  com.zaxxer.hikari.pool.HikariPool - master - Added connection org.postgresql.jdbc.PgConnection@3021e31
+2026-02-11 17:12:50 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Start completed.
+2026-02-11 17:12:50 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource - add a datasource named [master] success
+2026-02-11 17:12:50 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource initial loaded [1] datasource,primary datasource named [master]
+2026-02-11 17:12:50 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - mybatis plus join properties config complete
+2026-02-11 17:12:50 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - mybatis plus join SqlInjector init
+2026-02-11 17:12:50 [main] INFO  o.a.r.s.a.RocketMQAutoConfiguration - a producer (auto-games) init on namesrv 192.168.50.77:9876
+2026-02-11 17:12:51 [main] INFO  o.a.r.s.s.RocketMQMessageListenerContainerRegistrar - Register the listener to container, listenerBeanName:orderConsumer, containerBeanName:org.apache.rocketmq.spring.support.DefaultRocketMQListenerContainer_1
+2026-02-11 17:12:51 [main] INFO  o.d.c.r.config.RedisConfiguration - 初始化 redis 配置
+2026-02-11 17:12:51 [main] INFO  org.redisson.Version - Redisson 3.52.0
+2026-02-11 17:12:51 [redisson-netty-2-4] INFO  o.r.connection.ConnectionsHolder - 1 connections initialized for 192.168.50.45/192.168.50.45:6379
+2026-02-11 17:12:51 [redisson-netty-2-3] INFO  o.r.connection.ConnectionsHolder - 8 connections initialized for 192.168.50.45/192.168.50.45:6379
+2026-02-11 17:12:51 [main] INFO  o.d.common.json.config.JacksonConfig - 初始化 jackson 配置
+2026-02-11 17:12:52 [main] INFO  c.b.m.e.s.MybatisPlusApplicationContextAware - Register ApplicationContext instances org.springframework.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext@58324c9f
+2026-02-11 17:12:53 [main] INFO  io.undertow - starting server: Undertow - 2.3.20.Final
+2026-02-11 17:12:53 [main] INFO  org.xnio - XNIO version 3.8.16.Final
+2026-02-11 17:12:53 [main] INFO  org.xnio.nio - XNIO NIO Implementation Version 3.8.16.Final
+2026-02-11 17:12:53 [main] INFO  org.jboss.threads - JBoss Threads version 3.7.0.Final
+2026-02-11 17:12:53 [main] INFO  c.a.c.n.r.NacosServiceRegistry - nacos registry, DEFAULT_GROUP mall-biz 192.168.171.1:8200 register finished
+2026-02-11 17:12:53 [main] INFO  o.a.r.s.s.DefaultRocketMQListenerContainer - running container: DefaultRocketMQListenerContainer{consumerGroup='mall-auto-games', namespace='', namespaceV2='', nameServer='192.168.50.77:9876', topic='order', consumeMode=CONCURRENTLY, selectorType=TAG, selectorExpression='*', messageModel=CLUSTERING', tlsEnable=false, instanceName=DEFAULT}
+2026-02-11 17:12:53 [main] INFO  c.bigbear.mall.biz.MallApplication - Started MallApplication in 7.754 seconds (process running for 8.654)
+2026-02-11 17:12:53 [main] INFO  c.a.c.n.r.NacosContextRefresher - [Nacos Config] Listening config: dataId=datasource.yml, group=DEFAULT_GROUP
+2026-02-11 17:12:53 [main] INFO  c.a.c.n.r.NacosContextRefresher - [Nacos Config] Listening config: dataId=application-common.yml, group=DEFAULT_GROUP
+2026-02-11 17:12:53 [main] INFO  c.a.c.n.r.NacosContextRefresher - [Nacos Config] Listening config: dataId=mall-biz.yml, group=DEFAULT_GROUP
+2026-02-11 17:12:53 [main] INFO  c.a.c.n.r.NacosContextRefresher - [Nacos Config] Listening config: dataId=ai-biz.yml, group=DEFAULT_GROUP
+2026-02-11 17:12:53 [RMI TCP Connection(3)-192.168.209.1] INFO  io.undertow.servlet - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-02-11 18:06:03 [SpringApplicationShutdownHook] INFO  c.a.c.n.r.NacosServiceRegistry - De-registering from Nacos Server now...
+2026-02-11 18:06:03 [SpringApplicationShutdownHook] INFO  c.a.c.n.r.NacosServiceRegistry - De-registration finished.
+2026-02-11 18:06:14 [SpringApplicationShutdownHook] INFO  c.a.c.n.r.NacosGracefulShutdownDelegate - Nacos client graceful shutdown has been executed successfully. Graceful shutdown wait time is 10000
+2026-02-11 18:06:15 [SpringApplicationShutdownHook] INFO  io.undertow - stopping server: Undertow - 2.3.20.Final
+2026-02-11 18:06:15 [SpringApplicationShutdownHook] INFO  o.d.c.core.config.ThreadPoolConfig - ====关闭后台任务任务线程池====
+2026-02-11 18:06:15 [SpringApplicationShutdownHook] INFO  o.a.r.s.s.DefaultRocketMQListenerContainer - container destroyed, DefaultRocketMQListenerContainer{consumerGroup='mall-auto-games', namespace='', namespaceV2='', nameServer='192.168.50.77:9876', topic='order', consumeMode=CONCURRENTLY, selectorType=TAG, selectorExpression='*', messageModel=CLUSTERING', tlsEnable=false, instanceName=DEFAULT}
+2026-02-11 18:06:15 [SpringApplicationShutdownHook] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource start closing ....
+2026-02-11 18:06:15 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - master - Shutdown initiated...
+2026-02-11 18:06:15 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - master - Shutdown completed.
+2026-02-11 18:06:15 [SpringApplicationShutdownHook] INFO  c.b.d.d.d.DefaultDataSourceDestroyer - dynamic-datasource close the datasource named [master] success,
+2026-02-11 18:06:15 [SpringApplicationShutdownHook] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource all closed success,bye
+2026-02-11 18:06:15 [SpringApplicationShutdownHook] INFO  io.undertow.servlet - Destroying Spring FrameworkServlet 'dispatcherServlet'
+2026-02-11 18:06:30 [background-preinit] INFO  o.h.validator.internal.util.Version - HV000001: Hibernate Validator 8.0.3.Final
+2026-02-11 18:06:30 [main] INFO  c.bigbear.mall.biz.MallApplication - Starting MallApplication using Java 21.0.2 with PID 56264 (E:\project\my-biz\java\mall\mall-biz\target\classes started by Administrator in E:\project\my-biz\java\mall)
+2026-02-11 18:06:30 [main] INFO  c.bigbear.mall.biz.MallApplication - No active profile set, falling back to 1 default profile: "default"
+2026-02-11 18:06:30 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=ai-biz.yml, group=DEFAULT_GROUP] success
+2026-02-11 18:06:30 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=datasource.yml, group=DEFAULT_GROUP] success
+2026-02-11 18:06:30 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=application-common.yml, group=DEFAULT_GROUP] success
+2026-02-11 18:06:36 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - MPJ SqlSessionFactory bean definition: sqlSessionFactory factoryBeanName: com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration factoryMethodName: sqlSessionFactory source: com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration.sqlSessionFactory(javax.sql.DataSource)
+2026-02-11 18:06:40 [main] INFO  io.undertow.servlet - Initializing Spring embedded WebApplicationContext
+2026-02-11 18:06:40 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource detect P6SPY plugin and enabled it
+2026-02-11 18:06:40 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Starting...
+2026-02-11 18:06:41 [main] INFO  com.zaxxer.hikari.pool.HikariPool - master - Added connection org.postgresql.jdbc.PgConnection@4c5379f5
+2026-02-11 18:06:41 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Start completed.
+2026-02-11 18:06:41 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource - add a datasource named [master] success
+2026-02-11 18:06:41 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource initial loaded [1] datasource,primary datasource named [master]
+2026-02-11 18:06:41 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - mybatis plus join properties config complete
+2026-02-11 18:06:41 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - mybatis plus join SqlInjector init
+2026-02-11 18:06:43 [main] INFO  o.a.r.s.a.RocketMQAutoConfiguration - a producer (auto-games) init on namesrv 192.168.50.77:9876
+2026-02-11 18:06:44 [main] INFO  o.a.r.s.s.RocketMQMessageListenerContainerRegistrar - Register the listener to container, listenerBeanName:orderConsumer, containerBeanName:org.apache.rocketmq.spring.support.DefaultRocketMQListenerContainer_1
+2026-02-11 18:06:44 [main] INFO  o.d.c.r.config.RedisConfiguration - 初始化 redis 配置
+2026-02-11 18:06:44 [main] INFO  org.redisson.Version - Redisson 3.52.0
+2026-02-11 18:06:45 [redisson-netty-2-4] INFO  o.r.connection.ConnectionsHolder - 1 connections initialized for 192.168.50.45/192.168.50.45:6379
+2026-02-11 18:06:45 [redisson-netty-2-3] INFO  o.r.connection.ConnectionsHolder - 8 connections initialized for 192.168.50.45/192.168.50.45:6379
+2026-02-11 18:06:45 [main] INFO  o.d.common.json.config.JacksonConfig - 初始化 jackson 配置
+2026-02-11 18:06:46 [main] INFO  c.b.m.e.s.MybatisPlusApplicationContextAware - Register ApplicationContext instances org.springframework.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext@3a00b15d
+2026-02-11 18:06:47 [main] INFO  io.undertow - starting server: Undertow - 2.3.20.Final
+2026-02-11 18:06:47 [main] INFO  org.xnio - XNIO version 3.8.16.Final
+2026-02-11 18:06:47 [main] INFO  org.xnio.nio - XNIO NIO Implementation Version 3.8.16.Final
+2026-02-11 18:06:47 [main] INFO  org.jboss.threads - JBoss Threads version 3.7.0.Final
+2026-02-11 18:06:47 [main] INFO  c.a.c.n.r.NacosServiceRegistry - nacos registry, DEFAULT_GROUP mall-biz 192.168.171.1:8200 register finished
+2026-02-11 18:06:48 [main] INFO  o.a.r.s.s.DefaultRocketMQListenerContainer - running container: DefaultRocketMQListenerContainer{consumerGroup='mall-auto-games', namespace='', namespaceV2='', nameServer='192.168.50.77:9876', topic='order', consumeMode=CONCURRENTLY, selectorType=TAG, selectorExpression='*', messageModel=CLUSTERING', tlsEnable=false, instanceName=DEFAULT}
+2026-02-11 18:06:48 [main] INFO  c.bigbear.mall.biz.MallApplication - Started MallApplication in 24.147 seconds (process running for 31.662)
+2026-02-11 18:06:48 [main] INFO  c.a.c.n.r.NacosContextRefresher - [Nacos Config] Listening config: dataId=datasource.yml, group=DEFAULT_GROUP
+2026-02-11 18:06:48 [main] INFO  c.a.c.n.r.NacosContextRefresher - [Nacos Config] Listening config: dataId=application-common.yml, group=DEFAULT_GROUP
+2026-02-11 18:06:48 [main] INFO  c.a.c.n.r.NacosContextRefresher - [Nacos Config] Listening config: dataId=mall-biz.yml, group=DEFAULT_GROUP
+2026-02-11 18:06:48 [main] INFO  c.a.c.n.r.NacosContextRefresher - [Nacos Config] Listening config: dataId=ai-biz.yml, group=DEFAULT_GROUP
+2026-02-11 18:07:02 [XNIO-1 task-2] INFO  io.undertow.servlet - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-02-11 18:16:50 [SpringApplicationShutdownHook] INFO  c.a.c.n.r.NacosServiceRegistry - De-registering from Nacos Server now...
+2026-02-11 18:16:50 [SpringApplicationShutdownHook] INFO  c.a.c.n.r.NacosServiceRegistry - De-registration finished.
+2026-02-11 18:17:00 [SpringApplicationShutdownHook] INFO  c.a.c.n.r.NacosGracefulShutdownDelegate - Nacos client graceful shutdown has been executed successfully. Graceful shutdown wait time is 10000
+2026-02-11 18:17:00 [SpringApplicationShutdownHook] INFO  io.undertow - stopping server: Undertow - 2.3.20.Final
+2026-02-11 18:17:00 [SpringApplicationShutdownHook] INFO  o.d.c.core.config.ThreadPoolConfig - ====关闭后台任务任务线程池====
+2026-02-11 18:17:00 [SpringApplicationShutdownHook] INFO  o.a.r.s.s.DefaultRocketMQListenerContainer - container destroyed, DefaultRocketMQListenerContainer{consumerGroup='mall-auto-games', namespace='', namespaceV2='', nameServer='192.168.50.77:9876', topic='order', consumeMode=CONCURRENTLY, selectorType=TAG, selectorExpression='*', messageModel=CLUSTERING', tlsEnable=false, instanceName=DEFAULT}
+2026-02-11 18:17:02 [SpringApplicationShutdownHook] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource start closing ....
+2026-02-11 18:17:02 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - master - Shutdown initiated...
+2026-02-11 18:17:02 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - master - Shutdown completed.
+2026-02-11 18:17:02 [SpringApplicationShutdownHook] INFO  c.b.d.d.d.DefaultDataSourceDestroyer - dynamic-datasource close the datasource named [master] success,
+2026-02-11 18:17:02 [SpringApplicationShutdownHook] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource all closed success,bye
+2026-02-11 18:17:02 [SpringApplicationShutdownHook] INFO  io.undertow.servlet - Destroying Spring FrameworkServlet 'dispatcherServlet'
+2026-02-11 18:17:08 [background-preinit] INFO  o.h.validator.internal.util.Version - HV000001: Hibernate Validator 8.0.3.Final
+2026-02-11 18:17:08 [main] INFO  c.bigbear.mall.biz.MallApplication - Starting MallApplication using Java 21.0.2 with PID 52712 (E:\project\my-biz\java\mall\mall-biz\target\classes started by Administrator in E:\project\my-biz\java\mall)
+2026-02-11 18:17:08 [main] INFO  c.bigbear.mall.biz.MallApplication - No active profile set, falling back to 1 default profile: "default"
+2026-02-11 18:17:08 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=ai-biz.yml, group=DEFAULT_GROUP] success
+2026-02-11 18:17:08 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=datasource.yml, group=DEFAULT_GROUP] success
+2026-02-11 18:17:08 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=application-common.yml, group=DEFAULT_GROUP] success
+2026-02-11 18:17:09 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - MPJ SqlSessionFactory bean definition: sqlSessionFactory factoryBeanName: com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration factoryMethodName: sqlSessionFactory source: com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration.sqlSessionFactory(javax.sql.DataSource)
+2026-02-11 18:17:10 [main] INFO  io.undertow.servlet - Initializing Spring embedded WebApplicationContext
+2026-02-11 18:17:10 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource detect P6SPY plugin and enabled it
+2026-02-11 18:17:10 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Starting...
+2026-02-11 18:17:10 [main] INFO  com.zaxxer.hikari.pool.HikariPool - master - Added connection org.postgresql.jdbc.PgConnection@6020cd42
+2026-02-11 18:17:10 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Start completed.
+2026-02-11 18:17:10 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource - add a datasource named [master] success
+2026-02-11 18:17:10 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource initial loaded [1] datasource,primary datasource named [master]
+2026-02-11 18:17:10 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - mybatis plus join properties config complete
+2026-02-11 18:17:11 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - mybatis plus join SqlInjector init
+2026-02-11 18:17:11 [main] INFO  o.a.r.s.a.RocketMQAutoConfiguration - a producer (auto-games) init on namesrv 192.168.50.77:9876
+2026-02-11 18:17:11 [main] INFO  o.a.r.s.s.RocketMQMessageListenerContainerRegistrar - Register the listener to container, listenerBeanName:orderConsumer, containerBeanName:org.apache.rocketmq.spring.support.DefaultRocketMQListenerContainer_1
+2026-02-11 18:17:11 [main] INFO  o.d.c.r.config.RedisConfiguration - 初始化 redis 配置
+2026-02-11 18:17:12 [main] INFO  org.redisson.Version - Redisson 3.52.0
+2026-02-11 18:17:12 [redisson-netty-2-4] INFO  o.r.connection.ConnectionsHolder - 1 connections initialized for 192.168.50.45/192.168.50.45:6379
+2026-02-11 18:17:12 [redisson-netty-2-3] INFO  o.r.connection.ConnectionsHolder - 8 connections initialized for 192.168.50.45/192.168.50.45:6379
+2026-02-11 18:17:12 [main] INFO  o.d.common.json.config.JacksonConfig - 初始化 jackson 配置
+2026-02-11 18:17:12 [main] INFO  c.b.m.e.s.MybatisPlusApplicationContextAware - Register ApplicationContext instances org.springframework.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext@47acd13b
+2026-02-11 18:17:13 [main] INFO  io.undertow - starting server: Undertow - 2.3.20.Final
+2026-02-11 18:17:13 [main] INFO  org.xnio - XNIO version 3.8.16.Final
+2026-02-11 18:17:13 [main] INFO  org.xnio.nio - XNIO NIO Implementation Version 3.8.16.Final
+2026-02-11 18:17:13 [main] INFO  org.jboss.threads - JBoss Threads version 3.7.0.Final
+2026-02-11 18:17:13 [main] INFO  c.a.c.n.r.NacosServiceRegistry - nacos registry, DEFAULT_GROUP mall-biz 192.168.171.1:8200 register finished
+2026-02-11 18:17:13 [main] INFO  o.a.r.s.s.DefaultRocketMQListenerContainer - running container: DefaultRocketMQListenerContainer{consumerGroup='mall-auto-games', namespace='', namespaceV2='', nameServer='192.168.50.77:9876', topic='order', consumeMode=CONCURRENTLY, selectorType=TAG, selectorExpression='*', messageModel=CLUSTERING', tlsEnable=false, instanceName=DEFAULT}
+2026-02-11 18:17:13 [main] INFO  c.bigbear.mall.biz.MallApplication - Started MallApplication in 6.681 seconds (process running for 8.749)
+2026-02-11 18:17:13 [main] INFO  c.a.c.n.r.NacosContextRefresher - [Nacos Config] Listening config: dataId=datasource.yml, group=DEFAULT_GROUP
+2026-02-11 18:17:13 [main] INFO  c.a.c.n.r.NacosContextRefresher - [Nacos Config] Listening config: dataId=application-common.yml, group=DEFAULT_GROUP
+2026-02-11 18:17:13 [main] INFO  c.a.c.n.r.NacosContextRefresher - [Nacos Config] Listening config: dataId=mall-biz.yml, group=DEFAULT_GROUP
+2026-02-11 18:17:13 [main] INFO  c.a.c.n.r.NacosContextRefresher - [Nacos Config] Listening config: dataId=ai-biz.yml, group=DEFAULT_GROUP
+2026-02-11 18:18:06 [XNIO-1 task-2] INFO  io.undertow.servlet - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-02-11 18:24:23 [SpringApplicationShutdownHook] INFO  c.a.c.n.r.NacosServiceRegistry - De-registering from Nacos Server now...
+2026-02-11 18:24:23 [SpringApplicationShutdownHook] INFO  c.a.c.n.r.NacosServiceRegistry - De-registration finished.
+2026-02-11 18:24:33 [SpringApplicationShutdownHook] INFO  c.a.c.n.r.NacosGracefulShutdownDelegate - Nacos client graceful shutdown has been executed successfully. Graceful shutdown wait time is 10000
+2026-02-11 18:24:36 [SpringApplicationShutdownHook] INFO  io.undertow - stopping server: Undertow - 2.3.20.Final
+2026-02-11 18:24:36 [SpringApplicationShutdownHook] INFO  o.d.c.core.config.ThreadPoolConfig - ====关闭后台任务任务线程池====
+2026-02-11 18:24:36 [SpringApplicationShutdownHook] INFO  o.a.r.s.s.DefaultRocketMQListenerContainer - container destroyed, DefaultRocketMQListenerContainer{consumerGroup='mall-auto-games', namespace='', namespaceV2='', nameServer='192.168.50.77:9876', topic='order', consumeMode=CONCURRENTLY, selectorType=TAG, selectorExpression='*', messageModel=CLUSTERING', tlsEnable=false, instanceName=DEFAULT}
+2026-02-11 18:24:36 [SpringApplicationShutdownHook] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource start closing ....
+2026-02-11 18:24:36 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - master - Shutdown initiated...
+2026-02-11 18:24:36 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - master - Shutdown completed.
+2026-02-11 18:24:36 [SpringApplicationShutdownHook] INFO  c.b.d.d.d.DefaultDataSourceDestroyer - dynamic-datasource close the datasource named [master] success,
+2026-02-11 18:24:36 [SpringApplicationShutdownHook] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource all closed success,bye
+2026-02-11 18:24:36 [SpringApplicationShutdownHook] INFO  io.undertow.servlet - Destroying Spring FrameworkServlet 'dispatcherServlet'
+2026-02-11 18:24:41 [background-preinit] INFO  o.h.validator.internal.util.Version - HV000001: Hibernate Validator 8.0.3.Final
+2026-02-11 18:24:41 [main] INFO  c.bigbear.mall.biz.MallApplication - Starting MallApplication using Java 21.0.2 with PID 35748 (E:\project\my-biz\java\mall\mall-biz\target\classes started by Administrator in E:\project\my-biz\java\mall)
+2026-02-11 18:24:41 [main] INFO  c.bigbear.mall.biz.MallApplication - No active profile set, falling back to 1 default profile: "default"
+2026-02-11 18:24:41 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=ai-biz.yml, group=DEFAULT_GROUP] success
+2026-02-11 18:24:41 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=datasource.yml, group=DEFAULT_GROUP] success
+2026-02-11 18:24:41 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=application-common.yml, group=DEFAULT_GROUP] success
+2026-02-11 18:24:42 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - MPJ SqlSessionFactory bean definition: sqlSessionFactory factoryBeanName: com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration factoryMethodName: sqlSessionFactory source: com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration.sqlSessionFactory(javax.sql.DataSource)
+2026-02-11 18:24:43 [main] INFO  io.undertow.servlet - Initializing Spring embedded WebApplicationContext
+2026-02-11 18:24:43 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource detect P6SPY plugin and enabled it
+2026-02-11 18:24:43 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Starting...
+2026-02-11 18:24:44 [main] INFO  com.zaxxer.hikari.pool.HikariPool - master - Added connection org.postgresql.jdbc.PgConnection@283595db
+2026-02-11 18:24:44 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Start completed.
+2026-02-11 18:24:44 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource - add a datasource named [master] success
+2026-02-11 18:24:44 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource initial loaded [1] datasource,primary datasource named [master]
+2026-02-11 18:24:44 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - mybatis plus join properties config complete
+2026-02-11 18:24:44 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - mybatis plus join SqlInjector init
+2026-02-11 18:24:44 [main] INFO  o.a.r.s.a.RocketMQAutoConfiguration - a producer (auto-games) init on namesrv 192.168.50.77:9876
+2026-02-11 18:24:44 [main] INFO  o.a.r.s.s.RocketMQMessageListenerContainerRegistrar - Register the listener to container, listenerBeanName:orderConsumer, containerBeanName:org.apache.rocketmq.spring.support.DefaultRocketMQListenerContainer_1
+2026-02-11 18:24:45 [main] INFO  o.d.c.r.config.RedisConfiguration - 初始化 redis 配置
+2026-02-11 18:24:45 [main] INFO  org.redisson.Version - Redisson 3.52.0
+2026-02-11 18:24:45 [redisson-netty-2-4] INFO  o.r.connection.ConnectionsHolder - 1 connections initialized for 192.168.50.45/192.168.50.45:6379
+2026-02-11 18:24:45 [redisson-netty-2-3] INFO  o.r.connection.ConnectionsHolder - 8 connections initialized for 192.168.50.45/192.168.50.45:6379
+2026-02-11 18:24:45 [main] INFO  o.d.common.json.config.JacksonConfig - 初始化 jackson 配置
+2026-02-11 18:24:45 [main] INFO  c.b.m.e.s.MybatisPlusApplicationContextAware - Register ApplicationContext instances org.springframework.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext@4c302f38
+2026-02-11 18:24:46 [main] INFO  io.undertow - starting server: Undertow - 2.3.20.Final
+2026-02-11 18:24:46 [main] INFO  org.xnio - XNIO version 3.8.16.Final
+2026-02-11 18:24:46 [main] INFO  org.xnio.nio - XNIO NIO Implementation Version 3.8.16.Final
+2026-02-11 18:24:46 [main] INFO  org.jboss.threads - JBoss Threads version 3.7.0.Final
+2026-02-11 18:24:47 [main] INFO  c.a.c.n.r.NacosServiceRegistry - nacos registry, DEFAULT_GROUP mall-biz 192.168.171.1:8200 register finished
+2026-02-11 18:24:47 [main] INFO  o.a.r.s.s.DefaultRocketMQListenerContainer - running container: DefaultRocketMQListenerContainer{consumerGroup='mall-auto-games', namespace='', namespaceV2='', nameServer='192.168.50.77:9876', topic='order', consumeMode=CONCURRENTLY, selectorType=TAG, selectorExpression='*', messageModel=CLUSTERING', tlsEnable=false, instanceName=DEFAULT}
+2026-02-11 18:24:47 [main] INFO  c.bigbear.mall.biz.MallApplication - Started MallApplication in 7.29 seconds (process running for 8.13)
+2026-02-11 18:24:47 [main] INFO  c.a.c.n.r.NacosContextRefresher - [Nacos Config] Listening config: dataId=datasource.yml, group=DEFAULT_GROUP
+2026-02-11 18:24:47 [main] INFO  c.a.c.n.r.NacosContextRefresher - [Nacos Config] Listening config: dataId=application-common.yml, group=DEFAULT_GROUP
+2026-02-11 18:24:47 [main] INFO  c.a.c.n.r.NacosContextRefresher - [Nacos Config] Listening config: dataId=mall-biz.yml, group=DEFAULT_GROUP
+2026-02-11 18:24:47 [main] INFO  c.a.c.n.r.NacosContextRefresher - [Nacos Config] Listening config: dataId=ai-biz.yml, group=DEFAULT_GROUP
+2026-02-11 18:24:47 [RMI TCP Connection(2)-192.168.209.1] INFO  io.undertow.servlet - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-02-11 19:02:26 [SpringApplicationShutdownHook] INFO  c.a.c.n.r.NacosServiceRegistry - De-registering from Nacos Server now...
+2026-02-11 19:02:26 [SpringApplicationShutdownHook] INFO  c.a.c.n.r.NacosServiceRegistry - De-registration finished.
+2026-02-11 19:02:36 [SpringApplicationShutdownHook] INFO  c.a.c.n.r.NacosGracefulShutdownDelegate - Nacos client graceful shutdown has been executed successfully. Graceful shutdown wait time is 10000
+2026-02-11 19:02:36 [SpringApplicationShutdownHook] INFO  io.undertow - stopping server: Undertow - 2.3.20.Final
+2026-02-11 19:02:36 [SpringApplicationShutdownHook] INFO  o.d.c.core.config.ThreadPoolConfig - ====关闭后台任务任务线程池====
+2026-02-11 19:02:36 [SpringApplicationShutdownHook] INFO  o.a.r.s.s.DefaultRocketMQListenerContainer - container destroyed, DefaultRocketMQListenerContainer{consumerGroup='mall-auto-games', namespace='', namespaceV2='', nameServer='192.168.50.77:9876', topic='order', consumeMode=CONCURRENTLY, selectorType=TAG, selectorExpression='*', messageModel=CLUSTERING', tlsEnable=false, instanceName=DEFAULT}
+2026-02-11 19:02:36 [SpringApplicationShutdownHook] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource start closing ....
+2026-02-11 19:02:36 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - master - Shutdown initiated...
+2026-02-11 19:02:36 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - master - Shutdown completed.
+2026-02-11 19:02:36 [SpringApplicationShutdownHook] INFO  c.b.d.d.d.DefaultDataSourceDestroyer - dynamic-datasource close the datasource named [master] success,
+2026-02-11 19:02:36 [SpringApplicationShutdownHook] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource all closed success,bye
+2026-02-11 19:02:36 [SpringApplicationShutdownHook] INFO  io.undertow.servlet - Destroying Spring FrameworkServlet 'dispatcherServlet'
+2026-02-11 19:02:40 [background-preinit] INFO  o.h.validator.internal.util.Version - HV000001: Hibernate Validator 8.0.3.Final
+2026-02-11 19:02:40 [main] INFO  c.bigbear.mall.biz.MallApplication - Starting MallApplication using Java 21.0.2 with PID 57712 (E:\project\my-biz\java\mall\mall-biz\target\classes started by Administrator in E:\project\my-biz\java\mall)
+2026-02-11 19:02:40 [main] INFO  c.bigbear.mall.biz.MallApplication - No active profile set, falling back to 1 default profile: "default"
+2026-02-11 19:02:40 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=ai-biz.yml, group=DEFAULT_GROUP] success
+2026-02-11 19:02:40 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=datasource.yml, group=DEFAULT_GROUP] success
+2026-02-11 19:02:40 [main] INFO  c.a.c.n.c.NacosConfigDataLoader - [Nacos Config] Load config[dataId=application-common.yml, group=DEFAULT_GROUP] success
+2026-02-11 19:02:41 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - MPJ SqlSessionFactory bean definition: sqlSessionFactory factoryBeanName: com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration factoryMethodName: sqlSessionFactory source: com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration.sqlSessionFactory(javax.sql.DataSource)
+2026-02-11 19:02:42 [main] INFO  io.undertow.servlet - Initializing Spring embedded WebApplicationContext
+2026-02-11 19:02:42 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource detect P6SPY plugin and enabled it
+2026-02-11 19:02:42 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Starting...
+2026-02-11 19:02:42 [main] INFO  com.zaxxer.hikari.pool.HikariPool - master - Added connection org.postgresql.jdbc.PgConnection@6a450cb5
+2026-02-11 19:02:42 [main] INFO  com.zaxxer.hikari.HikariDataSource - master - Start completed.
+2026-02-11 19:02:42 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource - add a datasource named [master] success
+2026-02-11 19:02:42 [main] INFO  c.b.d.d.DynamicRoutingDataSource - dynamic-datasource initial loaded [1] datasource,primary datasource named [master]
+2026-02-11 19:02:42 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - mybatis plus join properties config complete
+2026-02-11 19:02:42 [main] INFO  c.g.y.a.MybatisPlusJoinAutoConfiguration - mybatis plus join SqlInjector init
+2026-02-11 19:02:43 [main] INFO  o.a.r.s.a.RocketMQAutoConfiguration - a producer (auto-games) init on namesrv 192.168.50.77:9876
+2026-02-11 19:02:43 [main] INFO  o.a.r.s.s.RocketMQMessageListenerContainerRegistrar - Register the listener to container, listenerBeanName:orderConsumer, containerBeanName:org.apache.rocketmq.spring.support.DefaultRocketMQListenerContainer_1
+2026-02-11 19:02:43 [main] INFO  o.d.c.r.config.RedisConfiguration - 初始化 redis 配置
+2026-02-11 19:02:43 [main] INFO  org.redisson.Version - Redisson 3.52.0
+2026-02-11 19:02:43 [redisson-netty-2-4] INFO  o.r.connection.ConnectionsHolder - 1 connections initialized for 192.168.50.45/192.168.50.45:6379
+2026-02-11 19:02:43 [redisson-netty-2-3] INFO  o.r.connection.ConnectionsHolder - 8 connections initialized for 192.168.50.45/192.168.50.45:6379
+2026-02-11 19:02:44 [main] INFO  o.d.common.json.config.JacksonConfig - 初始化 jackson 配置
+2026-02-11 19:02:44 [main] INFO  c.b.m.e.s.MybatisPlusApplicationContextAware - Register ApplicationContext instances org.springframework.boot.web.servlet.context.AnnotationConfigServletWebServerApplicationContext@5d7d8613
+2026-02-11 19:02:45 [main] INFO  io.undertow - starting server: Undertow - 2.3.20.Final
+2026-02-11 19:02:45 [main] INFO  org.xnio - XNIO version 3.8.16.Final
+2026-02-11 19:02:45 [main] INFO  org.xnio.nio - XNIO NIO Implementation Version 3.8.16.Final
+2026-02-11 19:02:45 [main] INFO  org.jboss.threads - JBoss Threads version 3.7.0.Final
+2026-02-11 19:02:45 [main] INFO  c.a.c.n.r.NacosServiceRegistry - nacos registry, DEFAULT_GROUP mall-biz 192.168.171.1:8200 register finished
+2026-02-11 19:02:45 [main] INFO  o.a.r.s.s.DefaultRocketMQListenerContainer - running container: DefaultRocketMQListenerContainer{consumerGroup='mall-auto-games', namespace='', namespaceV2='', nameServer='192.168.50.77:9876', topic='order', consumeMode=CONCURRENTLY, selectorType=TAG, selectorExpression='*', messageModel=CLUSTERING', tlsEnable=false, instanceName=DEFAULT}
+2026-02-11 19:02:45 [main] INFO  c.bigbear.mall.biz.MallApplication - Started MallApplication in 6.716 seconds (process running for 7.592)
+2026-02-11 19:02:45 [main] INFO  c.a.c.n.r.NacosContextRefresher - [Nacos Config] Listening config: dataId=datasource.yml, group=DEFAULT_GROUP
+2026-02-11 19:02:45 [main] INFO  c.a.c.n.r.NacosContextRefresher - [Nacos Config] Listening config: dataId=application-common.yml, group=DEFAULT_GROUP
+2026-02-11 19:02:45 [main] INFO  c.a.c.n.r.NacosContextRefresher - [Nacos Config] Listening config: dataId=mall-biz.yml, group=DEFAULT_GROUP
+2026-02-11 19:02:45 [main] INFO  c.a.c.n.r.NacosContextRefresher - [Nacos Config] Listening config: dataId=ai-biz.yml, group=DEFAULT_GROUP
+2026-02-11 19:02:45 [RMI TCP Connection(3)-192.168.209.1] INFO  io.undertow.servlet - Initializing Spring DispatcherServlet 'dispatcherServlet'
