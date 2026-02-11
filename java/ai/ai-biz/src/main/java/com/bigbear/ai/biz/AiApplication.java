@@ -14,8 +14,6 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
 @EnableDiscoveryClient
 @SpringBootApplication(scanBasePackages={"com.bigbear"})
-//@SpringBootApplication(exclude = {org.springframework.ai.model.openai.autoconfigure.OpenAiChatAutoConfiguration.class})
-//@SpringBootApplication(exclude = {dev.langchain4j.openai.spring.AutoConfig.class})
 public class AiApplication {
 
     public static void main(String[] args) {
