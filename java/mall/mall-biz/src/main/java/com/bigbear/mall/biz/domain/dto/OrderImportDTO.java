@@ -1,6 +1,7 @@
 package com.bigbear.mall.biz.domain.dto;
 
 import cn.idev.excel.annotation.ExcelProperty;
+import com.bigbear.mall.biz.converter.GameTypeEnumConverter;
 import lombok.Data;
 
 /**
@@ -13,19 +14,23 @@ import lombok.Data;
 public class OrderImportDTO {
 
     /**
-     * 账号
+     * 订单编号
      */
     @ExcelProperty("订单编号")
     private String orderNo;
 
-
+    /**
+     * 账号
+     */
     @ExcelProperty("账号")
     private String account;
 
     /**
      * 游戏类型
+     * Excel 显示：原神/尘白禁区
+     * Java 存储：0/1 (int)
      */
-    @ExcelProperty("游戏类型")
+    @ExcelProperty(value = "游戏类型", converter = GameTypeEnumConverter.class)
     private Integer gameType;
 
     /**

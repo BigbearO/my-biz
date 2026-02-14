@@ -68,9 +68,8 @@ public class OrderController extends BaseController {
     @SaCheckPermission("mall:order:list")
     @GetMapping("/list")
     public TableDataInfo<OrderEntity> page(OrderEntity order, PageQuery pageQuery) {
-        val data = orderManager.selectPageList(order, pageQuery);
 
-        return data;
+        return orderManager.selectPageList(order, pageQuery);
     }
 
     /**
@@ -159,32 +158,13 @@ public class OrderController extends BaseController {
     @SaCheckPermission("mall:order:add")
     @Log(title = "订单管理", businessType = BusinessType.IMPORT)
     @PostMapping(value = "/importByExcel", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public R<OrderImportResultDTO> importByExcel(@RequestPart("file") MultipartFile file) throws IOException {
-        // 1. 使用EasyExcel解析
+    public R<String> importByExcel(@RequestPart("file") MultipartFile file) throws IOException {
+        // 使用EasyExcel解析（在解析过程中逐行处理业务逻辑）
         OrderImportListener listener = new OrderImportListener();
-        val orderImportDTOExcelResult = ExcelUtil.importExcel(file.getInputStream(), OrderImportDTO.class, listener);
+        ExcelUtil.importExcel(file.getInputStream(), OrderImportDTO.class, listener);
 
-        // 2. 获取解析后的数据
-        List<OrderImportDTO> list = listener.getList();
-
-        // 3. 执行业务导入
-        OrderImportResultDTO result = orderApplicationService.importOrdersWithAccount(list);
-
-        // 4. 合并Excel解析错误
-        if (!listener.getErrorList().isEmpty()) {
-            List<RowErrorDTO> allErrors = new ArrayList<>(result.getErrors());
-            allErrors.addAll(listener.getErrorList());
-            result.setErrors(allErrors);
-            result.setFailCount(allErrors.size());
-        }
-
-        // 5. 返回结果
-        if (result.getFailCount() > 0) {
-            return R.fail("导入完成，成功" + result.getSuccessCount()
-                    + "条，失败" + result.getFailCount() + "条", result);
-        }
-
-        return R.ok(result);
+        // 获取处理结果消息（由listener.getExcelResult().getAnalysis()返回）
+        return R.ok(listener.getExcelResult().getAnalysis());
     }
 
     /**

@@ -14,6 +14,7 @@ import com.bigbear.mall.biz.manager.IAccountManager;
 import com.bigbear.mall.biz.manager.IOrderManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.dromara.common.core.exception.ServiceException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
@@ -65,37 +66,22 @@ public class OrderApplicationService {
     }
 
     /**
-     * 导入订单并处理账号逻辑
+     * 导入单条订单并处理账号逻辑（事务方法）
+     * 【改造】从批量处理改为单条处理，供Listener逐行调用
      *
-     * @param dtoList Excel解析的数据列表
-     * @return 导入结果
+     * @param dto 单条订单导入数据
+     * @throws ServiceException 业务异常（校验失败、订单已存在等）
      */
-    public OrderImportResultDTO importOrdersWithAccount(List<OrderImportDTO> dtoList) {
-        OrderImportResultDTO result = new OrderImportResultDTO();
-
-        for (int i = 0; i < dtoList.size(); i++) {
-            OrderImportDTO dto = dtoList.get(i);
-            int rowNum = i + 2; // Excel从第2行开始
-
-            // 行级校验
-            List<String> errors = validateImportRow(dto);
-            if (!errors.isEmpty()) {
-                result.addError(new RowErrorDTO(rowNum, dto.getAccount(), String.join("; ", errors)));
-                continue;
-            }
-
-            try {
-                // 执行导入（每行独立事务）
-                importSingleOrderWithAccount(dto);
-                result.incrementSuccess();
-                log.info("订单导入成功，rowNum={}, account={}", rowNum, dto.getAccount());
-            } catch (Exception e) {
-                log.error("订单导入失败，rowNum={}, account={}", rowNum, dto.getAccount(), e);
-                result.addError(new RowErrorDTO(rowNum, dto.getAccount(), "系统错误: " + e.getMessage()));
-            }
+    @Transactional(rollbackFor = Exception.class)
+    public void importOrdersWithAccount(OrderImportDTO dto) {
+        // 1. 行级校验
+        List<String> errors = validateImportRow(dto);
+        if (!errors.isEmpty()) {
+            throw new ServiceException(String.join("; ", errors));
         }
 
-        return result;
+        // 2. 执行导入（复用改造后的单条处理方法）
+        importSingleOrderWithAccount(dto);
     }
 
     /**
@@ -104,18 +90,22 @@ public class OrderApplicationService {
     private List<String> validateImportRow(OrderImportDTO dto) {
         List<String> errors = new ArrayList<>();
 
-        // 1. 账号非空
-        if (StrUtil.isBlank(dto.getAccount())) {
-            errors.add("账号不能为空");
-            return errors;
+        // 1. 订单编号非空校验（Excel中必须提供）
+        if (StrUtil.isBlank(dto.getOrderNo())) {
+            errors.add("订单编号不能为空");
         }
 
-        // 2. 游戏类型合法性
+        // 2. 账号非空
+        if (StrUtil.isBlank(dto.getAccount())) {
+            errors.add("账号不能为空");
+        }
+
+        // 3. 游戏类型合法性
         if (dto.getGameType() == null || !isValidGameType(dto.getGameType())) {
             errors.add("游戏类型不合法[" + dto.getGameType() + "],可选值:0,1");
         }
 
-        // 3. 会员天数
+        // 4. 会员天数
         if (dto.getDays() == null || dto.getDays() <= 0) {
             errors.add("会员天数必须大于0");
         }
@@ -137,11 +127,24 @@ public class OrderApplicationService {
 
     /**
      * 导入单条订单并处理账号（事务方法）
+     * 【改造点】增加订单号校验：非空判断 + 存在性校验
      */
     @Transactional(rollbackFor = Exception.class)
     public void importSingleOrderWithAccount(OrderImportDTO dto) {
         LocalDateTime today = LocalDateTime.now();
         LocalDateTime newExpireTime;
+
+        // 【改造点】0. 校验订单号
+        // 0.1 判断orderNo是否为空
+        if (StrUtil.isBlank(dto.getOrderNo())) {
+            throw new ServiceException("订单编号不能为空");
+        }
+
+        // 0.2 判断订单是否已存在
+        OrderEntity existOrder = orderManager.getByOrderNo(dto.getOrderNo());
+        if (existOrder != null) {
+            throw new ServiceException("订单已经处理: " + dto.getOrderNo());
+        }
 
         // 1. 查询或创建账号
         AccountEntity account = accountManager.lambdaQuery()
@@ -176,9 +179,9 @@ public class OrderApplicationService {
             log.debug("更新账号，account={}, expireTime={}", dto.getAccount(), newExpireTime);
         }
 
-        // 2. 创建订单
+        // 2. 创建订单（使用Excel中的orderNo，不再预生成）
         OrderEntity order = new OrderEntity();
-        order.setOrderNo(generateOrderNo());
+        order.setOrderNo(dto.getOrderNo());
         order.setUserId(dto.getAccount());
         order.setGameType(dto.getGameType());
         order.setDays(dto.getDays());
@@ -186,7 +189,7 @@ public class OrderApplicationService {
         order.setPayTime(today);
         orderManager.save(order);
 
-        log.debug("创建订单成功，orderNo={}", order.getOrderNo());
+        log.debug("创建订单成功，orderNo={}", dto.getOrderNo());
     }
 
     /**
