@@ -1,4 +1,4 @@
-package com.bigbear.ai.biz.mapper;
+package com.bigbear.ai.biz.infra.mapper;
 
 import com.bigbear.ai.biz.domain.entity.MessageHistoryEntity;
 import com.github.yulichang.base.MPJBaseMapper;

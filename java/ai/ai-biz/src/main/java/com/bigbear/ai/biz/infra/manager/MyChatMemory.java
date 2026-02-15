@@ -1,4 +1,4 @@
-package com.bigbear.ai.biz.manager;
+package com.bigbear.ai.biz.infra.manager;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.bigbear.ai.biz.domain.entity.MessageHistoryEntity;

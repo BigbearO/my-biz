@@ -4,8 +4,7 @@ import static org.springframework.util.StringUtils.hasLength;
 
 import cn.hutool.json.JSONUtil;
 import com.bigbear.ai.biz.domain.entity.ItemEntity;
-import com.bigbear.ai.biz.domain.entity.ItemInfo;
-import com.bigbear.ai.biz.manager.ItemManager;
+import com.bigbear.ai.biz.infra.manager.ItemManager;
 import com.bigbear.goofish.app.AutoReplyService;
 import com.bigbear.goofish.core.AccountService;
 import com.bigbear.goofish.core.ConnectionProperties;
@@ -20,7 +19,6 @@ import com.bigbear.goofish.core.socket.msg.send.ReplyTextMsg;
 import com.bigbear.goofish.domain.Account;
 import com.bigbear.goofish.domain.entity.ItemContext;
 import com.bigbear.goofish.infra.GoofishClient;
-import com.bigbear.goofish.utils.JsonUtils;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;

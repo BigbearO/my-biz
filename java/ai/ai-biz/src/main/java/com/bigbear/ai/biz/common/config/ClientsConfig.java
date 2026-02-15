@@ -4,8 +4,8 @@ import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_3_5_TURBO;
 
 import cn.hutool.extra.spring.SpringUtil;
 import com.bigbear.ai.biz.common.util.MyChatModelListener;
-import com.bigbear.ai.biz.manager.PersistentChatMemoryStore;
-import com.bigbear.ai.biz.manager.DbChatMemoryStore;
+import com.bigbear.ai.biz.infra.manager.PersistentChatMemoryStore;
+import com.bigbear.ai.biz.infra.manager.DbChatMemoryStore;
 import com.bigbear.ai.biz.service.ChatAssistant;
 import com.bigbear.ai.biz.service.PetDoctor;
 import dev.langchain4j.community.model.dashscope.QwenChatModel;

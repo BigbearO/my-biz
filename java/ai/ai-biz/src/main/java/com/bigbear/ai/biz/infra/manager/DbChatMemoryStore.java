@@ -1,4 +1,4 @@
-package com.bigbear.ai.biz.manager;
+package com.bigbear.ai.biz.infra.manager;
 
 import static dev.langchain4j.data.message.ChatMessageDeserializer.messagesFromJson;
 import static dev.langchain4j.data.message.ChatMessageSerializer.messagesToJson;

@@ -1,6 +1,6 @@
 package com.bigbear.goofish.app;
 
-import com.bigbear.ai.biz.manager.ItemManager;
+import com.bigbear.ai.biz.infra.manager.ItemManager;
 import com.bigbear.goofish.core.AccountService;
 import com.bigbear.goofish.core.ConnectionProperties;
 import com.bigbear.goofish.core.socket.GoofishSocket;

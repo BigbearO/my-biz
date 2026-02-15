@@ -1,4 +1,4 @@
-package com.bigbear.ai.biz.manager;
+package com.bigbear.ai.biz.infra.manager;
 
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.model.TokenCountEstimator;

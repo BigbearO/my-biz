@@ -1,8 +1,8 @@
-package com.bigbear.ai.biz.manager;
+package com.bigbear.ai.biz.infra.manager;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.bigbear.ai.biz.domain.entity.ItemEntity;
-import com.bigbear.ai.biz.mapper.ItemMapper;
+import com.bigbear.ai.biz.infra.mapper.ItemMapper;
 import com.github.yulichang.base.MPJBaseServiceImpl;
 
 import lombok.extern.slf4j.Slf4j;

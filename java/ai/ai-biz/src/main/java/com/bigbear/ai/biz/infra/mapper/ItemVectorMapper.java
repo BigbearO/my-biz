@@ -1,4 +1,4 @@
-package com.bigbear.ai.biz.mapper;
+package com.bigbear.ai.biz.infra.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.bigbear.ai.biz.domain.entity.ItemVectorEntity;

@@ -1,4 +1,4 @@
-package com.bigbear.ai.biz.manager;
+package com.bigbear.ai.biz.infra.manager;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;

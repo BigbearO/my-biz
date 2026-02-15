@@ -1,8 +1,8 @@
-package com.bigbear.ai.biz.manager;
+package com.bigbear.ai.biz.infra.manager;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.bigbear.ai.biz.domain.entity.ChatMemoryEntity;
-import com.bigbear.ai.biz.mapper.ChatMemoryMapper;
+import com.bigbear.ai.biz.infra.mapper.ChatMemoryMapper;
 import com.github.yulichang.base.MPJBaseServiceImpl;
 import org.springframework.stereotype.Service;
 

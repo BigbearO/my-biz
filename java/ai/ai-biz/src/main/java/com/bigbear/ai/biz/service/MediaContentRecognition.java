@@ -2,7 +2,7 @@ package com.bigbear.ai.biz.service;
 
 import com.bigbear.ai.biz.domain.dto.AiReqDTO;
 import com.bigbear.aigc.domain.enums.AiContentEnums;
-import com.bigbear.ai.biz.manager.AiReqManager;
+import com.bigbear.ai.biz.infra.manager.AiReqManager;
 import dev.langchain4j.data.message.*;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.response.ChatResponse;

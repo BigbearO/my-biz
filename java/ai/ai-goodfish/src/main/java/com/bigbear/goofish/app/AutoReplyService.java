@@ -3,7 +3,7 @@ package com.bigbear.goofish.app;
 import static java.lang.invoke.MethodHandles.lookup;
 
 import cn.hutool.extra.spring.SpringUtil;
-import com.bigbear.ai.biz.manager.AiServiceContainer;
+import com.bigbear.ai.biz.infra.manager.AiServiceContainer;
 import com.bigbear.ai.biz.common.IAiService;
 import com.bigbear.goofish.core.socket.msg.MsgDispatcher;
 import lombok.Getter;

@@ -1,4 +1,4 @@
-package com.bigbear.ai.biz.manager;
+package com.bigbear.ai.biz.infra.manager;
 
 import cn.hutool.http.HttpRequest;
 import com.alibaba.fastjson.JSONObject;
