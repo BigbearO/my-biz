@@ -35,6 +35,7 @@ import java.util.List;
 public class AgentController extends BaseController {
 
     private final AgentManager agentManager;
+
     private final Converter converter;
 
     /**

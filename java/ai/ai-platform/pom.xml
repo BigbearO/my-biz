@@ -7,19 +7,18 @@
     <artifactId>ai</artifactId>
     <version>1.0.0</version>
   </parent>
-  <groupId>com.bigbear</groupId>
   <artifactId>ai-platform</artifactId>
-  <version>1.0.0</version>
   <name>ai-platform</name>
   <description>ai-platform</description>
   <properties>
-    <java.version>25</java.version>
+    <java.version>21</java.version>
   </properties>
-  <dependencies>  <dependency>
-    <groupId>com.bigbear</groupId>
-    <artifactId>ai-biz</artifactId>
-    <version>1.0.0</version>
-  </dependency>
+  <dependencies>
+    <dependency>
+      <groupId>com.bigbear</groupId>
+      <artifactId>ai-biz</artifactId>
+      <version>1.0.0</version>
+    </dependency>
     <dependency>
       <groupId>com.github.curious-odd-man</groupId>
       <artifactId>rgxgen</artifactId>
@@ -43,6 +42,38 @@
     <dependency>
       <groupId>org.msgpack</groupId>
       <artifactId>jackson-dataformat-msgpack</artifactId>
+    </dependency>
+
+    <!-- ONNX Runtime for Silero VAD -->
+    <dependency>
+      <groupId>ai.onnxruntime</groupId>
+      <artifactId>onnxruntime</artifactId>
+      <version>1.18.0</version>
+    </dependency>
+
+    <!-- Caffeine Cache -->
+    <dependency>
+      <groupId>com.github.ben-manes.caffeine</groupId>
+      <artifactId>caffeine</artifactId>
+    </dependency>
+
+    <!-- Opus Audio Codec -->
+    <dependency>
+      <groupId>com.googlecode.soundlibs</groupId>
+      <artifactId>jspeex</artifactId>
+      <version>0.9.7</version>
+    </dependency>
+
+    <!-- WebSocket -->
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-websocket</artifactId>
+    </dependency>
+
+    <!-- Jackson for JSON -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
     </dependency>
 
   </dependencies>

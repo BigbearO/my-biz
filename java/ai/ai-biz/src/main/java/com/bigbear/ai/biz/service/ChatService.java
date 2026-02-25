@@ -6,6 +6,7 @@ import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +25,9 @@ public class ChatService {
 
 	@Resource(name = "myChatModel")
 	private ChatModel ChatModel;
+
+	@Resource(name = "openAiChatClient")
+	private ChatClient openAiChatClient;
 
 	private final PetDoctor petDoctor;
 
@@ -59,4 +63,9 @@ public class ChatService {
 //		List<String> allWords = SensitiveWordHelper.findAll(question);
 //// 替换敏感词
 //		String replaced = SensitiveWordHelper.replace(text);
+
+
+	 public void t(){
+		 openAiChatClient.prompt().user("111").call().content();
+	 }
 }
