@@ -1,8 +1,9 @@
 package com.bigbear.ai.biz.infra.mapper;
 
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.bigbear.ai.biz.domain.entity.ItemEntity;
 import com.bigbear.ai.biz.domain.vo.ItemVo;
-import com.github.yulichang.base.MPJBaseMapper;
+
 import org.apache.ibatis.annotations.Mapper;
 import org.dromara.common.mybatis.core.mapper.BaseMapperPlus;
 
@@ -13,7 +14,7 @@ import org.dromara.common.mybatis.core.mapper.BaseMapperPlus;
  * @author autoagent
  */
 @Mapper
-public interface ItemMapper extends MPJBaseMapper<ItemEntity>, BaseMapperPlus<ItemEntity, ItemVo> {
+public interface ItemMapper extends BaseMapper<ItemEntity>, BaseMapperPlus<ItemEntity, ItemVo> {
 
     /**
      * 根据商品ID查询商品信息

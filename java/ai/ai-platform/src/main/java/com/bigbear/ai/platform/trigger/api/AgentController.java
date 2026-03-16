@@ -45,8 +45,8 @@ public class AgentController extends BaseController {
     @SaCheckPermission("ai:agent:list")
     @GetMapping("/list")
     public TableDataInfo<AgentVo> list(AgentBo bo, PageQuery pageQuery) {
-        // 使用 MPJBaseServiceImpl 的分页方法
-        return agentManager.selectVoPage(pageQuery.build(), buildQueryWrapper(bo));
+        // 使用   的分页方法
+        return agentManager.selectVoPage(pageQuery, buildQueryWrapper(bo));
     }
 
     /**

@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: ai-graph
+
+
+server:
+  port: 4567

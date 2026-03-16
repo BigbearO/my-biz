@@ -66,6 +66,7 @@
                 <scope>import</scope>
             </dependency>
 
+
             <dependency>
                 <groupId>org.msgpack</groupId>
                 <artifactId>msgpack-core</artifactId>

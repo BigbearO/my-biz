@@ -1,20 +1,25 @@
 package com.bigbear.ai.platform.infra.manager;
 
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.bigbear.ai.platform.domain.bo.AgentBo;
 import com.bigbear.ai.platform.domain.entity.AgentEntity;
+import com.bigbear.ai.platform.domain.vo.AgentVo;
 import com.bigbear.ai.platform.infra.mapper.AgentMapper;
-import com.github.yulichang.base.MPJBaseServiceImpl;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
+import org.dromara.common.mybatis.core.page.PageQuery;
+import org.dromara.common.mybatis.core.page.TableDataInfo;
+import org.springframework.stereotype.Service;
 
 /**
  * 智能体管理服务实现
  */
 @Slf4j
 @Service
-public class AgentManager extends MPJBaseServiceImpl<AgentMapper, AgentEntity> {
+public class AgentManager extends ServiceImpl<AgentMapper, AgentEntity> {
 
     /**
      * 根据智能体编码查询智能体
@@ -68,5 +73,20 @@ public class AgentManager extends MPJBaseServiceImpl<AgentMapper, AgentEntity> {
                .eq(AgentEntity::getDelFlag, 0)
                .last("limit 1");
         return this.count(wrapper) > 0;
+    }
+
+    /**
+     * 分页查询智能体VO列表
+     */
+    public TableDataInfo selectVoPage(PageQuery page, Wrapper<AgentEntity> lqw) {
+        Page<AgentVo> result = baseMapper.selectVoPage(page.build(), lqw);
+        return TableDataInfo.build(result);
+    }
+
+    /**
+     * 根据ID查询智能体VO
+     */
+    public AgentVo selectVoById(String id) {
+        return baseMapper.selectVoById(id);
     }
 }

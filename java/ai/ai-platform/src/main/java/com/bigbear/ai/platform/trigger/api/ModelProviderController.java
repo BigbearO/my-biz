@@ -44,7 +44,7 @@ public class ModelProviderController extends BaseController {
     @SaCheckPermission("ai:modelProvider:list")
     @GetMapping("/list")
     public TableDataInfo<ModelProviderVo> list(ModelProviderBo bo, PageQuery pageQuery) {
-        return modelProviderManager.selectVoPage(pageQuery.build(), buildQueryWrapper(bo));
+        return modelProviderManager.selectVoPage(pageQuery, buildQueryWrapper(bo));
     }
 
     /**

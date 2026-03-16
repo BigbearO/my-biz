@@ -44,7 +44,7 @@ public class ModelConfigController extends BaseController {
     @SaCheckPermission("ai:modelConfig:list")
     @GetMapping("/list")
     public TableDataInfo<ModelConfigVo> list(ModelConfigBo bo, PageQuery pageQuery) {
-        return modelConfigManager.selectVoPage(pageQuery.build(), buildQueryWrapper(bo));
+        return modelConfigManager.selectVoPage(pageQuery, buildQueryWrapper(bo));
     }
 
     /**

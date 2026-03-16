@@ -1,18 +1,17 @@
 package com.bigbear.ai.platform.infra.mapper;
 
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.bigbear.ai.platform.domain.entity.ModelProviderEntity;
 import com.bigbear.ai.platform.domain.vo.ModelProviderVo;
-import com.github.yulichang.base.MPJBaseMapper;
+import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.dromara.common.mybatis.core.mapper.BaseMapperPlus;
-
-import java.util.List;
 
 /**
  * 模型供应商Mapper
  */
 @Mapper
-public interface ModelProviderMapper extends MPJBaseMapper<ModelProviderEntity>, BaseMapperPlus<ModelProviderEntity, ModelProviderVo> {
+public interface ModelProviderMapper extends BaseMapper<ModelProviderEntity>, BaseMapperPlus<ModelProviderEntity, ModelProviderVo> {
 
     /**
      * 根据模型类型查询供应商列表

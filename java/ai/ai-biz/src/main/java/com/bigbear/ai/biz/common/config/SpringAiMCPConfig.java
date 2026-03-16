@@ -2,8 +2,11 @@ package com.bigbear.ai.biz.common.config;
 
 import com.bigbear.ai.biz.infra.manager.MyChatMemory;
 import com.bigbear.ai.biz.service.CustomerService;
+import io.modelcontextprotocol.client.McpSyncClient;
+import java.util.List;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
+import org.springframework.ai.mcp.SyncMcpToolCallbackProvider;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.tool.method.MethodToolCallbackProvider;
@@ -26,14 +29,20 @@ public class SpringAiMCPConfig {
 
 
     @Bean
-    public ChatClient openAiChatClient(OpenAiChatModel chatModel, MyChatMemory myChatMemory)  {
+    public ChatClient openAiChatClient(OpenAiChatModel chatModel, MyChatMemory myChatMemory, List<McpSyncClient> mcpSyncClients)  {
+
+        // 将 MCP 客户端包装为 ToolCallbackProvider
+        ToolCallbackProvider toolCallbackProvider = SyncMcpToolCallbackProvider.builder()
+            .mcpClients(mcpSyncClients)  // 传入所有 MCP 客户端
+            .build();
 
         ChatClient chatClient =
                 ChatClient.create(chatModel);
         // 或使用构建器以获得更多控制
         ChatClient.Builder builder = ChatClient.builder(chatModel).defaultAdvisors(
                 MessageChatMemoryAdvisor.builder(myChatMemory).build()
-        );
+        )
+            ;
 //          chatClient = builder
 //            .defaultSystem("你是一个乐于助人的助手。")
 //            .build();

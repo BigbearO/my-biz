@@ -29,19 +29,10 @@
       <version>3.0</version> <!-- 检查是否有更新版本 -->
     </dependency>
 
-
-    <dependency>
-      <groupId>com.github.yulichang</groupId>
-      <artifactId>mybatis-plus-join-boot-starter</artifactId>
-      <version>${mpj.version}</version>
-    </dependency>
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
     </dependency>
-
-
-
 
     <dependency>
       <groupId>com.alibaba.cloud</groupId>
@@ -61,7 +52,6 @@
     <dependency>
       <groupId>dev.langchain4j</groupId>
       <artifactId>langchain4j-open-ai</artifactId>
-
     </dependency>
     <dependency>
       <groupId>dev.langchain4j</groupId>
@@ -79,9 +69,6 @@
       <groupId>dev.langchain4j</groupId>
       <artifactId>langchain4j-open-ai-spring-boot-starter</artifactId>
     </dependency>
-
-
-
     <dependency>
       <groupId>dev.langchain4j</groupId>
       <artifactId>langchain4j-community-dashscope</artifactId>
@@ -104,6 +91,18 @@
       <groupId>dev.langchain4j</groupId>
       <artifactId>langchain4j-easy-rag</artifactId>
     </dependency>
+
+    <dependency>
+      <groupId>dev.langchain4j</groupId>
+      <artifactId>langchain4j-document-parser-apache-tika</artifactId>
+<!--      <exclusions>-->
+<!--        <exclusion>-->
+<!--          <groupId>org.apache.commons</groupId>-->
+<!--          <artifactId>commons-compress</artifactId>-->
+<!--        </exclusion>-->
+<!--      </exclusions>-->
+    </dependency>
+
 
 
 <!--    spring ai-->

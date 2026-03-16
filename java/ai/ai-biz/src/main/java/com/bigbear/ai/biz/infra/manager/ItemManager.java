@@ -1,9 +1,10 @@
 package com.bigbear.ai.biz.infra.manager;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.bigbear.ai.biz.domain.entity.ItemEntity;
 import com.bigbear.ai.biz.infra.mapper.ItemMapper;
-import com.github.yulichang.base.MPJBaseServiceImpl;
+
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -15,7 +16,7 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @Service
-public class ItemManager extends MPJBaseServiceImpl<ItemMapper, ItemEntity> {
+public class ItemManager extends ServiceImpl<ItemMapper, ItemEntity> {
 
     public ItemEntity saveOrUpdateItem(String itemId, String itemData, Double price, String description) {
         ItemEntity item = this.selectByItemId(itemId);
