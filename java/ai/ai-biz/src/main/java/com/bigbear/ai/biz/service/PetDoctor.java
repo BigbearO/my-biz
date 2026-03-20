@@ -4,14 +4,6 @@ import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
-//import dev.langchain4j.service.spring.AiService;
-//
-//import static dev.langchain4j.service.spring.AiServiceWiringMode.EXPLICIT;
-
-//@AiService(
-//		chatMemoryProvider = "chatMemoryProvider",
-//		wiringMode = EXPLICIT, chatModel = "myChatModel"
-//)
 public interface PetDoctor {
 
 	/**
@@ -33,7 +25,9 @@ public interface PetDoctor {
 	@UserMessage("请根据面试者回答进行回应，面试者的话语：{{question}}，")
 	String chat(@MemoryId Long userId, @V("question") String question);
 
-	String chat( String question);
+
+	@SystemMessage("你是一个有用的助手,名为小皮")
+	String test(@MemoryId Long userId, @UserMessage String question);
 
 
 }

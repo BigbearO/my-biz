@@ -43,9 +43,8 @@ public class TestController {
 	private StreamingChatModel myStreamingModel;
 
 	@RequestMapping("/chat")
-
 	public R<?> chat(@RequestParam String question) {
-		return R.ok(petDoctor.chat(1L,question));
+		return R.ok(petDoctor.test(1L,question));
 	}
 
 	@RequestMapping("/contentRecognition")

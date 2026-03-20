@@ -81,8 +81,7 @@ public class McpConfig {
 
         // petDoctor2 使用stdio的方式来连接docker部署的GitHub MCP server
         //       通过chat告诉LLM去总结LangChain4j这个github仓库最近的3个commits
-        petDoctor2.chat("Summarize the last 3 commits of the LangChain4j GitHub repository");
-        HttpServletResponse response=null;
+        petDoctor2.chat(1L,"Summarize the last 3 commits of the LangChain4j GitHub repository");
 
 
     }

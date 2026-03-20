@@ -22,6 +22,7 @@ import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 import dev.langchain4j.model.openai.OpenAiTokenCountEstimator;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
+import dev.langchain4j.store.memory.chat.InMemoryChatMemoryStore;
 import java.time.Duration;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -63,11 +64,13 @@ public class ClientsConfig {
 
 //				.listeners(List.of(chatModelListener()))
 //				.maxRetries(5)  // 设置重试策略
-                .apiKey(SpringUtil.getProperty("llm.ak"))
+                .apiKey(SpringUtil.getProperty("llm.chat.ak"))
                 .maxTokens(1024)
                 .timeout(Duration.ofSeconds(30))
-                .modelName("DeepSeek-R1-Distill-Qwen-14B")
-                .baseUrl("https://ai.gitee.com/v1")
+//                .modelName("DeepSeek-R1-Distill-Qwen-14B")
+                .modelName("Qwen/Qwen3.5-4B")
+                .modelName(SpringUtil.getProperty("llm.chat.model"))
+                .baseUrl(SpringUtil.getProperty("llm.chat.url"))
                 .build();
     }
 
@@ -110,7 +113,6 @@ public class ClientsConfig {
     // 这个bean也可以使用 @AiService标记接口ChatAssistant来实现
     public ChatAssistant chatAssistant(@Qualifier("myChatModel") ChatModel ChatModel) {
 
-
         return AiServices.builder(ChatAssistant.class)
                 .chatModel(ChatModel)
                 .chatMemoryProvider(chatMemoryProvider())
@@ -144,13 +146,14 @@ public class ClientsConfig {
                 .id(memoryId)
                 // 设置消息最大条数，默认为 10
                 .maxMessages(10)
-                .chatMemoryStore(SpringUtil.getBean(ChatMemoryStore.class))
+                .chatMemoryStore(SpringUtil.getBean(PersistentChatMemoryStore.class))
+//
                 .build();
     }
 
 
     @Bean
-    public ChatMemoryStore chatMemoryStore(ValueOperations<String, String> valueOperations) {
+    public PersistentChatMemoryStore chatMemoryStore(ValueOperations<String, String> valueOperations) {
         return new PersistentChatMemoryStore(valueOperations);
     }
 

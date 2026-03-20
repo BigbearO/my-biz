@@ -128,6 +128,22 @@
       <artifactId>spring-ai-tika-document-reader</artifactId>
     </dependency>
 
+    <!-- Spring AI Alibaba Agent Framework -->
+    <dependency>
+      <groupId>com.alibaba.cloud.ai</groupId>
+      <artifactId>spring-ai-alibaba-agent-framework</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.alibaba.cloud.ai</groupId>
+      <artifactId>spring-ai-alibaba-graph-core</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.alibaba.cloud.ai</groupId>
+      <artifactId>spring-ai-alibaba-starter-graph-observation</artifactId>
+    </dependency>
+
 
     <dependency>
       <groupId>com.github.houbb</groupId>

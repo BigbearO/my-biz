@@ -38,6 +38,7 @@ spring:
     import:
       - nacos:application-common.yml
       - nacos:datasource.yml
+      - nacos:ai.yml
       - nacos:${spring.application.name}.yml
 
 

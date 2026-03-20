@@ -1,30 +1,30 @@
 package com.bigbear.graph.core.config;
 
 
+import com.alibaba.cloud.ai.graph.action.NodeAction;
+import com.alibaba.cloud.ai.graph.agent.ReactAgent;
+
+import com.bigbear.graph.core.Node1Action;
+import org.bsc.langgraph4j.CompiledGraph;
 import org.bsc.langgraph4j.GraphStateException;
-import org.bsc.langgraph4j.agent.Agent;
 import org.bsc.langgraph4j.spring.ai.agentexecutor.AgentExecutor;
+import org.bsc.langgraph4j.spring.ai.agentexecutor.AgentExecutor.State;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+
+
 @Configuration
 public class AgentConfig {
 
-    @Bean
-    public Agent weatherAgent(ChatModel chatModel) {
-        return AgentExecutor.builder()
-            .chatModel(chatModel)
-            .toolsFromObject(new WeatherTool())
-            .defaultSystem("你是专业的天气助手，只处理天气相关问题")
-            .build()
-            .compile();
-    }
+
 
     @Bean
-    public Agent mathAgent(ChatModel chatModel) throws GraphStateException {
+    public CompiledGraph<State> mathAgent(ChatModel chatModel) throws GraphStateException {
+
         return AgentExecutor.builder()
             .chatModel(chatModel)
             .toolsFromObject(new CalculatorTool())
@@ -32,6 +32,11 @@ public class AgentConfig {
             .build()
             .compile();
     }
+
+  public void te(ChatModel chatModel){
+      ReactAgent.builder().name("");
+
+  }
 
 
     public static class WeatherTool {
