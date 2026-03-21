@@ -41,7 +41,7 @@ public class RagConfig {
 	}
 
 
-    @Bean
+//    @Bean
     public EmbeddingModel initEmbeddingModel() {
              return new AllMiniLmL6V2EmbeddingModel();
     }

@@ -350,7 +350,7 @@ voice:
       channels: 1
       frame-size: 960
     vad:
-      model-path: classpath:models/silero_vad.onnx
+      model-path: classpath:models/silero_vad2.onnx
       start-threshold: 0.5
       end-threshold: 0.2
       min-silence-ms: 500

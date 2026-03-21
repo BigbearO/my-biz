@@ -31,7 +31,7 @@ public class VadProcessor {
     @Value("${voice.chat.vad.speech-pad-ms:400}")
     private int speechPadMs;
 
-    @Value("${voice.chat.vad.model-path:classpath:models/silero_vad.onnx}")
+    @Value("${voice.chat.vad.model-path:classpath:models/silero_vad2.onnx}")
     private String modelPath;
 
     // 采样率

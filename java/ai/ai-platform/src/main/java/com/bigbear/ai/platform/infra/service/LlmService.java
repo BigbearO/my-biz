@@ -24,10 +24,10 @@ public class LlmService {
     private static final int MAX_CHUNK_SIZE = 50;
     private static final int MIN_CHUNK_TRIGGER = 20;
 
-    public LlmService(ChatClient chatClient,
+    public LlmService(ChatClient openAiChatClient,
                      TtsService ttsService,
                      ResponseManager responseManager) {
-        this.chatClient = chatClient;
+        this.chatClient = openAiChatClient;
         this.ttsService = ttsService;
     }
 

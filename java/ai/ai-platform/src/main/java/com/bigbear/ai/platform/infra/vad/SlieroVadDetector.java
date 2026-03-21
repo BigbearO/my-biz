@@ -115,4 +115,8 @@ public class SlieroVadDetector {
         reset();
         model.close();
     }
+
+    public SlieroVadOnnxModel getModel() {
+        return model;
+    }
 }

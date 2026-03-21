@@ -1,3 +1,19 @@
 spring:
   application:
     name: ai-platform
+
+# 语音识别配置
+voice:
+  vad:
+#    model-path: classpath:models/silero_vad2.onnx
+    model-path: E:\project\my-biz\java\ai\ai-platform\src\main\resources\models\silero_vad2.onnx
+    start-threshold: 0.5
+    end-threshold: 0.2
+    sampling-rate: 16000
+    min-silence-ms: 500
+    speech-pad-ms: 400
+  asr:
+    siliconflow:
+      api-key: ${llm.asr.ak}
+      api-url: https://api.siliconflow.cn/v1/audio/transcriptions
+      model: FunAudioLLM/SenseVoiceSmall
