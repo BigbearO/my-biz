@@ -2,7 +2,7 @@ package com.bigbear.ai.platform.trigger.api;
 
 import com.bigbear.ai.platform.domain.vo.VoiceAsrResponse;
 import com.bigbear.ai.platform.infra.service.SiliconFlowAsrService;
-import com.bigbear.ai.platform.infra.vad.VadService;
+import com.bigbear.ai.platform.infra.vad.ConcurrentVadService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -26,12 +26,12 @@ import org.springframework.web.multipart.MultipartFile;
 @Validated
 public class VoiceAsrController {
 
-    private final VadService vadService;
+    private final ConcurrentVadService vadService;
+
     private final SiliconFlowAsrService siliconFlowAsrService;
 
     /**
-     * 语音识别接口
-     * 接收WAV音频文件，返回ASR识别结果
+     * 语音识别接口 接收WAV音频文件，返回ASR识别结果
      *
      * @param file WAV音频文件
      * @return 识别结果
@@ -58,9 +58,9 @@ public class VoiceAsrController {
 
         if (!hasSpeech) {
             return R.ok(VoiceAsrResponse.builder()
-                    .text("")
-                    .hasSpeech(false)
-                    .build());
+                .text("")
+                .hasSpeech(false)
+                .build());
         }
 
         try {
