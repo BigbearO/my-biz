@@ -1,9 +1,9 @@
 package main
 
 import (
+	"bigbear.com/xxs-ai/common/config"
 	"github.com/spf13/viper"
 	"log"
-	"xxs-ai/common/config"
 )
 
 func init() {
