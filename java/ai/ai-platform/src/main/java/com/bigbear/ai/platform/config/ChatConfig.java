@@ -9,8 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
-import org.springframework.ai.chat.client.advisor.api.BaseChatMemoryAdvisor;
-import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.mcp.SyncMcpToolCallbackProvider;
 import org.springframework.ai.mcp.customizer.McpSyncClientCustomizer;
 import org.springframework.ai.openai.OpenAiChatModel;
@@ -34,7 +32,7 @@ public class ChatConfig {
      */
     @Bean
     public ChatClient chatClient(OpenAiChatModel openAiChatModel,
-        List<McpSyncClient> mcpSyncClients,MessageChatMemoryAdvisor chatMemoryAdvisor) throws IOException {
+        List<McpSyncClient> mcpSyncClients,MessageChatMemoryAdvisor messageWindowChatMemory) throws IOException {
 
         log.info("初始化 ChatClient，发现 {} 个 MCP 客户端", mcpSyncClients.size());
 
@@ -50,19 +48,19 @@ public class ChatConfig {
             .defaultSystem(readSystemPromptValue())
 //            .defaultToolCallbacks(toolCallbackProvider.getToolCallbacks())
             .defaultAdvisors(
-                new SimpleLoggerAdvisor(), chatMemoryAdvisor
+                new SimpleLoggerAdvisor(), messageWindowChatMemory
                 )
             .build();
     }
 
 
 
-
-    @Bean
-    public MessageChatMemoryAdvisor chatMemoryAdvisor(  MyChatMemory myChatMemory) {
-
-        return MessageChatMemoryAdvisor.builder(myChatMemory) .build();
-    }
+//
+//    @Bean
+//    public MessageChatMemoryAdvisor chatMemoryAdvisor(  MyChatMemory myChatMemory) {
+//
+//        return MessageChatMemoryAdvisor.builder(myChatMemory) .build();
+//    }
 
 
     /**

@@ -30,9 +30,13 @@ public class MyChatMemory implements ChatMemory {
 
         Set<MessageHistoryEntity> collect = messages.stream().map(message -> {
             MessageHistoryEntity e = new MessageHistoryEntity();
+            //todo 这里不完整，需要 完整setFilde，另外没必要，不要自己实现，就用maxMessage，maxMessage用了chatRepository
             e.setChatId(conversationId).setTenantId(1L);
+            e.setContent(message.getText());
+            e.setRole(message.getMessageType().getValue());
             return e;
         }).collect(Collectors.toSet());
+        //todo 验证是否所有都插入
         messageHistoryManager.saveBatch(collect);
     }
 

@@ -1,8 +1,20 @@
 spring:
   application:
     name: ai-platform
-
-
+  ai:
+    chat:
+      client:
+        enabled: false # 禁用 ChatClient.Builder 自动配置,方便手动创建多个 ChatClient 实例。
+    openai:
+      api-key: KLHWYEMREST6MQGOQFWLD7B3PGL3HVI5ZVIOTW12
+      base-url: https://ai.gitee.com/v1
+      chat:
+        api-key: KLHWYEMREST6MQGOQFWLD7B3PGL3HVI5ZVIOTW12
+        options:
+          model: Qwen3-8B
+      audio:
+        speech:
+          api-key:  asdasda
 
 
 # 语音识别配置

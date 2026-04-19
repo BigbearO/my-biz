@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
@@ -138,14 +139,20 @@ public class AudioChatController {
      * POST /api/chat
      * 流式聊天，逐 token 返回文本
      */
-    @PostMapping(value = "/chat", produces = MediaType.TEXT_PLAIN_VALUE)
+    @PostMapping(value = "/chat")
     public Flux<String> chat(@RequestBody ChatRequest request) {
         if (request.getMessage() == null || request.getMessage().isBlank()) {
             return Flux.just("");
         }
 
+        //todo 这里用于测试
+        if(1==1){
+            return Flux.just("这是一段测试代码，一下子发一下");
+        }
+
         try {
             ChatClient.ChatClientRequestSpec spec = chatClient.prompt()
+                .advisors(specData -> specData.param(ChatMemory.CONVERSATION_ID, "1"))
                 .user(request.getMessage());
 
             // 添加对话历史
@@ -176,16 +183,14 @@ public class AudioChatController {
      * GET /api/tts
      * 文本转语音，流式返回 MP3 音频
      */
-    @GetMapping(value = "/tts", produces = "audio/mpeg")
+    @GetMapping(value = "/tts")
     public Flux<DataBuffer> textToSpeech(
-        @RequestParam(required = false) String text,
+        @RequestParam(required = true) String text,
         @RequestParam(required = false) String voice,
         @RequestParam(required = false) String rate,
-        @RequestParam(required = false) String pitch,
-        ServerWebExchange exchange) {
+        @RequestParam(required = false) String pitch) {
 
         if (text == null || text.isBlank()) {
-            exchange.getResponse().setStatusCode(HttpStatus.BAD_REQUEST);
             return Flux.empty();
         }
 

@@ -1,8 +1,6 @@
 server:
   port: 7001
 
-
-
 spring:
   datasource:
     dynamic:
@@ -66,3 +64,7 @@ spring:
       server:
         name: ${spring.application.name}
         version: 1.0.0
+    chat:
+      memory:
+        # 滑动窗口大小：保留最近 N 条消息
+        max-messages: 10

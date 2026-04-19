@@ -6,12 +6,15 @@ import io.modelcontextprotocol.client.McpSyncClient;
 import java.util.List;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
+import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.mcp.SyncMcpToolCallbackProvider;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.tool.method.MethodToolCallbackProvider;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 @Configuration
 public class SpringAiMCPConfig {
@@ -28,25 +31,44 @@ public class SpringAiMCPConfig {
     }
 
 
+    /**
+     * 使用新的 MessageWindowChatMemory（Redis List 优化版）
+     */
     @Bean
-    public ChatClient openAiChatClient(OpenAiChatModel chatModel, MyChatMemory myChatMemory, List<McpSyncClient> mcpSyncClients)  {
+    public ChatClient openAiChatClient(OpenAiChatModel chatModel,
+                                        MessageWindowChatMemory messageWindowChatMemory,
+                                        List<McpSyncClient> mcpSyncClients)  {
 
         // 将 MCP 客户端包装为 ToolCallbackProvider
         ToolCallbackProvider toolCallbackProvider = SyncMcpToolCallbackProvider.builder()
             .mcpClients(mcpSyncClients)  // 传入所有 MCP 客户端
             .build();
 
-        ChatClient chatClient =
-                ChatClient.create(chatModel);
-        // 或使用构建器以获得更多控制
-        ChatClient.Builder builder = ChatClient.builder(chatModel).defaultAdvisors(
-                MessageChatMemoryAdvisor.builder(myChatMemory).build()
-        )
-            ;
-//          chatClient = builder
-//            .defaultSystem("你是一个乐于助人的助手。")
-//            .build();
-        return chatClient;
+        // 使用新的 MessageWindowChatMemory（基于 Redis List）
+        return ChatClient.builder(chatModel)
+
+                .defaultAdvisors(MessageChatMemoryAdvisor.builder(messageWindowChatMemory).build())
+                .defaultToolCallbacks(toolCallbackProvider)
+
+                .build();
+    }
+
+    /**
+     * 保留旧版配置（用于兼容，可选）
+     */
+    @Bean("legacyOpenAiChatClient")
+    public ChatClient legacyOpenAiChatClient(OpenAiChatModel chatModel,
+                                              MyChatMemory myChatMemory,
+                                              List<McpSyncClient> mcpSyncClients)  {
+
+        ToolCallbackProvider toolCallbackProvider = SyncMcpToolCallbackProvider.builder()
+            .mcpClients(mcpSyncClients)
+            .build();
+
+        return ChatClient.builder(chatModel)
+                .defaultAdvisors(MessageChatMemoryAdvisor.builder(myChatMemory).build())
+                .defaultToolCallbacks(toolCallbackProvider)
+                .build();
     }
 
 }

@@ -11,11 +11,11 @@ import lombok.experimental.Accessors;
  * 消息实体
  */
 @Data
-@TableName("memory")
+@TableName("message_history")
 @Accessors(chain=true)
 public class MessageHistoryEntity {
 
-    @TableId(type = IdType.AUTO)
+    @TableId(type = IdType.ASSIGN_ID)
     private Long id;
 
     private String userId;

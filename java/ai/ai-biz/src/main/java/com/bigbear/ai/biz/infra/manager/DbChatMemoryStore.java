@@ -8,7 +8,11 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.bigbear.ai.biz.common.enums.MessageType;
 import com.bigbear.ai.biz.domain.entity.ChatMemoryEntity;
 import com.bigbear.ai.biz.domain.entity.MessageHistoryEntity;
+import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.data.message.CustomMessage;
+import dev.langchain4j.data.message.ToolExecutionResultMessage;
+import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -86,20 +90,25 @@ public class   DbChatMemoryStore implements ChatMemoryStore {
             messageHistory.setTenantId(Long.parseLong(tenantId));
             messageHistory.setChatId(memoryIdStr);
             messageHistory.setItemId(itemId);
-            messageHistory.setContent(last.toString());
+
 //            todo 判断是不是来一个就存储一个
 
             // 设置消息类型
             if (last instanceof dev.langchain4j.data.message.UserMessage) {
                 messageHistory.setType(MessageType.USER.getCode());
+                messageHistory.setContent(((UserMessage) last).singleText());
             } else if (last instanceof dev.langchain4j.data.message.AiMessage) {
                 messageHistory.setType(MessageType.AI.getCode());
-            } else if (last instanceof dev.langchain4j.data.message.CustomMessage) {
+                messageHistory.setContent(((AiMessage) last).text());
+            } else if (last instanceof CustomMessage) {
                 messageHistory.setType(MessageType.CUSTOM.getCode());
+
             } else if (last instanceof dev.langchain4j.data.message.ToolExecutionResultMessage) {
                 messageHistory.setType(MessageType.TOOL_EXECUTION_RESULT.getCode());
+                messageHistory.setContent(((ToolExecutionResultMessage) last).text());
             } else {
                 messageHistory.setType(MessageType.SYSTEM.getCode());
+                messageHistory.setContent(((dev.langchain4j.data.message.SystemMessage) last).text());
             }
             messageHistory.setUpdateTime(LocalDateTime.now());
             messageHistoryManager.save(messageHistory);
