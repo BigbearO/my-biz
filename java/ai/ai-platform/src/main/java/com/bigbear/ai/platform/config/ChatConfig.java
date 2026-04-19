@@ -1,7 +1,5 @@
 package com.bigbear.ai.platform.config;
 
-import com.bigbear.ai.biz.infra.manager.MyChatMemory;
-import com.bigbear.ai.platform.config.TtsProperties;
 import io.modelcontextprotocol.client.McpSyncClient;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -20,7 +18,6 @@ import org.springframework.util.StreamUtils;
 
 @Slf4j
 @Configuration
-@EnableConfigurationProperties(TtsProperties.class)
 public class ChatConfig {
 
     /**

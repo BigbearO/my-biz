@@ -7,17 +7,18 @@ import com.bigbear.ai.platform.domain.vo.VoiceInfo;
 import com.bigbear.ai.platform.domain.vo.VoiceListResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
+import io.github.whitemagic2014.tts.TTS;
+import io.github.whitemagic2014.tts.TTSVoice;
+import io.github.whitemagic2014.tts.bean.Voice;
+import java.io.ByteArrayOutputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.ChatMemory;
@@ -26,22 +27,16 @@ import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.core.io.buffer.DataBufferFactory;
-import org.springframework.core.io.buffer.DefaultDataBufferFactory;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.publisher.Sinks;
-import reactor.netty.http.client.WebsocketClientSpec;
 
 /**
  * 音频聊天 REST 接口
@@ -76,19 +71,11 @@ public class AudioChatController {
     @Value("${app.tts.connect-timeout:5000}")
     private int connectTimeout;
 
-    @Value("${app.tts.read-timeout:30000}")
-    private int readTimeout;
-
     @Value("${spring.ai.openai.chat.model:qwen2.5:7b}")
     private String currentModel;
 
     @Value("${spring.ai.openai.base-url:http://localhost:11434}")
     private String ollamaBaseUrl;
-
-    private static final String EDGE_TTS_WS_URL =
-        "wss://speech.platform.bing.com/consumer/speech/synthesize/readaloud/websocket/v1"
-            + "?Ocp-Apim-Subscription-Key=6A5AA1D4EAFF4E9FB37E23D68491D6F0"
-            + "&ConnectionId=";
 
     private static final String EDGE_TTS_VOICES_URL =
         "https://speech.platform.bing.com/consumer/speech/synthesize/readaloud/voices/list"
@@ -176,22 +163,51 @@ public class AudioChatController {
      * GET /api/tts
      * 文本转语音，流式返回 MP3 音频
      */
-//    @GetMapping(value = "/tts")
-    public Flux<DataBuffer> textToSpeech(
-        @RequestParam(required = true) String text,
+    @GetMapping(value = "/tts", produces = "audio/mpeg")
+    public ResponseEntity<StreamingResponseBody> textToSpeech(
+        @RequestParam String text,
         @RequestParam(required = false) String voice,
         @RequestParam(required = false) String rate,
         @RequestParam(required = false) String pitch) {
 
         if (text == null || text.isBlank()) {
-            return Flux.error(new IllegalArgumentException("text parameter cannot be blank"));
+            throw new IllegalArgumentException("text parameter cannot be blank");
         }
 
-        String v = (voice != null && !voice.isBlank()) ? voice : defaultVoice;
-        String r = (rate != null && !rate.isBlank()) ? rate : defaultRate;
-        String p = (pitch != null && !pitch.isBlank()) ? pitch : defaultPitch;
+        String voiceName = (voice != null && !voice.isBlank()) ? voice : defaultVoice;
+        String voiceRate = (rate != null && !rate.isBlank()) ? rate : defaultRate;
+        String voicePitch = (pitch != null && !pitch.isBlank()) ? pitch : defaultPitch;
 
-        return connectEdgeTts(text, v, r, p);
+        String  voiceName2="zh-CN-YunjianNeural";
+        Optional<Voice> voiceOptional = TTSVoice.provides()
+            .stream()
+            .filter(v -> voiceName2.equals(v.getShortName()))
+            .findFirst();
+        if (voiceOptional.isEmpty()) {
+            throw new IllegalStateException("voice not found: " + voiceName);
+        }
+        Voice voiceData = voiceOptional.get();
+
+        TTS tts = new TTS(voiceData, text.strip())
+            .isRateLimited(true)
+            .formatMp3()
+            .voiceRate(voiceRate)
+            .voicePitch(voicePitch);
+
+        StreamingResponseBody stream = outputStream -> {
+            try {
+                ByteArrayOutputStream audioStream = tts.transToAudioStream();
+                audioStream.writeTo(outputStream);
+                outputStream.flush();
+            } catch (Exception e) {
+                log.error("TTS 合成失败", e);
+                throw new RuntimeException("TTS 合成失败: " + e.getMessage(), e);
+            }
+        };
+
+        return ResponseEntity.ok()
+            .header("Content-Disposition", "inline")
+            .body(stream);
     }
 
     // ==================== 4. 语音列表 ====================
@@ -214,96 +230,6 @@ public class AudioChatController {
     @GetMapping("/models")
     public Mono<ModelsResponse> listModels() {
         return fetchModelsFromOllama();
-    }
-
-    // ==================== 私有方法: Edge TTS ====================
-
-    /**
-     * 连接 Edge TTS WebSocket，流式合成语音
-     * <p>
-     * Edge TTS WebSocket 协议 (websocket/v1):
-     * 1. 发送 XML Config 消息
-     * 2. 发送 X-TTS JSON 消息
-     * 3. 接收二进制 MP3 音频数据
-     */
-    private Flux<DataBuffer> connectEdgeTts(String text, String voice, String rate, String pitch) {
-        String connectionId = UUID.randomUUID().toString();
-        DataBufferFactory bufferFactory = new DefaultDataBufferFactory();
-        Sinks.Many<byte[]> audioSink = Sinks.many().unicast().onBackpressureBuffer();
-
-        // 构建 XML Config 消息
-        String configXml = buildConfigXml(voice, rate, pitch);
-
-        // 构建 X-TTS JSON 消息
-        String textMessage = "X-TTS: {\"type\":\"text\",\"data\":\"" + escapeJson(text) + "\"}";
-
-        reactor.netty.http.client.HttpClient.create()
-            .headers(headers -> {
-                headers.set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
-                headers.set("Origin", "chrome-extension://jdiccldimpdaibmpdkjnbmckianbfold");
-            })
-            .websocket(WebsocketClientSpec.builder().build())
-            .uri(EDGE_TTS_WS_URL + connectionId)
-            .connect()
-            .flatMapMany(session -> {
-                // 发送 Config XML + X-TTS JSON
-                Flux<ByteBuf> outbound = Flux.just(
-                    Unpooled.wrappedBuffer(configXml.getBytes(StandardCharsets.UTF_8)),
-                    Unpooled.wrappedBuffer(textMessage.getBytes(StandardCharsets.UTF_8))
-                );
-
-                // 先定义接收流
-                Flux<byte[]> inbound = session.inbound().receive()
-                    .map(byteBuf -> {
-                        byte[] bytes = new byte[byteBuf.readableBytes()];
-                        byteBuf.readBytes(bytes);
-                        byteBuf.release();
-                        return bytes;
-                    })
-                    .filter(bytes -> bytes.length > 0);
-
-                // 发送完成后切换到接收流
-                return session.outbound().send(outbound).then().thenMany(inbound);
-            })
-            .subscribe(
-                audioSink::tryEmitNext,
-                err -> {
-                    log.error("Edge TTS WebSocket 错误", err);
-                    audioSink.tryEmitError(err);
-                },
-                audioSink::tryEmitComplete
-            );
-
-        return audioSink.asFlux()
-            .map(bufferFactory::wrap);
-    }
-
-    /**
-     * 构建 Edge TTS Config XML
-     */
-    private String buildConfigXml(String voice, String rate, String pitch) {
-        return "<synth xmlns=\"http://www.weblingo.com/ws/2001/10/synthesis\">" +
-            "<voice name=\"" + voice + "\">" + rate + "," + pitch + "</voice>" +
-            "<container src=\"text\"/>" +
-            "<context>" +
-            "<synthesis audiooutputformat=\"audio-24khz-48kbitrate-mono-mp3\">" +
-            "<audio xmlns=\"http://www.weblingo.com/ws/2001/10/synthesis\">" +
-            "<output formatType=\"audio/mp3\"/>" +
-            "</audio>" +
-            "</synthesis>" +
-            "</context>" +
-            "</synth>";
-    }
-
-    /**
-     * JSON 字符串转义
-     */
-    private String escapeJson(String text) {
-        return text.replace("\\", "\\\\")
-            .replace("\"", "\\\"")
-            .replace("\n", "\\n")
-            .replace("\r", "\\r")
-            .replace("\t", "\\t");
     }
 
     // ==================== 私有方法: 语音列表 ====================
