@@ -36,8 +36,11 @@ voice:
 
 app:
   tts:
+    trusted-client-token: 6A5AA1D4EAFF4E9FB37E23D68491D6F0
+    ws-url: wss://speech.platform.bing.com/consumer/speech/synthesize/readaloud/websocket/v1
     voice: zh-CN-XiaoxiaoNeural
     rate: "+0%"
     pitch: "+0Hz"
     connect-timeout: 5000
     read-timeout: 30000
+    audio-format: audio-24khz-48kbitrate-mono-mp3

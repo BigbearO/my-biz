@@ -9,8 +9,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.handler.codec.http.websocketx.WebSocketFrame;
-import java.io.ByteArrayOutputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -88,18 +86,13 @@ public class AudioChatController {
     private String ollamaBaseUrl;
 
     private static final String EDGE_TTS_WS_URL =
-        "wss://speech.platform.bing.com/consumer/speech/synthesize/readaloud/edge/v1"
-            + "?TrustedClientToken=6A5AA1D4EAFF4E9FB37E23D68491D6F0"
+        "wss://speech.platform.bing.com/consumer/speech/synthesize/readaloud/websocket/v1"
+            + "?Ocp-Apim-Subscription-Key=6A5AA1D4EAFF4E9FB37E23D68491D6F0"
             + "&ConnectionId=";
 
     private static final String EDGE_TTS_VOICES_URL =
         "https://speech.platform.bing.com/consumer/speech/synthesize/readaloud/voices/list"
             + "?trustedclienttoken=6A5AA1D4EAFF4E9FB37E23D68491D6F0";
-
-    /**
-     * Edge TTS 音频帧中 header 与 body 的分隔标记
-     */
-    private static final byte[] HEADER_BODY_SEPARATOR = "\r\n\r\n".getBytes(StandardCharsets.UTF_8);
 
     public AudioChatController(ChatClient chatClient,
                                ChatModel chatModel,
@@ -183,7 +176,7 @@ public class AudioChatController {
      * GET /api/tts
      * 文本转语音，流式返回 MP3 音频
      */
-    @GetMapping(value = "/tts")
+//    @GetMapping(value = "/tts")
     public Flux<DataBuffer> textToSpeech(
         @RequestParam(required = true) String text,
         @RequestParam(required = false) String voice,
@@ -191,7 +184,7 @@ public class AudioChatController {
         @RequestParam(required = false) String pitch) {
 
         if (text == null || text.isBlank()) {
-            return Flux.empty();
+            return Flux.error(new IllegalArgumentException("text parameter cannot be blank"));
         }
 
         String v = (voice != null && !voice.isBlank()) ? voice : defaultVoice;
@@ -228,139 +221,89 @@ public class AudioChatController {
     /**
      * 连接 Edge TTS WebSocket，流式合成语音
      * <p>
-     * Edge TTS WebSocket 协议:
-     * 1. 客户端发送配置消息（text frame）
-     * 2. 客户端发送 SSML 消息（text frame）
-     * 3. 服务器返回音频数据（binary frame），格式: header\r\n\r\n+MP3二进制
-     * 4. 服务器返回 turn.end（text frame）表示合成完成
+     * Edge TTS WebSocket 协议 (websocket/v1):
+     * 1. 发送 XML Config 消息
+     * 2. 发送 X-TTS JSON 消息
+     * 3. 接收二进制 MP3 音频数据
      */
-    private Flux<DataBuffer>  connectEdgeTts(String text, String voice, String rate, String pitch) {
-        String connectionId = UUID.randomUUID().toString().replace("-", "");
-        String requestId = UUID.randomUUID().toString().replace("-", "");
+    private Flux<DataBuffer> connectEdgeTts(String text, String voice, String rate, String pitch) {
+        String connectionId = UUID.randomUUID().toString();
         DataBufferFactory bufferFactory = new DefaultDataBufferFactory();
-
         Sinks.Many<byte[]> audioSink = Sinks.many().unicast().onBackpressureBuffer();
 
-        // 构建配置消息
-        String configMessage = "X-RequestId:" + requestId + "\r\n"
-            + "Content-Type:application/json; charset=utf-8\r\n"
-            + "Path:speech.config\r\n\r\n"
-            + "{\"context\":{\"synthesis\":{\"audio\":{\"metadataoptions\":"
-            + "{\"sentenceBoundaryEnabled\":\"false\"},\"outputFormat\":"
-            + "\"audio-24khz-48kbitrate-mono-mp3\"}}}}";
+        // 构建 XML Config 消息
+        String configXml = buildConfigXml(voice, rate, pitch);
 
-        // 构建 SSML
-        String ssml = "<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='zh-CN'>"
-            + "<voice name='" + voice + "'>"
-            + "<prosody rate='" + rate + "' pitch='" + pitch + "'>"
-            + escapeXml(text)
-            + "</prosody></voice></speak>";
-
-        String ssmlMessage = "X-RequestId:" + requestId + "\r\n"
-            + "Content-Type:application/ssml+xml\r\n"
-            + "Path:ssml\r\n\r\n"
-            + ssml;
+        // 构建 X-TTS JSON 消息
+        String textMessage = "X-TTS: {\"type\":\"text\",\"data\":\"" + escapeJson(text) + "\"}";
 
         reactor.netty.http.client.HttpClient.create()
+            .headers(headers -> {
+                headers.set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
+                headers.set("Origin", "chrome-extension://jdiccldimpdaibmpdkjnbmckianbfold");
+            })
             .websocket(WebsocketClientSpec.builder().build())
             .uri(EDGE_TTS_WS_URL + connectionId)
             .connect()
             .flatMapMany(session -> {
-                // 依次发送配置消息和 SSML
+                // 发送 Config XML + X-TTS JSON
                 Flux<ByteBuf> outbound = Flux.just(
-                    Unpooled.wrappedBuffer(configMessage.getBytes(StandardCharsets.UTF_8)),
-                    Unpooled.wrappedBuffer(ssmlMessage.getBytes(StandardCharsets.UTF_8))
+                    Unpooled.wrappedBuffer(configXml.getBytes(StandardCharsets.UTF_8)),
+                    Unpooled.wrappedBuffer(textMessage.getBytes(StandardCharsets.UTF_8))
                 );
 
-                session.outbound().send(outbound);
-
-                return session.inbound().receiveObject()
-                    .cast(WebSocketFrame.class)
-                    .doOnNext(frame -> {
-                        if (frame.isFinalFragment()) {
-                            // 处理文本帧: turn.end 等控制消息
-                            String content = frame.content().toString(StandardCharsets.UTF_8);
-                            if (content.contains("Path:turn.end")) {
-                                audioSink.tryEmitComplete();
-                            }
-                        } else {
-                            // 处理二进制帧: 音频数据
-                            ByteBuf content = frame.content();
-                            if (content.readableBytes() > 0) {
-                                byte[] rawBytes = new byte[content.readableBytes()];
-                                content.readBytes(rawBytes);
-                                byte[] audioData = extractAudioFromBinary(rawBytes);
-                                if (audioData != null && audioData.length > 0) {
-                                    audioSink.tryEmitNext(audioData);
-                                }
-                            }
-                        }
+                // 先定义接收流
+                Flux<byte[]> inbound = session.inbound().receive()
+                    .map(byteBuf -> {
+                        byte[] bytes = new byte[byteBuf.readableBytes()];
+                        byteBuf.readBytes(bytes);
+                        byteBuf.release();
+                        return bytes;
                     })
-                    .doOnError(audioSink::tryEmitError)
-                    .doOnComplete(audioSink::tryEmitComplete);
+                    .filter(bytes -> bytes.length > 0);
+
+                // 发送完成后切换到接收流
+                return session.outbound().send(outbound).then().thenMany(inbound);
             })
             .subscribe(
-                v -> {},
-                err -> log.error("Edge TTS WebSocket 错误", err),
-                () -> {}
+                audioSink::tryEmitNext,
+                err -> {
+                    log.error("Edge TTS WebSocket 错误", err);
+                    audioSink.tryEmitError(err);
+                },
+                audioSink::tryEmitComplete
             );
 
         return audioSink.asFlux()
-            .map(bytes -> bufferFactory.wrap(bytes));
+            .map(bufferFactory::wrap);
     }
 
     /**
-     * 从 Edge TTS 二进制帧中提取 MP3 音频数据
-     * <p>
-     * 二进制帧格式: <header>\r\n\r\n<MP3 audio data>
-     * header 中包含 Path:audio 等信息，body 是纯 MP3 二进制
+     * 构建 Edge TTS Config XML
      */
-    private byte[] extractAudioFromBinary(byte[] rawBytes) {
-        try {
-            // 查找 \r\n\r\n 分隔符位置
-            int separatorPos = findHeaderBodySeparator(rawBytes);
-            if (separatorPos < 0) {
-                return null;
-            }
-            int bodyStart = separatorPos + HEADER_BODY_SEPARATOR.length;
-            if (bodyStart >= rawBytes.length) {
-                return null;
-            }
-            byte[] audioData = new byte[rawBytes.length - bodyStart];
-            System.arraycopy(rawBytes, bodyStart, audioData, 0, audioData.length);
-            return audioData;
-        } catch (Exception e) {
-            log.warn("解析音频数据失败", e);
-            return null;
-        }
+    private String buildConfigXml(String voice, String rate, String pitch) {
+        return "<synth xmlns=\"http://www.weblingo.com/ws/2001/10/synthesis\">" +
+            "<voice name=\"" + voice + "\">" + rate + "," + pitch + "</voice>" +
+            "<container src=\"text\"/>" +
+            "<context>" +
+            "<synthesis audiooutputformat=\"audio-24khz-48kbitrate-mono-mp3\">" +
+            "<audio xmlns=\"http://www.weblingo.com/ws/2001/10/synthesis\">" +
+            "<output formatType=\"audio/mp3\"/>" +
+            "</audio>" +
+            "</synthesis>" +
+            "</context>" +
+            "</synth>";
     }
 
     /**
-     * 在字节数组中查找 \r\n\r\n 分隔符位置
+     * JSON 字符串转义
      */
-    private int findHeaderBodySeparator(byte[] data) {
-        byte[] sep = HEADER_BODY_SEPARATOR;
-        outer:
-        for (int i = 0; i <= data.length - sep.length; i++) {
-            for (int j = 0; j < sep.length; j++) {
-                if (data[i + j] != sep[j]) {
-                    continue outer;
-                }
-            }
-            return i;
-        }
-        return -1;
-    }
-
-    /**
-     * XML 特殊字符转义
-     */
-    private String escapeXml(String text) {
-        return text.replace("&", "&amp;")
-            .replace("<", "&lt;")
-            .replace(">", "&gt;")
-            .replace("\"", "&quot;")
-            .replace("'", "&apos;");
+    private String escapeJson(String text) {
+        return text.replace("\\", "\\\\")
+            .replace("\"", "\\\"")
+            .replace("\n", "\\n")
+            .replace("\r", "\\r")
+            .replace("\t", "\\t");
     }
 
     // ==================== 私有方法: 语音列表 ====================
