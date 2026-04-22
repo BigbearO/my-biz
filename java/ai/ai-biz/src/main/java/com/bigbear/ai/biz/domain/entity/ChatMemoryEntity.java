@@ -5,12 +5,14 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import lombok.experimental.Accessors;
 
 /**
  * 对话记忆存储实体类
  */
 @Data
 @TableName("chat_memory")
+@Accessors(chain = true)
 public class ChatMemoryEntity {
 
     @TableId

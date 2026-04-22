@@ -1,5 +1,7 @@
 package com.bigbear.ai.platform.trigger.api;
 
+import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.util.IdUtil;
 import com.bigbear.ai.platform.domain.vo.ChatRequest;
 import com.bigbear.ai.platform.domain.vo.HealthResponse;
 import com.bigbear.ai.platform.domain.vo.ModelsResponse;
@@ -161,10 +163,10 @@ public class AudioChatController {
 
     /**
      * GET /api/tts
-     * 文本转语音，流式返回 MP3 音频
+     * 文本转语音，返回 MP3 音频
      */
     @GetMapping(value = "/tts", produces = "audio/mpeg")
-    public ResponseEntity<StreamingResponseBody> textToSpeech(
+    public ResponseEntity<byte[]> textToSpeech(
         @RequestParam String text,
         @RequestParam(required = false) String voice,
         @RequestParam(required = false) String rate,
@@ -174,40 +176,45 @@ public class AudioChatController {
             throw new IllegalArgumentException("text parameter cannot be blank");
         }
 
-        String voiceName = (voice != null && !voice.isBlank()) ? voice : defaultVoice;
         String voiceRate = (rate != null && !rate.isBlank()) ? rate : defaultRate;
         String voicePitch = (pitch != null && !pitch.isBlank()) ? pitch : defaultPitch;
 
-        String  voiceName2="zh-CN-YunjianNeural";
+        String voiceName2 = "zh-CN-YunjianNeural";
+        log.info("TTS 请求: voice={}, text={}", voiceName2, text.substring(0, Math.min(30, text.length())));
+
         Optional<Voice> voiceOptional = TTSVoice.provides()
             .stream()
             .filter(v -> voiceName2.equals(v.getShortName()))
             .findFirst();
         if (voiceOptional.isEmpty()) {
-            throw new IllegalStateException("voice not found: " + voiceName);
+            throw new IllegalStateException("voice not found: " + voiceName2);
         }
         Voice voiceData = voiceOptional.get();
 
+        String path="E:\\project\\my-biz";
+        String file= IdUtil.getSnowflakeNextIdStr().concat(".mp3");
+
         TTS tts = new TTS(voiceData, text.strip())
+            .findHeadHook()
+//            .storage(path)
+//            .fileName(file)
             .isRateLimited(true)
             .formatMp3()
             .voiceRate(voiceRate)
             .voicePitch(voicePitch);
 
-        StreamingResponseBody stream = outputStream -> {
-            try {
-                ByteArrayOutputStream audioStream = tts.transToAudioStream();
-                audioStream.writeTo(outputStream);
-                outputStream.flush();
-            } catch (Exception e) {
-                log.error("TTS 合成失败", e);
-                throw new RuntimeException("TTS 合成失败: " + e.getMessage(), e);
-            }
-        };
+//        tts.trans();
+
+        ByteArrayOutputStream audioStream = tts.transToAudioStream();
+        byte[] audioBytes = audioStream.toByteArray();
+
+        log.info("TTS 合成完成: {} bytes", audioBytes.length);
 
         return ResponseEntity.ok()
+            .header("Content-Type", "audio/mpeg")
             .header("Content-Disposition", "inline")
-            .body(stream);
+            .header("Content-Length", String.valueOf(audioBytes.length))
+            .body(audioBytes);
     }
 
     // ==================== 4. 语音列表 ====================
