@@ -1,4 +1,4 @@
-package com.bigbear.ai.biz.infra.manager;//package com.bigbear.aigc.ai.manager;
+package com.bigbear.ai.biz.infra.manager;
 //
 //
 //import dev.langchain4j.data.embedding.Embedding;

@@ -21,7 +21,7 @@ public class AiServiceContainer {
     /**
      * 最大缓存条目数（LRU 淘汰触发点）
      */
-    private long maximumSize = 1_00;
+    private final long maximumSize = 1_00;
 
     /**
      * 写入后多久过期

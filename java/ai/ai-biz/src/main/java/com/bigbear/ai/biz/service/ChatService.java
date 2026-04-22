@@ -46,7 +46,7 @@ public class ChatService {
 		if (contains) {
 			return "包含敏感词汇，换一个问题呢";
 		}
-		//todo 那个自定义token计算器--CharTokenizer，根据文字字数来算，暂定2个字一个token,
+
 
 		redisTemplate.opsForValue().set(getKey(userId),question,3, TimeUnit.MINUTES);
 		val res =petDoctor.chatPet(1L,question);
