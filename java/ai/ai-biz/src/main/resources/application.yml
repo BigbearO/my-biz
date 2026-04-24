@@ -68,3 +68,7 @@ spring:
       memory:
         # 滑动窗口大小：保留最近 N 条消息
         max-messages: 10
+        # Redis Key 过期时间（天）
+        redis-ttl-days: 7
+        # Redis Key 前缀
+        key-prefix: "chat:memory:"
