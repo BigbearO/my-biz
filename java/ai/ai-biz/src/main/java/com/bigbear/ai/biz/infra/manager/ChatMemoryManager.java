@@ -14,7 +14,5 @@ public class ChatMemoryManager extends ServiceImpl<ChatMemoryMapper, ChatMemoryE
         LambdaQueryWrapper<ChatMemoryEntity> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(ChatMemoryEntity::getMemoryId, memoryId).last(" limit 1");
         return this.getOne(queryWrapper);
-
-
     }
 }
