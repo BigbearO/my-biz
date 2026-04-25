@@ -18,9 +18,9 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <guava.version>33.5.0-jre</guava.version>
         <java.version>21</java.version>
-        <langchain.version>1.12.2</langchain.version>
-        <langgraph.version>1.8.8</langgraph.version>
-        <spring-ai.version>1.1.2</spring-ai.version>
+        <langchain.version>1.13.0</langchain.version>
+        <langgraph.version>1.8.13</langgraph.version>
+        <spring-ai.version>1.1.4</spring-ai.version>
         <spring-ai-ali.version>1.1.2.2</spring-ai-ali.version>
         <spring-ai-mcp-security.version>0.0.5</spring-ai-mcp-security.version>
         <last.langchain.version>1.12.1-beta21</last.langchain.version>
