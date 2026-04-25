@@ -1,6 +1,7 @@
 package com.bigbear.ai.platform.trigger.api;
 
 import cn.hutool.core.util.IdUtil;
+import com.bigbear.ai.platform.config.TtsProperties;
 import com.bigbear.ai.platform.domain.vo.ChatRequest;
 import com.bigbear.ai.platform.domain.vo.HealthResponse;
 import com.bigbear.ai.platform.domain.vo.ModelsResponse;
@@ -58,6 +59,7 @@ public class AudioChatController {
     private final ChatClient chatClient;
     private final ChatModel chatModel;
     private final ObjectMapper objectMapper;
+    private final TtsProperties ttsProperties;
 
     @Value("${app.tts.voice:zh-CN-XiaoxiaoNeural}")
     private String defaultVoice;
@@ -83,10 +85,12 @@ public class AudioChatController {
 
     public AudioChatController(ChatClient chatClient,
                                ChatModel chatModel,
-                               ObjectMapper objectMapper) {
+                               ObjectMapper objectMapper,
+                               TtsProperties ttsProperties) {
         this.chatClient = chatClient;
         this.chatModel = chatModel;
         this.objectMapper = objectMapper;
+        this.ttsProperties = ttsProperties;
     }
 
     // ==================== 1. 健康检查 ====================
@@ -229,7 +233,10 @@ public class AudioChatController {
      */
     @GetMapping("/models")
     public Mono<ModelsResponse> listModels() {
-        return fetchModelsFromOllama();
+        return Mono.just(ModelsResponse.builder()
+            .current(currentModel)
+            .available(ttsProperties.getModels())
+            .build());
     }
 
     // ==================== 私有方法: 语音列表 ====================
@@ -284,65 +291,6 @@ public class AudioChatController {
                 return VoiceListResponse.builder()
                     .current(defaultVoice)
                     .voices(List.of())
-                    .build();
-            }
-        });
-    }
-
-    // ==================== 私有方法: 模型列表 ====================
-
-    /**
-     * 从 Ollama REST API 获取模型列表
-     */
-    private Mono<ModelsResponse> fetchModelsFromOllama() {
-        return Mono.fromCallable(() -> {
-            try {
-                String baseUrl = ollamaBaseUrl;
-                // Ollama OpenAI 兼容模式地址，去掉 /v1 后缀
-                if (baseUrl.endsWith("/v1")) {
-                    baseUrl = baseUrl.substring(0, baseUrl.length() - 3);
-                }
-
-                HttpClient client = HttpClient.newBuilder()
-                    .connectTimeout(Duration.ofMillis(connectTimeout))
-                    .build();
-
-                HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(baseUrl + "/api/tags"))
-                    .GET()
-                    .build();
-
-                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-                if (response.statusCode() != 200) {
-                    log.warn("获取模型列表失败: status={}", response.statusCode());
-                    return ModelsResponse.builder()
-                        .current(currentModel)
-                        .available(List.of(currentModel))
-                        .build();
-                }
-
-                JsonNode root = objectMapper.readTree(response.body());
-                List<String> models = new ArrayList<>();
-                JsonNode modelsNode = root.get("models");
-                if (modelsNode != null && modelsNode.isArray()) {
-                    for (JsonNode modelNode : modelsNode) {
-                        String name = modelNode.has("name") ? modelNode.get("name").asText() : "";
-                        if (!name.isBlank()) {
-                            models.add(name);
-                        }
-                    }
-                }
-
-                return ModelsResponse.builder()
-                    .current(currentModel)
-                    .available(models)
-                    .build();
-            } catch (Exception e) {
-                log.error("获取模型列表失败", e);
-                return ModelsResponse.builder()
-                    .current(currentModel)
-                    .available(List.of(currentModel))
                     .build();
             }
         });
