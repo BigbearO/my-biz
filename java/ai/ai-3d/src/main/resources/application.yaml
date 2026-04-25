@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: ai-3d
+  profiles:
+    active: ai,ry
+---
+
+spring:
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+
+---
+server:
+  port: 9998
