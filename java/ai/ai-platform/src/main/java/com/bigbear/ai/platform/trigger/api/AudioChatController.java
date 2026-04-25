@@ -1,6 +1,5 @@
 package com.bigbear.ai.platform.trigger.api;
 
-import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.IdUtil;
 import com.bigbear.ai.platform.domain.vo.ChatRequest;
 import com.bigbear.ai.platform.domain.vo.HealthResponse;
@@ -36,7 +35,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -127,14 +125,9 @@ public class AudioChatController {
             return Flux.just("");
         }
 
-        //todo 这里用于测试
-        if(1==1){
-            return Flux.just("这是一段测试代码，一下子发一下");
-        }
-
         try {
             ChatClient.ChatClientRequestSpec spec = chatClient.prompt()
-                .advisors(specData -> specData.param(ChatMemory.CONVERSATION_ID, "1"))
+                .advisors(specData -> specData.param(ChatMemory.CONVERSATION_ID, request.getConversationId()))
                 .user(request.getMessage());
 
             // 添加对话历史

@@ -28,3 +28,7 @@ spring:
     chat:
       client:
         enabled: false # 禁用 ChatClient.Builder 自动配置,方便手动创建多个 ChatClient 实例。
+      memory:
+        max-messages: 10        # 滑动窗口大小（保留最新 N 条消息）
+        redis-ttl-days: 7       # Redis Key 过期时间（天）
+        key-prefix: "chat:memory:"  # Redis Key 前缀

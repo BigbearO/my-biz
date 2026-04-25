@@ -13,6 +13,8 @@ public class ChatRequest {
 
     @NotBlank(message = "消息不能为空")
     private String message;
+    @NotBlank(message = "会话id不能为空")
+    private String conversationId;
 
     /**
      * 历史消息
