@@ -239,7 +239,7 @@ public class AudioChatController {
 
     /**
      * 清理文本中的特殊符号，优化 TTS 语音合成效果
-     * 去除 emoji、特殊符号、Markdown 标记等
+     * 去除 emoji、特殊符号、Markdown 标记、带圈数字等
      */
     private String cleanTextForTts(String text) {
         if (text == null || text.isBlank()) {
@@ -248,6 +248,20 @@ public class AudioChatController {
         String cleaned = text
             // 去除常见 emoji 和符号
             .replaceAll("[✅✨❌❤️⭐🌟💡🔥💯👍👎🎉🎊]", "")
+            // 去除带圈字母/数字 (如 🅾 ①②③ ❶❷❸)
+            .replaceAll("[\\u2460-\\u24FF]", "")
+            // 去除键帽数字 (如 1️⃣ 2️⃣ 3️⃣)
+            .replaceAll("[0-9]\\uFE0F\\u20E3", "")
+            // 去除几何图形符号 (如 🟦🔲)
+            .replaceAll("[\\u25A0-\\u25FF\\u2B00-\\u2BFF]", "")
+            // 去除 Dingbats 符号 (如 ✂ ✈ ✉)
+            .replaceAll("[\\u2700-\\u27BF]", "")
+            // 去除 Transport/Map 符号 (如 🚀 🚗)
+            .replaceAll("[\\u1F680-\\u1F6FF]", "")
+            // 去除 Miscellaneous Symbols (如 ☀ ☁ ☂)
+            .replaceAll("[\\u2600-\\u26FF]", "")
+            // 去除 Supplemental Symbols (如 🀄 🃏)
+            .replaceAll("[\\u1F900-\\u1F9FF]", "")
             // 去除 Markdown 标记
             .replaceAll("\\*\\*", "")
             .replaceAll("\\*", "")
