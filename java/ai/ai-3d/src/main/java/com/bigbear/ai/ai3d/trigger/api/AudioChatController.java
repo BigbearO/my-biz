@@ -245,6 +245,7 @@ public class AudioChatController {
         if (text == null || text.isBlank()) {
             return text;
         }
+
         String cleaned = text
             // 去除常见 emoji 和符号
             .replaceAll("[✅✨❌❤️⭐🌟💡🔥💯👍👎🎉🎊]", "")
@@ -252,7 +253,7 @@ public class AudioChatController {
             .replaceAll("[\\u2460-\\u24FF]", "")
             // 去除键帽数字 (如 1️⃣ 2️⃣ 3️⃣)
             .replaceAll("[0-9]\\uFE0F\\u20E3", "")
-            // 去除几何图形符号 (如 🟦🔲)
+            // 去除几何图形符号 (如 🟦🔲🔳)
             .replaceAll("[\\u25A0-\\u25FF\\u2B00-\\u2BFF]", "")
             // 去除 Dingbats 符号 (如 ✂ ✈ ✉)
             .replaceAll("[\\u2700-\\u27BF]", "")
@@ -260,6 +261,10 @@ public class AudioChatController {
             .replaceAll("[\\u1F680-\\u1F6FF]", "")
             // 去除 Miscellaneous Symbols (如 ☀ ☁ ☂)
             .replaceAll("[\\u2600-\\u26FF]", "")
+            // 去除 Miscellaneous Symbols and Pictographs (如 🔲🔳🎨)
+            .replaceAll("[\\u1F300-\\u1F5FF]", "")
+            // 去除 Emoticons (如 😀 😂)
+            .replaceAll("[\\u1F600-\\u1F64F]", "")
             // 去除 Supplemental Symbols (如 🀄 🃏)
             .replaceAll("[\\u1F900-\\u1F9FF]", "")
             // 去除 Markdown 标记
@@ -267,8 +272,11 @@ public class AudioChatController {
             .replaceAll("\\*", "")
             .replaceAll("`", "")
             .replaceAll("#", "")
-            // 去除列表符号
-            .replaceAll("^[•●○■□▪️▫️]\\s*", "")
+            .replaceAll("", "")
+            .replaceAll("[\\uD83D\\uDFE6\\u2776\\u2777\\u2778\\uD83D\\uDD32]", "")
+            // 去除列表符号,用的下面的Unicode
+//            .replaceAll("^[•●○■□▪️▫️]\\s*", "")
+            .replaceAll("^[\\u2022\\u25CF\\u25CB\\u25A0\\u25A1\\u25AA\\uFE0F\\u25AB]\\s*", "")
             // 去除多余空格
             .replaceAll("\\s+", " ")
             // 去除 HTML 标签
