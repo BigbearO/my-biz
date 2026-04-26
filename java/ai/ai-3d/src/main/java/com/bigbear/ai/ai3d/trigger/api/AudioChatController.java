@@ -139,8 +139,11 @@ public class AudioChatController {
         String voiceRate = (rate != null && !rate.isBlank()) ? rate : defaultRate;
         String voicePitch = (pitch != null && !pitch.isBlank()) ? pitch : defaultPitch;
 
+        // 清理文本中的特殊符号，优化语音合成效果
+        String cleanedText = cleanTextForTts(text);
+
         String voiceName2 = "zh-CN-YunjianNeural";
-        log.info("TTS 请求: voice={}, text={}", voiceName2, text.substring(0, Math.min(30, text.length())));
+        log.info("TTS 请求: voice={}, text={}", voiceName2, cleanedText.substring(0, Math.min(30, cleanedText.length())));
 
         Optional<Voice> voiceOptional = TTSVoice.provides()
             .stream()
@@ -151,7 +154,7 @@ public class AudioChatController {
         }
         Voice voiceData = voiceOptional.get();
 
-        TTS tts = new TTS(voiceData, text.strip())
+        TTS tts = new TTS(voiceData, cleanedText.strip())
             .findHeadHook()
             .isRateLimited(true)
             .formatMp3()
@@ -232,6 +235,31 @@ public class AudioChatController {
                     .build();
             }
         });
+    }
+
+    /**
+     * 清理文本中的特殊符号，优化 TTS 语音合成效果
+     * 去除 emoji、特殊符号、Markdown 标记等
+     */
+    private String cleanTextForTts(String text) {
+        if (text == null || text.isBlank()) {
+            return text;
+        }
+        String cleaned = text
+            // 去除常见 emoji 和符号
+            .replaceAll("[✅✨❌❤️⭐🌟💡🔥💯👍👎🎉🎊]", "")
+            // 去除 Markdown 标记
+            .replaceAll("\\*\\*", "")
+            .replaceAll("\\*", "")
+            .replaceAll("`", "")
+            .replaceAll("#", "")
+            // 去除列表符号
+            .replaceAll("^[•●○■□▪️▫️]\\s*", "")
+            // 去除多余空格
+            .replaceAll("\\s+", " ")
+            // 去除 HTML 标签
+            .replaceAll("<[^>]+>", "");
+        return cleaned.trim();
     }
 
     private static class ThinkFilterState {
