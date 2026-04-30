@@ -1,6 +1,0 @@
-syntax = "v2"
-
-service user {
-	@handler Ping
-	get /ping returns (string)
-}
