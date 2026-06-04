@@ -28,6 +28,8 @@
     <sensitive.version>0.29.3</sensitive.version>
     <fastexcel.version>1.3.0</fastexcel.version>
     <mpj.version>1.5.4</mpj.version>
+    <flex.version>1.11.7</flex.version>
+
     <rocketmq-spring-boot-starter-version>2.3.1</rocketmq-spring-boot-starter-version>
     <!--      怎么获取boot-dependency中的版本-->
     <biz-lombok.version>1.18.36</biz-lombok.version>
@@ -91,6 +93,14 @@
       <!--                <version>${fastexcel.version}</version>-->
       <!--            </dependency>-->
 
+      <!--      todo 之后升级boot4-->
+      <dependency>
+        <groupId>com.mybatis-flex</groupId>
+        <artifactId>mybatis-flex-spring-boot3-starter</artifactId>
+        <version>${flex.version}</version>
+      </dependency>
+
+<!--      todo 之后去掉，改成了 mybatis-flex-->
       <dependency>
         <groupId>com.github.yulichang</groupId>
         <artifactId>mybatis-plus-join-boot-starter</artifactId>

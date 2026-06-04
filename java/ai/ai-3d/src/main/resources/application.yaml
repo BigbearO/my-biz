@@ -2,7 +2,7 @@ spring:
   application:
     name: ai-3d
   profiles:
-    active: ai,ry
+    active: ai,ry,flex
 ---
 
 spring:

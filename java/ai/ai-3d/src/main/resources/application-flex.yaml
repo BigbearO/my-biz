@@ -1,0 +1,28 @@
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: ${datasource.system-master.url}
+    username: ${datasource.system-master.username}
+    password: ${datasource.system-master.password}
+
+mybatis-flex:
+  # 配置 Mapper 扫描路径
+  mapper-locations: classpath*:/mapper/**/*Mapper.xml
+  # 全局配置
+  configuration:
+    # 下划线转驼峰
+    map-underscore-to-camel-case: true
+    # 日志实现
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  # 多数据源配置（可选）
+#  datasource:
+#    master:
+#      driver-class-name: com.mysql.cj.jdbc.Driver
+#      url: jdbc:mysql://localhost:3306/master_db
+#      username: root
+#      password: 123456
+#    slave:
+#      driver-class-name: com.mysql.cj.jdbc.Driver
+#      url: jdbc:mysql://localhost:3306/slave_db
+#      username: root
+#      password: 123456

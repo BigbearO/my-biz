@@ -1,6 +1,6 @@
 package com.bigbear.ai.ai3d.infra.repository;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.mybatisflex.core.query.QueryWrapper;
 import com.bigbear.ai.ai3d.domain.entity.MessageHistoryEntity;
 import com.bigbear.ai.ai3d.infra.mapper.MessageHistoryMapper;
 import java.time.LocalDateTime;
@@ -46,12 +46,13 @@ public class MySQLChatMemoryStore {
     }
 
     public List<Message> findRecentMessages(String conversationId, int limit) {
-        LambdaQueryWrapper<MessageHistoryEntity> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(MessageHistoryEntity::getChatId, conversationId)
-                .orderByAsc(MessageHistoryEntity::getCreateTime)
-                .last("LIMIT " + limit);
+        QueryWrapper wrapper = QueryWrapper.create()
+                .from(MessageHistoryEntity.class)
+                .where(MessageHistoryEntity::getChatId).eq(conversationId)
+                .orderBy(MessageHistoryEntity::getCreateTime, true)
+                .limit(limit);
         try {
-            return messageHistoryMapper.selectList(wrapper)
+            return messageHistoryMapper.selectListByQuery(wrapper)
                     .stream()
                     .map(this::toMessage)
                     .filter(Objects::nonNull)
