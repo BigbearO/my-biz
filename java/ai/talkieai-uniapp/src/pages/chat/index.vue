@@ -80,21 +80,53 @@
 
     <!-- 底部输入区域 -->
     <view class="input-area">
-      <input
-        v-model="inputText"
-        class="chat-input"
-        placeholder="请描述您的症状..."
-        :disabled="isStreaming"
-        confirm-type="send"
-        @confirm="sendMessage(inputText)"
-      />
-      <view
-        class="send-btn"
-        :class="{ active: inputText.trim() && !isStreaming }"
-        @tap="sendMessage(inputText)"
-      >
-        <image class="send-icon" src="/static/icon_send.png" />
-      </view>
+      <!-- 文字模式 -->
+      <template v-if="!voiceMode">
+        <input
+          v-model="inputText"
+          class="chat-input"
+          placeholder="请描述您的症状..."
+          :disabled="isStreaming"
+          confirm-type="send"
+          @confirm="sendMessage(inputText)"
+        />
+        <view class="mode-switch-btn" @tap="voiceMode = true" v-if="!isStreaming">
+          <image class="switch-icon" src="/static/icon_voice.png" />
+        </view>
+        <view
+          class="send-btn"
+          :class="{ active: inputText.trim() && !isStreaming }"
+          @tap="sendMessage(inputText)"
+        >
+          <image class="send-icon" src="/static/icon_send.png" />
+        </view>
+      </template>
+
+      <!-- 语音模式 -->
+      <template v-else>
+        <view class="voice-input-area">
+          <view
+            class="hold-to-talk"
+            :class="{ recording: isRecording, 'swipe-cancel': swipeToCancel }"
+            @touchstart.prevent="onHoldStart"
+            @touchend.prevent="onHoldEnd"
+            @touchmove.prevent="onHoldMove"
+          >
+            <template v-if="!isRecording">
+              <image class="voice-icon" src="/static/icon_voice_fixed.png" />
+              <text class="hint">按住 说话</text>
+            </template>
+            <template v-else>
+              <view class="recording-indicator" />
+              <text class="hint">{{ swipeToCancel ? '松开取消' : '松开 发送' }}</text>
+              <text v-if="!swipeToCancel" class="sub-hint">↑ 上滑取消</text>
+            </template>
+          </view>
+          <view class="mode-switch-btn" @tap="voiceMode = false">
+            <image class="switch-icon keyboard" src="/static/icon_keyboard.png" />
+          </view>
+        </view>
+      </template>
     </view>
   </view>
 </template>
@@ -106,6 +138,7 @@ import { onLoad } from "@dcloudio/uni-app";
 import { getSnowflakeId } from "@/api/preconsult";
 import type { QuickOption, SseChatEvent } from "@/api/preconsult";
 import __config from "@/config/env";
+import speech from "@/components/speechExecuter";
 
 type AudioState = "idle" | "playing" | "paused";
 
@@ -136,6 +169,13 @@ const conversationId = ref("");
 const currentAssistantMsg = ref<ChatMessage | null>(null);
 const scrollTop = ref(0);
 
+// 语音输入状态
+const voiceMode = ref(false);
+const isRecording = ref(false);
+const swipeToCancel = ref(false);
+let touchStartY = 0;
+const CANCEL_THRESHOLD = 80;
+
 // 音频实例管理：key = 消息在 messages 数组中的 index
 const audioInstances = ref<Map<number, any>>(new Map());
 
@@ -164,7 +204,7 @@ async function initConversation() {
   // 欢迎语
   messages.value.push({
     role: "assistant",
-    content: "你好，我是小护！花几分钟问几个问题，帮您梳理一下病情，方便医生更快了解您的情况。",
+    content: "你好，我是小护！花几分钟问几个问题，帮您梳理一下病情，方便医生更快了解您的情况。您现在的症状是什么？",
     options: [],
     audioState: "idle",
   });
@@ -181,6 +221,47 @@ async function handleNewChat() {
       }
     },
   });
+}
+
+// 语音：按住开始
+function onHoldStart(e: TouchEvent) {
+  isRecording.value = true;
+  swipeToCancel.value = false;
+  touchStartY = e.touches[0].clientY;
+
+  speech.handleVoiceStart({
+    processing: () => {},
+    success: ({ inputValue }: { inputValue: string }) => {
+      isRecording.value = false;
+      voiceMode.value = false;
+      if (inputValue?.trim()) {
+        sendMessage(inputValue.trim());
+      }
+    },
+    cancel: () => {
+      isRecording.value = false;
+    },
+    error: (err: any) => {
+      isRecording.value = false;
+      uni.showToast({ title: err?.message || "语音识别失败", icon: "none" });
+    },
+    interval: () => {},
+  });
+}
+
+// 语音：松手结束
+function onHoldEnd() {
+  if (swipeToCancel.value) {
+    speech.handleCancleVoice();
+  } else {
+    speech.handleEndVoice();
+  }
+}
+
+// 语音：上滑取消检测
+function onHoldMove(e: TouchEvent) {
+  const deltaY = touchStartY - e.touches[0].clientY;
+  swipeToCancel.value = deltaY > CANCEL_THRESHOLD;
 }
 
 function sendMessage(text: string) {
@@ -724,6 +805,24 @@ function scrollToBottom() {
     font-size: 28rpx;
   }
 
+  .mode-switch-btn {
+    width: 72rpx;
+    height: 72rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .switch-icon {
+      width: 40rpx;
+      height: 40rpx;
+
+      &.keyboard {
+        width: 44rpx;
+        height: 44rpx;
+      }
+    }
+  }
+
   .send-btn {
     margin-left: 16rpx;
     width: 80rpx;
@@ -743,5 +842,73 @@ function scrollToBottom() {
       height: 32rpx;
     }
   }
+}
+
+.voice-input-area {
+  display: flex;
+  align-items: center;
+  flex: 1;
+
+  .hold-to-talk {
+    flex: 1;
+    height: 72rpx;
+    background-color: #f5f5f5;
+    border-radius: 36rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8rpx;
+    user-select: none;
+
+    &:active {
+      background-color: #e0e0e0;
+    }
+
+    &.recording {
+      background-color: #fce4e4;
+
+      &:active {
+        background-color: #f5caca;
+      }
+    }
+
+    &.swipe-cancel {
+      background-color: #fff3e0;
+
+      .hint {
+        color: #ff6b35;
+      }
+    }
+
+    .voice-icon {
+      width: 36rpx;
+      height: 36rpx;
+    }
+
+    .hint {
+      font-size: 28rpx;
+      color: #666;
+    }
+
+    .sub-hint {
+      position: absolute;
+      bottom: -32rpx;
+      font-size: 20rpx;
+      color: #999;
+    }
+
+    .recording-indicator {
+      width: 16rpx;
+      height: 16rpx;
+      background-color: #ff4444;
+      border-radius: 50%;
+      animation: pulse-blink 1s infinite;
+    }
+  }
+}
+
+@keyframes pulse-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
 }
 </style>

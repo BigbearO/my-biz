@@ -122,6 +122,13 @@
       <artifactId>spring-ai-alibaba-agent-framework</artifactId>
     </dependency>
 
+    <!-- ONNX Runtime for Silero VAD -->
+    <dependency>
+      <groupId>com.microsoft.onnxruntime</groupId>
+      <artifactId>onnxruntime</artifactId>
+      <version>1.17.1</version>
+    </dependency>
+
   </dependencies>
   <dependencyManagement>
     <dependencies>

@@ -42,4 +42,19 @@ spring:
         speech:
           api-key:  asdasda
 
+# 语音识别
+voice:
+  vad:
+    model-path: E:\project\my-biz\java\ai\ai-3d\src\main\resources\models\silero_vad2.onnx
+    start-threshold: 0.5
+    end-threshold: 0.2
+    sampling-rate: 16000
+    min-silence-ms: 500
+    speech-pad-ms: 400
+  asr:
+    siliconflow:
+      api-key: ${llm.asr.ak}
+      api-url: https://api.siliconflow.cn/v1/audio/transcriptions
+      model: FunAudioLLM/SenseVoiceSmall
+
 

@@ -208,7 +208,7 @@ class Speech {
     }
 
     uni.uploadFile({
-      url: __config.basePath + "/voice/upload",
+      url: __config.asrPath,
       filePath: filePath,
       header: {
         "X-Token": uni.getStorageSync("x-token"),
@@ -261,7 +261,7 @@ class Speech {
           formData: {
             file: blob,
           },
-          url: __config.basePath + "/voices/upload",
+          url: __config.asrPath,
           success: (res) => {
             var resData = res;
             self.handleUploadResult({
@@ -295,23 +295,31 @@ class Speech {
   handleUploadResult({ resData }: { resData: any }) {
     const self = this;
     if (resData.statusCode == 200) {
-      let resultJson = JSON.parse(resData.data);
-      if (resultJson.code != "200") {
-        uni.showToast({
-          title: resultJson.message,
-          icon: "none",
-        });
-        if (self.listener.error) {
-          self.listener.error(resultJson);
+      try {
+        let data = JSON.parse(resData.data);
+        if (data.hasSpeech) {
+          if (self.listener.success) {
+            self.listener.success({
+              inputValue: data.text || "",
+            });
+          }
+        } else {
+          uni.showToast({
+            title: "未检测到有效语音，请重试",
+            icon: "none",
+          });
+          if (self.listener.error) {
+            self.listener.error({ message: "未检测到有效语音" });
+          }
         }
-        return;
+      } catch (e) {
+        if (self.listener.error) {
+          self.listener.error({ message: "响应解析失败" });
+        }
       }
-      let dataJson = resultJson.data;
-      if (self.listener.success) {
-        self.listener.success({
-          inputValue: dataJson.result,
-          voiceFileName: dataJson.file,
-        });
+    } else {
+      if (self.listener.error) {
+        self.listener.error({ message: "上传失败" });
       }
     }
   }
