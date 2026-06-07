@@ -10,5 +10,5 @@ public class PreConsultChatRequest {
     private String message;
 
     @NotBlank(message = "会话id不能为空")
-    private String chatId;
+    private String conversationId;
 }
