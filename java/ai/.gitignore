@@ -30,6 +30,10 @@ nbbuild/
 nbdist/
 .nb-gradle/
 
+**/node_modules
+*/node_modules
+
+
 ### maven ###
 target/
 *.war
