@@ -52,8 +52,6 @@ spring:
 
 # 语音识别
 voice:
-  audio:
-    save-path: E:\project\my-biz\java
   vad:
     model-path: E:\project\my-biz\java\ai\ai-3d\src\main\resources\models\silero_vad2.onnx
     start-threshold: 0.5
