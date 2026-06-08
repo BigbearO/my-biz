@@ -65,14 +65,7 @@ class Speech {
     let self = this;
     let recorderManager = uni.getRecorderManager();
     console.log(recorderManager);
-    // 如果是andoird手机使用，则须要设置mp3格式，否则无法播放
     let format = "wav";
-
-    // #ifdef APP-PLUS
-    if (uni.getSystemInfoSync().platform === "android") {
-      format = "mp3";
-    }
-    // #endif
 
     self.recorder.wxRecorderManager = recorderManager;
     recorderManager.start({

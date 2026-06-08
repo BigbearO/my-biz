@@ -107,19 +107,16 @@
         <view class="voice-input-area">
           <view
             class="hold-to-talk"
-            :class="{ recording: isRecording, 'swipe-cancel': swipeToCancel }"
-            @touchstart.prevent="onHoldStart"
-            @touchend.prevent="onHoldEnd"
-            @touchmove.prevent="onHoldMove"
+            :class="{ recording: isRecording }"
+            @tap="onTapVoice"
           >
             <template v-if="!isRecording">
               <image class="voice-icon" src="/static/icon_voice_fixed.png" />
-              <text class="hint">按住 说话</text>
+              <text class="hint">点击 录音</text>
             </template>
             <template v-else>
               <view class="recording-indicator" />
-              <text class="hint">{{ swipeToCancel ? '松开取消' : '松开 发送' }}</text>
-              <text v-if="!swipeToCancel" class="sub-hint">↑ 上滑取消</text>
+              <text class="hint">点击 停止</text>
             </template>
           </view>
           <view class="mode-switch-btn" @tap="voiceMode = false">
@@ -172,9 +169,6 @@ const scrollTop = ref(0);
 // 语音输入状态
 const voiceMode = ref(false);
 const isRecording = ref(false);
-const swipeToCancel = ref(false);
-let touchStartY = 0;
-const CANCEL_THRESHOLD = 80;
 
 // 音频实例管理：key = 消息在 messages 数组中的 index
 const audioInstances = ref<Map<number, any>>(new Map());
@@ -223,45 +217,32 @@ async function handleNewChat() {
   });
 }
 
-// 语音：按住开始
-function onHoldStart(e: TouchEvent) {
-  isRecording.value = true;
-  swipeToCancel.value = false;
-  touchStartY = e.touches[0].clientY;
-
-  speech.handleVoiceStart({
-    processing: () => {},
-    success: ({ inputValue }: { inputValue: string }) => {
-      isRecording.value = false;
-      voiceMode.value = false;
-      if (inputValue?.trim()) {
-        sendMessage(inputValue.trim());
-      }
-    },
-    cancel: () => {
-      isRecording.value = false;
-    },
-    error: (err: any) => {
-      isRecording.value = false;
-      uni.showToast({ title: err?.message || "语音识别失败", icon: "none" });
-    },
-    interval: () => {},
-  });
-}
-
-// 语音：松手结束
-function onHoldEnd() {
-  if (swipeToCancel.value) {
-    speech.handleCancleVoice();
-  } else {
+// 语音：点击录音/点击停止
+function onTapVoice() {
+  if (isRecording.value) {
+    isRecording.value = false;
     speech.handleEndVoice();
+  } else {
+    isRecording.value = true;
+    speech.handleVoiceStart({
+      processing: () => {},
+      success: ({ inputValue }: { inputValue: string }) => {
+        isRecording.value = false;
+        voiceMode.value = false;
+        if (inputValue?.trim()) {
+          sendMessage(inputValue.trim());
+        }
+      },
+      cancel: () => {
+        isRecording.value = false;
+      },
+      error: (err: any) => {
+        isRecording.value = false;
+        uni.showToast({ title: err?.message || "语音识别失败", icon: "none" });
+      },
+      interval: () => {},
+    });
   }
-}
-
-// 语音：上滑取消检测
-function onHoldMove(e: TouchEvent) {
-  const deltaY = touchStartY - e.touches[0].clientY;
-  swipeToCancel.value = deltaY > CANCEL_THRESHOLD;
 }
 
 function sendMessage(text: string) {
@@ -872,14 +853,6 @@ function scrollToBottom() {
       }
     }
 
-    &.swipe-cancel {
-      background-color: #fff3e0;
-
-      .hint {
-        color: #ff6b35;
-      }
-    }
-
     .voice-icon {
       width: 36rpx;
       height: 36rpx;
@@ -888,13 +861,6 @@ function scrollToBottom() {
     .hint {
       font-size: 28rpx;
       color: #666;
-    }
-
-    .sub-hint {
-      position: absolute;
-      bottom: -32rpx;
-      font-size: 20rpx;
-      color: #999;
     }
 
     .recording-indicator {
