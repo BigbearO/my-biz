@@ -19,7 +19,7 @@ llm:
     ak: sk-lhzaicefwifychtlzlohzqmhzyacuirzbcqitmibllzdszyo
   chat:
     ak: KLHWYEMREST6MQGOQFWLD7B3PGL3HVI5ZVIOTW12
-    model: DeepSeek-R1-Distill-Qwen-14B
+    model: GLM-4.7-Flash
     #  url: https://api.siliconflow.cn/v1
     url: https://ai.gitee.com/v1
 
@@ -45,7 +45,7 @@ spring:
       chat:
         api-key: KLHWYEMREST6MQGOQFWLD7B3PGL3HVI5ZVIOTW12
         options:
-          model: Qwen3-8B
+          model: GLM-4.7-Flash
       audio:
         speech:
           api-key:  asdasda

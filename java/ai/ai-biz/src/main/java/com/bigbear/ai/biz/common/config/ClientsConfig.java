@@ -92,6 +92,7 @@ public class ClientsConfig {
                 .maxTokens(1024)
                 .timeout(Duration.ofSeconds(30))
                 .modelName("DeepSeek-R1-Distill-Qwen-14B")
+                .modelName(SpringUtil.getProperty("llm.chat.model"))
                 .baseUrl("https://ai.gitee.com/v1")
                 .build();
     }
