@@ -13,7 +13,7 @@ import org.springframework.ai.chat.messages.Message;
 @HookPositions({HookPosition.BEFORE_MODEL})
 public class MessageTrimmingHook extends MessagesModelHook {
 
-    private static final int MAX_MESSAGES = 3;
+    private static final int MAX_MESSAGES = 8;
 
     @Override
     public String getName() {

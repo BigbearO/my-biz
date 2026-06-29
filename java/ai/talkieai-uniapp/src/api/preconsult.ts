@@ -31,6 +31,15 @@ export interface QuickOption {
   value: string;
 }
 
+export interface SummaryFields {
+  chiefComplaint: string;
+  presentIllness: string;
+  pastHistory: string;
+  medication: string;
+  allergy: string;
+  visitGoal: string;
+}
+
 export interface SseChatEvent {
   type: "chunk" | "options" | "phase" | "summary" | "done" | "error";
   content?: string;
@@ -39,4 +48,5 @@ export interface SseChatEvent {
   completed?: boolean;
   audio?: string;
   message?: string;
+  fields?: SummaryFields;
 }

@@ -1,7 +1,7 @@
 package com.bigbear.ai.ai3d.trigger.api;
 
-import com.bigbear.ai.ai3d.core.agent.PreConsultAgent;
 import com.bigbear.ai.ai3d.core.agent.PreConsultChatAgent;
+import com.bigbear.ai.ai3d.core.agent.PreConsultPhaseTracker;
 import com.bigbear.ai.ai3d.domain.vo.PreConsultChatRequest;
 import com.bigbear.ai.ai3d.domain.vo.SseChatEvent;
 import cn.hutool.core.util.IdUtil;
@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,13 +27,23 @@ import reactor.core.publisher.Flux;
 public class PreConsultController {
 
     private final PreConsultChatAgent preConsultAgent;
+    private final PreConsultPhaseTracker phaseTracker;
     private final ObjectMapper objectMapper;
+
+    @Value("${pre-consult.max-rounds:15}")
+    private int maxRounds;
 
     @PostMapping(value = "/chat", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ServerSentEvent<String>> chat(@RequestBody @Valid PreConsultChatRequest request) {
         if (request.getMessage() == null || request.getMessage().isBlank()) {
             return Flux.just(ServerSentEvent.builder(
                 toJson(SseChatEvent.error("消息不能为空"))).build());
+        }
+
+        if (phaseTracker.isAtLimit(request.getConversationId())) {
+            log.warn("会话 {} 已达最大轮次 {}", request.getConversationId(), maxRounds);
+            return Flux.just(ServerSentEvent.builder(
+                toJson(SseChatEvent.error("本次对话已达到最大轮次限制，请重新开始"))).build());
         }
 
         return preConsultAgent.streamChat(request.getMessage(), request.getConversationId())

@@ -21,6 +21,7 @@ public class SseChatEvent {
     private Boolean completed;
     private String audio;
     private String message;
+    private SummaryFields fields;
 
     @Data
     @Builder
@@ -29,6 +30,19 @@ public class SseChatEvent {
     public static class QuickOption {
         private String label;
         private String value;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class SummaryFields {
+        private String chiefComplaint;
+        private String presentIllness;
+        private String pastHistory;
+        private String medication;
+        private String allergy;
+        private String visitGoal;
     }
 
     public static SseChatEvent chunk(String content) {
@@ -45,6 +59,10 @@ public class SseChatEvent {
 
     public static SseChatEvent summary(String content) {
         return SseChatEvent.builder().type("summary").content(content).build();
+    }
+
+    public static SseChatEvent summary(String content, SummaryFields fields) {
+        return SseChatEvent.builder().type("summary").content(content).fields(fields).build();
     }
 
     public static SseChatEvent done(boolean completed, String audio) {

@@ -13,15 +13,25 @@ datasource:
     password: 123456
 
 
+
 llm:
   ak: KLHWYEMREST6MQGOQFWLD7B3PGL3HVI5ZVIOTW12
   asr:
     ak: sk-lhzaicefwifychtlzlohzqmhzyacuirzbcqitmibllzdszyo
   chat:
     ak: KLHWYEMREST6MQGOQFWLD7B3PGL3HVI5ZVIOTW12
-    model: GLM-4.7-Flash
+    model: DeepSeek-R1-Distill-Qwen-14B
     #  url: https://api.siliconflow.cn/v1
     url: https://ai.gitee.com/v1
+
+# 预诊对话配置
+pre-consult:
+  max-rounds: 15
+  round-nudge-at: 12
+  round-force-at: 14
+  max-response-length: 80
+  min-options: 2
+  max-options: 4
 
 ---
 
@@ -45,7 +55,7 @@ spring:
       chat:
         api-key: KLHWYEMREST6MQGOQFWLD7B3PGL3HVI5ZVIOTW12
         options:
-          model: GLM-4.7-Flash
+          model: ${llm.chat.model}
       audio:
         speech:
           api-key:  asdasda

@@ -20,7 +20,7 @@
     <scroll-view
       class="chat-container"
       scroll-y
-      :scroll-top="scrollTop"
+      :scroll-into-view="scrollIntoViewId"
       :scroll-with-animation="true"
     >
       <view v-for="(msg, index) in messages" :key="index" class="message-item">
@@ -70,12 +70,19 @@
           </view>
         </view>
       </view>
+      <view id="scroll-bottom" style="height: 1px;"></view>
     </scroll-view>
 
     <!-- 摘要卡片 -->
-    <view v-if="summary" class="summary-card">
+    <view v-if="summary.text" class="summary-card">
       <view class="summary-title">病情摘要</view>
-      <text class="summary-content">{{ summary }}</text>
+      <template v-if="summary.fields">
+        <view class="summary-field" v-for="(val, key) in summary.fields" :key="key">
+          <text class="field-label">{{ FIELD_LABELS[key as string] || key }}</text>
+          <text class="field-value">{{ val }}</text>
+        </view>
+      </template>
+      <text v-else class="summary-content">{{ summary.text }}</text>
     </view>
 
     <!-- 底部输入区域 -->
@@ -133,7 +140,7 @@ import CommonHeader from "@/components/CommonHeader.vue";
 import { ref, computed, nextTick } from "vue";
 import { onLoad } from "@dcloudio/uni-app";
 import { getSnowflakeId } from "@/api/preconsult";
-import type { QuickOption, SseChatEvent } from "@/api/preconsult";
+import type { QuickOption, SseChatEvent, SummaryFields } from "@/api/preconsult";
 import __config from "@/config/env";
 import speech from "@/components/speechExecuter";
 
@@ -157,14 +164,23 @@ const PHASE_LABELS: Record<string, string> = {
   SUMMARY: "生成摘要",
 };
 
+const FIELD_LABELS: Record<string, string> = {
+  chiefComplaint: "主诉",
+  presentIllness: "现病史",
+  pastHistory: "既往史",
+  medication: "用药情况",
+  allergy: "过敏史",
+  visitGoal: "就诊诉求",
+};
+
 const messages = ref<ChatMessage[]>([]);
 const inputText = ref("");
 const isStreaming = ref(false);
 const currentPhase = ref("");
-const summary = ref("");
+const summary = ref<{ text: string; fields?: SummaryFields }>({ text: "" });
 const conversationId = ref("");
 const currentAssistantMsg = ref<ChatMessage | null>(null);
-const scrollTop = ref(0);
+const scrollIntoViewId = ref("");
 
 // 语音输入状态
 const voiceMode = ref(false);
@@ -192,7 +208,7 @@ async function initConversation() {
   // 销毁所有音频实例
   destroyAllAudioInstances();
   messages.value = [];
-  summary.value = "";
+  summary.value = { text: "" };
   currentPhase.value = "";
 
   // 欢迎语
@@ -378,7 +394,10 @@ function handleSseEvent(event: SseChatEvent) {
       break;
 
     case "summary":
-      summary.value = event.content || "";
+      summary.value = {
+        text: event.content || "",
+        fields: event.fields,
+      };
       break;
 
     case "done":
@@ -597,8 +616,9 @@ function playAudioApp(index: number, base64: string) {
 }
 
 function scrollToBottom() {
+  scrollIntoViewId.value = "";
   nextTick(() => {
-    scrollTop.value = scrollTop.value + 100;
+    scrollIntoViewId.value = "scroll-bottom";
   });
 }
 </script>
@@ -767,6 +787,24 @@ function scrollToBottom() {
     font-size: 26rpx;
     color: #8c8c8c;
     line-height: 1.8;
+  }
+
+  .summary-field {
+    margin-bottom: 16rpx;
+    line-height: 1.6;
+
+    .field-label {
+      font-size: 24rpx;
+      font-weight: bold;
+      color: #d48806;
+      display: block;
+      margin-bottom: 4rpx;
+    }
+
+    .field-value {
+      font-size: 26rpx;
+      color: #666666;
+    }
   }
 }
 

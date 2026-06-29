@@ -1,18 +1,24 @@
 package com.bigbear.ai.ai3d.core.agent;
 
+import com.bigbear.ai.ai3d.core.agent.PreConsultResponseParser.ParsedResponse;
+import com.bigbear.ai.ai3d.core.agent.PreConsultResponseParser.StructuredSummary;
+import com.bigbear.ai.ai3d.domain.entity.PreConsultSummaryEntity;
 import com.bigbear.ai.ai3d.domain.vo.SseChatEvent;
 import com.bigbear.ai.ai3d.domain.vo.SseChatEvent.QuickOption;
+import com.bigbear.ai.ai3d.domain.vo.SseChatEvent.SummaryFields;
+import com.bigbear.ai.ai3d.infra.manager.PreConsultSummaryManager;
 import com.bigbear.ai.ai3d.infra.memory.CustomChatMemory;
 import com.bigbear.ai.ai3d.infra.service.TtsService;
-import com.bigbear.ai.ai3d.core.agent.PreConsultResponseParser.ParsedResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StreamUtils;
@@ -24,13 +30,31 @@ public class PreConsultChatAgent {
 
     private final ChatClient chatClient;
     private final PreConsultResponseParser parser;
+    private final PreConsultOutputValidator validator;
+    private final PreConsultPhaseTracker phaseTracker;
+    private final PreConsultSummaryManager summaryManager;
     private final TtsService ttsService;
 
+    @Value("${pre-consult.round-nudge-at:12}")
+    private int roundNudgeAt;
+
+    @Value("${pre-consult.round-force-at:14}")
+    private int roundForceAt;
+
+    @Value("${pre-consult.max-rounds:15}")
+    private int maxRounds;
+
     public PreConsultChatAgent(ChatModel chatModel,
-                               CustomChatMemory chatMemory,
-                               PreConsultResponseParser parser,
-                               TtsService ttsService) throws IOException {
+                                CustomChatMemory chatMemory,
+                                PreConsultResponseParser parser,
+                                PreConsultOutputValidator validator,
+                                PreConsultPhaseTracker phaseTracker,
+                                PreConsultSummaryManager summaryManager,
+                                TtsService ttsService) throws IOException {
         this.parser = parser;
+        this.validator = validator;
+        this.phaseTracker = phaseTracker;
+        this.summaryManager = summaryManager;
         this.ttsService = ttsService;
 
         String systemPrompt = readPrompt("prompts/pre-consult-prompt.txt");
@@ -42,10 +66,15 @@ public class PreConsultChatAgent {
     }
 
     public Flux<SseChatEvent> streamChat(String message, String conversationId) {
+        int rounds = phaseTracker.incrementRound(conversationId);
+        String currentPhase = phaseTracker.getCurrentPhase(conversationId);
+
+        String enrichedMessage = enrichMessage(message, conversationId, rounds, currentPhase);
+
         StringBuilder fullText = new StringBuilder();
 
         return chatClient.prompt()
-            .user(message)
+            .user(enrichedMessage)
             .advisors(spec -> spec.param(ChatMemory.CONVERSATION_ID, conversationId))
             .stream()
             .content()
@@ -59,7 +88,19 @@ public class PreConsultChatAgent {
             .filter(s -> s != null && !s.isEmpty())
             .map(SseChatEvent::chunk)
             .concatWith(Flux.defer(() -> {
-                ParsedResponse parsed = parser.parse(fullText.toString());
+                String fullResponse = fullText.toString();
+                ParsedResponse parsed = parser.parse(fullResponse);
+
+                // 阶段推进
+                if (parsed.getPhase() != null) {
+                    phaseTracker.advancePhase(conversationId, parsed.getPhase());
+                }
+
+                // 输出校验（仅 warn 不断流）
+                List<String> warnings = validator.validate(parsed, currentPhase);
+                if (!warnings.isEmpty()) {
+                    log.warn("输出校验警告, conversationId={}: {}", conversationId, warnings);
+                }
 
                 Flux<SseChatEvent> extraEvents = Flux.empty();
 
@@ -72,8 +113,24 @@ public class PreConsultChatAgent {
                     extraEvents = extraEvents.concatWith(Flux.just(SseChatEvent.phase(parsed.getPhase())));
                 }
 
-                if (parsed.getSummary() != null) {
-                    extraEvents = extraEvents.concatWith(Flux.just(SseChatEvent.summary(parsed.getSummary())));
+                if (parsed.getSummary() != null && parsed.getStructuredSummary() != null) {
+                    StructuredSummary ss = parsed.getStructuredSummary();
+
+                    String displayText = parser.buildDisplayText(ss);
+                    SummaryFields fields = SummaryFields.builder()
+                        .chiefComplaint(ss.getChiefComplaint())
+                        .presentIllness(ss.getPresentIllness())
+                        .pastHistory(ss.getPastHistory())
+                        .medication(ss.getMedication())
+                        .allergy(ss.getAllergy())
+                        .visitGoal(ss.getVisitGoal())
+                        .build();
+
+                    extraEvents = extraEvents.concatWith(
+                        Flux.just(SseChatEvent.summary(displayText, fields))
+                    );
+
+                    saveSummary(conversationId, ss, parsed.getSummary());
                 }
 
                 String ttsText = stripThinkTags(parsed.getText());
@@ -84,17 +141,58 @@ public class PreConsultChatAgent {
                     log.warn("TTS 合成失败，跳过音频", e);
                 }
 
-                extraEvents = extraEvents.concatWith(Flux.just(SseChatEvent.done(parsed.isCompleted(), audioBase64)));
+                extraEvents = extraEvents.concatWith(
+                    Flux.just(SseChatEvent.done(parsed.isCompleted(), audioBase64))
+                );
 
                 return extraEvents;
             }))
             .onErrorResume(error -> {
-                log.error("ChatClient 流式执行失败", error);
+                log.error("ChatClient 流式执行失败, conversationId={}", conversationId, error);
                 return Flux.just(
                     SseChatEvent.error(error.getMessage()),
                     SseChatEvent.done(false, null)
                 );
             });
+    }
+
+    private String enrichMessage(String message, String conversationId, int rounds, String currentPhase) {
+        StringBuilder sb = new StringBuilder(message);
+
+        if (rounds > 0) {
+            sb.append("\n[context] currentPhase=").append(currentPhase)
+              .append(", round=").append(rounds).append(" [/context]");
+        }
+
+        if (rounds >= roundNudgeAt) {
+            sb.append("\n[instruction] 对话即将结束，请准备进入 SUMMARY 阶段并生成摘要 [/instruction]");
+        }
+
+        if (rounds >= roundForceAt) {
+            sb.append("\n[instruction] 本轮必须完成问诊，输出 @@SUMMARY@@ + @@COMPLETED@@ 标记 [/instruction]");
+        }
+
+        return sb.toString();
+    }
+
+    private void saveSummary(String conversationId, StructuredSummary ss, String rawSummary) {
+        try {
+            PreConsultSummaryEntity entity = new PreConsultSummaryEntity();
+            entity.setChatId(conversationId);
+            entity.setChiefComplaint(ss.getChiefComplaint());
+            entity.setPresentIllness(ss.getPresentIllness());
+            entity.setPastHistory(ss.getPastHistory());
+            entity.setMedication(ss.getMedication());
+            entity.setAllergy(ss.getAllergy());
+            entity.setVisitGoal(ss.getVisitGoal());
+            entity.setRawSummary(rawSummary);
+            entity.setCreateTime(LocalDateTime.now());
+            entity.setUpdateTime(LocalDateTime.now());
+            summaryManager.saveSummary(entity);
+            log.info("摘要已保存, conversationId={}", conversationId);
+        } catch (Exception e) {
+            log.error("保存摘要失败, conversationId={}", conversationId, e);
+        }
     }
 
     private String readPrompt(String path) throws IOException {
@@ -146,7 +244,6 @@ public class PreConsultChatAgent {
                         buffer.delete(0, i);
                         break;
                     }
-                    // 跳过 </think 或 </think\s*>
                     int tagEnd = buffer.indexOf(">", thinkEnd);
                     if (tagEnd == -1) {
                         buffer.delete(0, i);
@@ -191,7 +288,7 @@ public class PreConsultChatAgent {
                     int completedStart = buffer.indexOf("@@COMPLETED@@", i);
 
                     int nextMarker = -1;
-                    int markerType = 0; // 1=think, 2=options, 3=phase, 4=summary, 5=completed
+                    int markerType = 0;
 
                     if (thinkStart != -1 && (nextMarker == -1 || thinkStart < nextMarker)) {
                         nextMarker = thinkStart;
@@ -231,12 +328,11 @@ public class PreConsultChatAgent {
 
                     switch (markerType) {
                         case 1:
-                            // 跳过 <think...> 开始标签
                             int thinkTagEnd = buffer.indexOf(">", nextMarker);
                             if (thinkTagEnd != -1) {
                                 i = thinkTagEnd + 1;
                             } else {
-                                i = nextMarker + 6; // "<think".length()
+                                i = nextMarker + 6;
                             }
                             inThinkBlock = true;
                             break;
