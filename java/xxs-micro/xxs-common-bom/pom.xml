@@ -11,6 +11,7 @@
 
   <artifactId>xxs-common-bom</artifactId>
   <packaging>pom</packaging>
+  <version>1.1.0</version>
 
   <properties>
     <maven.compiler.source>21</maven.compiler.source>
@@ -20,8 +21,8 @@
     <java.version>21</java.version>
     <langchain.version>1.15.0</langchain.version>
     <langgraph.version>1.8.17</langgraph.version>
-    <spring-ai.version>1.1.7</spring-ai.version>
-    <spring-ai-ali.version>1.1.2.3</spring-ai-ali.version>
+    <spring-ai.version>2.0.0</spring-ai.version>
+    <spring-ai-ali.version>2.0.0-M1.1</spring-ai-ali.version>
     <spring-ai-util.version>0.7.0</spring-ai-util.version>
     <spring-ai-mcp-security.version>0.1.11</spring-ai-mcp-security.version>
     <langchain.community.version>1.15.0-beta25</langchain.community.version>
@@ -97,6 +98,11 @@
       <dependency>
         <groupId>com.mybatis-flex</groupId>
         <artifactId>mybatis-flex-spring-boot3-starter</artifactId>
+        <version>${flex.version}</version>
+      </dependency>
+     <dependency>
+        <groupId>com.mybatis-flex</groupId>
+        <artifactId>mybatis-flex-spring-boot4-starter</artifactId>
         <version>${flex.version}</version>
       </dependency>
 

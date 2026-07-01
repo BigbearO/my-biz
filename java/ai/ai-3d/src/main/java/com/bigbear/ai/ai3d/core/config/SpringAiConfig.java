@@ -13,7 +13,7 @@ import org.springframework.ai.chat.client.ChatClient.Builder;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.mcp.SyncMcpToolCallbackProvider;
-import org.springframework.ai.mcp.customizer.McpSyncClientCustomizer;
+//import org.springframework.ai.mcp.customizer.McpSyncClientCustomizer;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.tool.method.MethodToolCallbackProvider;
@@ -44,7 +44,7 @@ public class SpringAiConfig {
         ToolCallbackProvider toolCallbackProvider = SyncMcpToolCallbackProvider.builder()
             .mcpClients(mcpSyncClients)
             .build();
-
+        
         Builder builder = ChatClient.builder(chatModel);
         try {
             String s = readSystemPromptValue();
@@ -55,16 +55,17 @@ public class SpringAiConfig {
 
         return builder
             .defaultAdvisors(new SimpleLoggerAdvisor(), MessageChatMemoryAdvisor.builder(chatMemory).build())
-            .defaultToolCallbacks(toolCallbackProvider)
+//            .defaultToolCallbacks(toolCallbackProvider)
+            .defaultTools(toolCallbackProvider)
             .build();
     }
 
-    @Bean
-    public McpSyncClientCustomizer toolsChangeListener() {
-        return (name, clientSpec) -> clientSpec.toolsChangeConsumer(changeEvent -> {
-            log.info("MCP 工具发生变化: {}", changeEvent);
-        });
-    }
+//    @Bean
+//    public McpSyncClientCustomizer toolsChangeListener() {
+//        return (name, clientSpec) -> clientSpec.toolsChangeConsumer(changeEvent -> {
+//            log.info("MCP 工具发生变化: {}", changeEvent);
+//        });
+//    }
 
     public String readSystemPromptValue() throws IOException {
         ClassLoader classLoader = this.getClass().getClassLoader();

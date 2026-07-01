@@ -79,7 +79,7 @@ public class PreConsultChatAgent {
             .stream()
             .content()
             .doOnNext(chunk -> {
-                if (chunk != null && !chunk.isEmpty()) {
+                if (!chunk.isEmpty()) {
                     fullText.append(chunk);
                 }
             })
