@@ -67,8 +67,6 @@ public class ClientsConfig {
                 .apiKey(SpringUtil.getProperty("llm.chat.ak"))
                 .maxTokens(1024)
                 .timeout(Duration.ofSeconds(30))
-//                .modelName("DeepSeek-R1-Distill-Qwen-14B")
-                .modelName("Qwen/Qwen3.5-4B")
                 .modelName(SpringUtil.getProperty("llm.chat.model"))
                 .baseUrl(SpringUtil.getProperty("llm.chat.url"))
                 .build();
@@ -91,8 +89,7 @@ public class ClientsConfig {
                 .apiKey(SpringUtil.getProperty("llm.ak"))
                 .maxTokens(1024)
                 .timeout(Duration.ofSeconds(30))
-                .modelName("DeepSeek-R1-Distill-Qwen-14B")
-                .modelName(SpringUtil.getProperty("llm.chat.model"))
+                 .modelName(SpringUtil.getProperty("llm.chat.model"))
                 .baseUrl("https://ai.gitee.com/v1")
                 .build();
     }

@@ -1,5 +1,6 @@
 package com.bigbear.ai.ai3d.core.agent;
 
+import cn.hutool.extra.spring.SpringUtil;
 import com.bigbear.ai.ai3d.core.agent.PreConsultResponseParser.ParsedResponse;
 import com.bigbear.ai.ai3d.core.agent.PreConsultResponseParser.StructuredSummary;
 import com.bigbear.ai.ai3d.domain.entity.PreConsultSummaryEntity;
@@ -15,13 +16,17 @@ import java.time.LocalDateTime;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.ChatClient.CallResponseSpec;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.openai.OpenAiChatModel;
+import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StreamUtils;
+import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 
 @Slf4j
@@ -45,12 +50,12 @@ public class PreConsultChatAgent {
     private int maxRounds;
 
     public PreConsultChatAgent(ChatModel chatModel,
-                                CustomChatMemory chatMemory,
-                                PreConsultResponseParser parser,
-                                PreConsultOutputValidator validator,
-                                PreConsultPhaseTracker phaseTracker,
-                                PreConsultSummaryManager summaryManager,
-                                TtsService ttsService) throws IOException {
+        CustomChatMemory chatMemory,
+        PreConsultResponseParser parser,
+        PreConsultOutputValidator validator,
+        PreConsultPhaseTracker phaseTracker,
+        PreConsultSummaryManager summaryManager,
+        TtsService ttsService) throws IOException {
         this.parser = parser;
         this.validator = validator;
         this.phaseTracker = phaseTracker;
@@ -59,13 +64,55 @@ public class PreConsultChatAgent {
 
         String systemPrompt = readPrompt("prompts/pre-consult-prompt.txt");
 
-        this.chatClient = ChatClient.builder(chatModel)
+        OpenAiChatOptions options = OpenAiChatOptions.builder()
+            .apiKey(SpringUtil.getProperty("llm.chat.ak"))
+            .temperature(0.25)
+            .model(SpringUtil.getProperty("llm.chat.model"))
+            .baseUrl(SpringUtil.getProperty("llm.chat.url")).build();
+
+        ChatModel mychatModel = OpenAiChatModel.builder()
+            .options(options)
+            .build();
+
+        this.chatClient = ChatClient.builder(mychatModel)
             .defaultSystem(systemPrompt)
             .defaultAdvisors(MessageChatMemoryAdvisor.builder(chatMemory).build())
             .build();
     }
 
+    public String chat(String message, String conversationId) {
+
+        int rounds = phaseTracker.incrementRound(conversationId);
+        String currentPhase = phaseTracker.getCurrentPhase(conversationId);
+
+        String enrichedMessage = enrichMessage(message, conversationId, rounds, currentPhase);
+        CallResponseSpec call = chatClient.prompt()
+            .user(enrichedMessage)
+            .advisors(spec -> spec.param(ChatMemory.CONVERSATION_ID, conversationId))
+            .call();
+        return call.content();
+
+    }
+
+    /**
+     * 流式聊天方法，支持 SSE 推送
+     * <p>
+     * 使用 Spring AI 2.0 的流式调用，通过 ChatResponse 获取完整的响应对象，
+     * 确保 MessageChatMemoryAdvisor 能够正确访问 conversationId 参数。
+     *
+     * @param message        用户消息
+     * @param conversationId 会话 ID，不能为 null 或空字符串
+     * @return SSE 事件流
+     */
     public Flux<SseChatEvent> streamChat(String message, String conversationId) {
+        if (conversationId == null || conversationId.isBlank()) {
+            log.warn("conversationId 为空，无法执行流式聊天");
+            return Flux.just(
+                SseChatEvent.error("conversationId 不能为空"),
+                SseChatEvent.done(false, null)
+            );
+        }
+
         int rounds = phaseTracker.incrementRound(conversationId);
         String currentPhase = phaseTracker.getCurrentPhase(conversationId);
 
@@ -77,15 +124,24 @@ public class PreConsultChatAgent {
             .user(enrichedMessage)
             .advisors(spec -> spec.param(ChatMemory.CONVERSATION_ID, conversationId))
             .stream()
-            .content()
-            .doOnNext(chunk -> {
-                if (!chunk.isEmpty()) {
-                    fullText.append(chunk);
+            .chatResponse()
+            .doOnNext(response -> {
+                if (response.getResult() != null) {
+                    String chunk = response.getResult().getOutput().getText();
+                    if (StringUtils.hasLength(chunk)) {
+                        fullText.append(chunk);
+                    }
                 }
             })
-            .scan(new StreamingContentFilter(), (filter, chunk) -> filter.process(chunk))
+            .map(response -> {
+                if (response.getResult() != null) {
+                    return response.getResult().getOutput().getText();
+                }
+                return "";
+            })
+            .scan(new StreamingContentFilter(), StreamingContentFilter::process)
             .map(StreamingContentFilter::getOutput)
-            .filter(s -> s != null && !s.isEmpty())
+            .filter(s -> !s.isEmpty())
             .map(SseChatEvent::chunk)
             .concatWith(Flux.defer(() -> {
                 String fullResponse = fullText.toString();
@@ -161,7 +217,7 @@ public class PreConsultChatAgent {
 
         if (rounds > 0) {
             sb.append("\n[context] currentPhase=").append(currentPhase)
-              .append(", round=").append(rounds).append(" [/context]");
+                .append(", round=").append(rounds).append(" [/context]");
         }
 
         if (rounds >= roundNudgeAt) {
@@ -205,12 +261,9 @@ public class PreConsultChatAgent {
     }
 
     /**
-     * 流式内容过滤器，过滤以下标记，不在前端文字框展示：
-     * - &lt;think/&gt; 块：思考过程，不展示、不参与 TTS
-     * - @@OPTIONS@@[...]：选项内容，只通过 SseChatEvent.options() 推送
-     * - @@PHASE@@阶段名@@：阶段标记，只通过 SseChatEvent.phase() 推送
-     * - @@SUMMARY@@...@@COMPLETED@@：摘要内容，只通过 SseChatEvent.summary() 推送
-     * - @@COMPLETED@@：完成标记，只通过 SseChatEvent.done() 推送
+     * 流式内容过滤器，过滤以下标记，不在前端文字框展示： - &lt;think/&gt; 块：思考过程，不展示、不参与 TTS - @@OPTIONS@@[...]：选项内容，只通过 SseChatEvent.options() 推送 -
+     * @@PHASE@@阶段名@@：阶段标记，只通过 SseChatEvent.phase() 推送 - @@SUMMARY@@...@@COMPLETED@@：摘要内容，只通过 SseChatEvent.summary() 推送 -
+     * @@COMPLETED@@：完成标记，只通过 SseChatEvent.done() 推送
      */
     private static class StreamingContentFilter {
 
@@ -359,7 +412,7 @@ public class PreConsultChatAgent {
             }
 
             if (!inThinkBlock && !inOptionsBlock && !inPhaseBlock && !inSummaryBlock
-                    && i >= buffer.length()) {
+                && i >= buffer.length()) {
                 buffer.setLength(0);
             }
 

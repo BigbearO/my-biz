@@ -51,11 +51,12 @@ spring:
         enabled: false # 禁用 ChatClient.Builder 自动配置,方便手动创建多个 ChatClient 实例。
     openai:
       api-key: KLHWYEMREST6MQGOQFWLD7B3PGL3HVI5ZVIOTW12
-      base-url: https://ai.gitee.com
+      base-url: ${llm.chat.url}
       chat:
         api-key: KLHWYEMREST6MQGOQFWLD7B3PGL3HVI5ZVIOTW12
-        options:
-          model: ${llm.chat.model}
+        model: ${llm.chat.model}
+        base-url: ${llm.chat.url}
+        temperature: 0.1
       audio:
         speech:
           api-key:  asdasda

@@ -8,6 +8,7 @@ import cn.hutool.core.util.IdUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,7 +34,13 @@ public class PreConsultController {
     @Value("${pre-consult.max-rounds:15}")
     private int maxRounds;
 
-    @PostMapping(value = "/chat", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @PostMapping(value = "/chat2")
+    public Map<String, String>  chat2(@RequestBody @Valid PreConsultChatRequest request) {
+        String chat = preConsultAgent.chat(request.getMessage(), request.getConversationId());
+        return Map.of("res",chat);
+    }
+
+        @PostMapping(value = "/chat", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ServerSentEvent<String>> chat(@RequestBody @Valid PreConsultChatRequest request) {
         if (request.getMessage() == null || request.getMessage().isBlank()) {
             return Flux.just(ServerSentEvent.builder(
