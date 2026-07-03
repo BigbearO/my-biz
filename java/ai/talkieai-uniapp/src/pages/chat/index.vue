@@ -32,8 +32,17 @@
         <!-- 助手消息 -->
         <view v-else class="msg-assistant">
           <view class="msg-bubble assistant-bubble">
-            <text>{{ msg.content }}</text>
-            <text v-if="isStreaming && msg === currentAssistantMsg" class="cursor">|</text>
+            <template v-if="msg.isThinking && !msg.content">
+              <view class="thinking-indicator">
+                <view class="thinking-dot" />
+                <view class="thinking-dot" />
+                <view class="thinking-dot" />
+              </view>
+            </template>
+            <template v-else>
+              <text>{{ msg.content }}</text>
+              <text v-if="isStreaming && msg === currentAssistantMsg" class="cursor">|</text>
+            </template>
           </view>
 
           <!-- 音频控制按钮 -->
@@ -153,6 +162,7 @@ interface ChatMessage {
   phase?: string;
   audioBase64?: string;
   audioState: AudioState;
+  isThinking?: boolean;
 }
 
 const PHASE_LABELS: Record<string, string> = {
@@ -277,6 +287,7 @@ function sendMessage(text: string) {
     content: "",
     options: [],
     audioState: "idle",
+    isThinking: false,
   };
   messages.value.push(currentAssistantMsg.value);
 
@@ -375,6 +386,7 @@ function handleSseEvent(event: SseChatEvent) {
   switch (event.type) {
     case "chunk":
       if (currentAssistantMsg.value) {
+        currentAssistantMsg.value.isThinking = false;
         currentAssistantMsg.value.content += event.content || "";
       }
       scrollToBottom();
@@ -400,18 +412,35 @@ function handleSseEvent(event: SseChatEvent) {
       };
       break;
 
-    case "done":
-      isStreaming.value = false;
+    case "thinking":
+      if (currentAssistantMsg.value) {
+        currentAssistantMsg.value.isThinking = true;
+      }
+      break;
 
-      // 将 audio base64 存入消息对象
+    case "audio":
       if (event.audio && currentAssistantMsg.value) {
         currentAssistantMsg.value.audioBase64 = event.audio;
-        // 自动播放
         const msgIndex = messages.value.indexOf(currentAssistantMsg.value);
         if (msgIndex >= 0) {
           playAudioForMessage(msgIndex, event.audio);
           currentAssistantMsg.value.audioState = "playing";
         }
+      } else if (event.audio && !currentAssistantMsg.value) {
+        const lastAssistantIdx = messages.value.findLastIndex(m => m.role === "assistant");
+        if (lastAssistantIdx >= 0) {
+          messages.value[lastAssistantIdx].audioBase64 = event.audio;
+          playAudioForMessage(lastAssistantIdx, event.audio);
+          messages.value[lastAssistantIdx].audioState = "playing";
+        }
+      }
+      break;
+
+    case "done":
+      isStreaming.value = false;
+
+      if (currentAssistantMsg.value) {
+        currentAssistantMsg.value.isThinking = false;
       }
 
       currentAssistantMsg.value = null;
@@ -423,6 +452,9 @@ function handleSseEvent(event: SseChatEvent) {
 
     case "error":
       isStreaming.value = false;
+      if (currentAssistantMsg.value) {
+        currentAssistantMsg.value.isThinking = false;
+      }
       uni.showToast({ title: event.message || "出错了", icon: "none" });
       break;
   }
@@ -700,6 +732,42 @@ function scrollToBottom() {
     color: #333333;
     border-top-left-radius: 4rpx;
     box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+  }
+
+  .thinking-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8rpx;
+    padding: 4rpx 0;
+
+    .thinking-dot {
+      width: 12rpx;
+      height: 12rpx;
+      background-color: #1890ff;
+      border-radius: 50%;
+      animation: thinkingBounce 1.4s infinite ease-in-out both;
+
+      &:nth-child(1) {
+        animation-delay: 0s;
+      }
+      &:nth-child(2) {
+        animation-delay: 0.16s;
+      }
+      &:nth-child(3) {
+        animation-delay: 0.32s;
+      }
+    }
+  }
+
+  @keyframes thinkingBounce {
+    0%, 80%, 100% {
+      transform: scale(0.4);
+      opacity: 0.4;
+    }
+    40% {
+      transform: scale(1);
+      opacity: 1;
+    }
   }
 
   .cursor {

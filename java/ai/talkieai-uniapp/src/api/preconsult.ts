@@ -41,7 +41,7 @@ export interface SummaryFields {
 }
 
 export interface SseChatEvent {
-  type: "chunk" | "options" | "phase" | "summary" | "done" | "error";
+  type: "chunk" | "options" | "phase" | "summary" | "done" | "error" | "thinking" | "audio";
   content?: string;
   items?: QuickOption[];
   value?: string;

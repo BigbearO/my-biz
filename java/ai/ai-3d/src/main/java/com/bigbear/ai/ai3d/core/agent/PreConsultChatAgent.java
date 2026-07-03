@@ -14,6 +14,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.ChatClient.CallResponseSpec;
@@ -28,6 +30,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StreamUtils;
 import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 @Slf4j
 @Component
@@ -39,6 +43,15 @@ public class PreConsultChatAgent {
     private final PreConsultPhaseTracker phaseTracker;
     private final PreConsultSummaryManager summaryManager;
     private final TtsService ttsService;
+
+    private final ExecutorService ttsExecutor = Executors.newFixedThreadPool(
+        Runtime.getRuntime().availableProcessors(),
+        r -> {
+            Thread t = new Thread(r, "tts-worker");
+            t.setDaemon(true);
+            return t;
+        }
+    );
 
     @Value("${pre-consult.round-nudge-at:12}")
     private int roundNudgeAt;
@@ -140,19 +153,26 @@ public class PreConsultChatAgent {
                 return "";
             })
             .scan(new StreamingContentFilter(), StreamingContentFilter::process)
-            .map(StreamingContentFilter::getOutput)
-            .filter(s -> !s.isEmpty())
-            .map(SseChatEvent::chunk)
+            .flatMap(filter -> {
+                Flux<SseChatEvent> events = Flux.empty();
+                if (filter.isJustEnteredThinkBlock()) {
+                    events = events.concatWith(Flux.just(SseChatEvent.thinking()));
+                    filter.clearThinkEnterFlag();
+                }
+                String output = filter.getOutput();
+                if (output != null && !output.isEmpty()) {
+                    events = events.concatWith(Flux.just(SseChatEvent.chunk(output)));
+                }
+                return events;
+            })
             .concatWith(Flux.defer(() -> {
                 String fullResponse = fullText.toString();
                 ParsedResponse parsed = parser.parse(fullResponse);
 
-                // 阶段推进
                 if (parsed.getPhase() != null) {
                     phaseTracker.advancePhase(conversationId, parsed.getPhase());
                 }
 
-                // 输出校验（仅 warn 不断流）
                 List<String> warnings = validator.validate(parsed, currentPhase);
                 if (!warnings.isEmpty()) {
                     log.warn("输出校验警告, conversationId={}: {}", conversationId, warnings);
@@ -189,17 +209,27 @@ public class PreConsultChatAgent {
                     saveSummary(conversationId, ss, parsed.getSummary());
                 }
 
-                String ttsText = stripThinkTags(parsed.getText());
-                String audioBase64 = null;
-                try {
-                    audioBase64 = ttsService.synthesizeToBase64(ttsText);
-                } catch (Exception e) {
-                    log.warn("TTS 合成失败，跳过音频", e);
-                }
-
                 extraEvents = extraEvents.concatWith(
-                    Flux.just(SseChatEvent.done(parsed.isCompleted(), audioBase64))
+                    Flux.just(SseChatEvent.done(parsed.isCompleted(), null))
                 );
+
+                String ttsText = stripThinkTags(parsed.getText());
+                if (StringUtils.hasLength(ttsText)) {
+                    extraEvents = extraEvents.concatWith(
+                        Mono.fromCallable(() -> ttsService.synthesizeToBase64(ttsText))
+                            .subscribeOn(Schedulers.fromExecutor(ttsExecutor))
+                            .flatMapMany(audioBase64 -> {
+                                if (audioBase64 != null) {
+                                    return Flux.just(SseChatEvent.audio(audioBase64));
+                                }
+                                return Flux.empty();
+                            })
+                            .onErrorResume(e -> {
+                                log.warn("TTS 合成失败，跳过音频", e);
+                                return Flux.empty();
+                            })
+                    );
+                }
 
                 return extraEvents;
             }))
@@ -278,6 +308,7 @@ public class PreConsultChatAgent {
         private boolean inPhaseBlock = false;
         private boolean inSummaryBlock = false;
         private int bracketDepth = 0;
+        private boolean justEnteredThinkBlock = false;
         private String output = "";
 
         public StreamingContentFilter process(String chunk) {
@@ -388,6 +419,7 @@ public class PreConsultChatAgent {
                                 i = nextMarker + 6;
                             }
                             inThinkBlock = true;
+                            justEnteredThinkBlock = true;
                             break;
                         case 2:
                             i = nextMarker + 11;
@@ -422,6 +454,14 @@ public class PreConsultChatAgent {
 
         public String getOutput() {
             return output;
+        }
+
+        public boolean isJustEnteredThinkBlock() {
+            return justEnteredThinkBlock;
+        }
+
+        public void clearThinkEnterFlag() {
+            justEnteredThinkBlock = false;
         }
 
         private int findHoldBackLength(String remaining) {

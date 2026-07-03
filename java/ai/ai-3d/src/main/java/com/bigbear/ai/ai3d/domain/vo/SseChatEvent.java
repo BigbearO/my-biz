@@ -69,6 +69,14 @@ public class SseChatEvent {
         return SseChatEvent.builder().type("done").completed(completed).audio(audio).build();
     }
 
+    public static SseChatEvent thinking() {
+        return SseChatEvent.builder().type("thinking").build();
+    }
+
+    public static SseChatEvent audio(String audioBase64) {
+        return SseChatEvent.builder().type("audio").audio(audioBase64).build();
+    }
+
     public static SseChatEvent error(String message) {
         return SseChatEvent.builder().type("error").message(message).build();
     }
