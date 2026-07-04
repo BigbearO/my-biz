@@ -10,11 +10,23 @@
   </parent>
 
   <artifactId>xxs-spring-bom</artifactId>
+  <packaging>pom</packaging>
 
   <properties>
     <maven.compiler.source>25</maven.compiler.source>
     <maven.compiler.target>25</maven.compiler.target>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <rocketmq-spring.version>2.3.6</rocketmq-spring.version>
   </properties>
+
+  <dependencyManagement>
+    <dependencies>
+
+      <dependency>
+        <groupId>org.apache.rocketmq</groupId>
+        <artifactId>rocketmq-spring-boot-starter</artifactId>
+        <version>${rocketmq-spring.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
 </project>

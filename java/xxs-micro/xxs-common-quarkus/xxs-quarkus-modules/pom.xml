@@ -13,6 +13,7 @@
   <artifactId>xxs-quarkus-modules</artifactId>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <java.version>25</java.version>
   </properties>
   <modules>
     <module>xxs-quarkus-core</module>

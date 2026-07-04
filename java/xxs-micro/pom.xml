@@ -9,8 +9,8 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
     <revision>1.0.0</revision>
-    <maven.compiler.source>21</maven.compiler.source>
-    <maven.compiler.target>21</maven.compiler.target>
+    <maven.compiler.source>25</maven.compiler.source>
+    <maven.compiler.target>25</maven.compiler.target>
     <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
     <surefire-plugin.version>3.5.3</surefire-plugin.version>
 
@@ -27,7 +27,7 @@
 
     <hutool.version>5.8.40</hutool.version>
 
-    <lombok.version>1.18.36</lombok.version>
+    <lombok.version>1.18.46</lombok.version>
     <mapstruct-plus.version>1.4.8</mapstruct-plus.version>
     <mapstruct-plus.lombok.version>0.2.0</mapstruct-plus.lombok.version>
   </properties>

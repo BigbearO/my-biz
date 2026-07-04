@@ -15,19 +15,20 @@
     <module>xxs-spring-modules</module>
     <module>xxs-spring-ruoyi-bom</module>
     <module>xxs-spring-pig-bom</module>
+    <module>xxs-spring-bom</module>
 
 
   </modules>
 
   <properties>
-    <maven.compiler.source>21</maven.compiler.source>
-    <maven.compiler.target>21</maven.compiler.target>
+    <maven.compiler.source>25</maven.compiler.source>
+    <maven.compiler.target>25</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
     <!-- 项目版本号 -->
     <spring-boot.version>3.5.9</spring-boot.version>
-    <spring-cloud.version>2025.0.1</spring-cloud.version>
-    <spring-cloud-alibaba.version>2025.0.0.0</spring-cloud-alibaba.version>
+    <spring-cloud.version>2025.1.2</spring-cloud.version>
+    <spring-cloud-alibaba.version>2025.1.0.0</spring-cloud-alibaba.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <spring-boot-admin.version>3.5.5</spring-boot-admin.version>
     <screw.version>0.0.3</screw.version>
@@ -114,11 +115,7 @@
         </exclusion>
       </exclusions>
     </dependency>
-    <!--undertow容器-->
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-undertow</artifactId>
-    </dependency>
+
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-actuator</artifactId>

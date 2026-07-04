@@ -16,14 +16,12 @@
   <packaging>pom</packaging>
 
   <properties>
-    <maven.compiler.source>21</maven.compiler.source>
-    <maven.compiler.target>21</maven.compiler.target>
+    <maven.compiler.source>25</maven.compiler.source>
+    <maven.compiler.target>25</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <excel.version>3.4.1</excel.version>
 
-    <rocketmq-spring-boot-starter-version>2.3.1</rocketmq-spring-boot-starter-version>
-    <!--      怎么获取boot-dependency中的版本-->
-    <biz-lombok.version>1.18.36</biz-lombok.version>
+    <rocketmq-spring-boot-starter-version>2.3.6</rocketmq-spring-boot-starter-version>
     <mapstruct.version>1.5.5.Final</mapstruct.version>
 
   </properties>
@@ -101,11 +99,6 @@
       <dependency>
         <groupId>com.alibaba.cloud</groupId>
         <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
-      </dependency>
-      <!--必备：undertow容器-->
-      <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-undertow</artifactId>
       </dependency>
 
       <!-- MapStruct核心依赖 -->
