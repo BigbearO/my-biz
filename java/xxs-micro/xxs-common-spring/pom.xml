@@ -16,6 +16,7 @@
     <module>xxs-spring-ruoyi-bom</module>
     <module>xxs-spring-pig-bom</module>
     <module>xxs-spring-bom</module>
+    <module>xxs-spring-yudao-bom</module>
 
 
   </modules>
