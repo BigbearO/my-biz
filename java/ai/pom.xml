@@ -16,9 +16,9 @@
     <packaging>pom</packaging>
     <version>1.0.0</version>
     <properties>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
-        <java.version>21</java.version>
+        <maven.compiler.source>25</maven.compiler.source>
+        <maven.compiler.target>25</maven.compiler.target>
+        <java.version>25</java.version>
         <mpj.version>1.5.4</mpj.version>
         <msgpack.version>0.9.9</msgpack.version>
     </properties>
