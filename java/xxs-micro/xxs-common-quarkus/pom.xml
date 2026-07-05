@@ -9,8 +9,8 @@
     <version>${revision}</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
-<!--  todo 研究一下一旦自定义version之后处理-->
-<!--  <version>${my.version}</version>-->
+  <!--  todo 研究一下一旦自定义version之后处理-->
+  <!--  <version>${my.version}</version>-->
   <artifactId>xxs-common-quarkus</artifactId>
   <packaging>pom</packaging>
 
@@ -31,7 +31,6 @@
     <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
     <quarkus.platform.version>3.30.5</quarkus.platform.version>
 
-    <flatten-maven-plugin.version>1.6.0</flatten-maven-plugin.version>
     <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
     <docker.plugin.version>0.45.1</docker.plugin.version>
     <!--    <docker.host>http://192.168.0.100:2375</docker.host>-->
@@ -41,6 +40,13 @@
     <!--    <docker.password>password</docker.password>-->
     <jandex.version>3.3.2</jandex.version>
   </properties>
+  <dependencies>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>${lombok.version}</version>
+    </dependency>
+  </dependencies>
 
 
   <dependencyManagement>
@@ -52,13 +58,13 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
-<!--      <dependency>-->
-<!--        <groupId>${quarkus.platform.group-id}</groupId>-->
-<!--        <artifactId>quarkus-amazon-services-bom</artifactId>-->
-<!--        <version>${quarkus.platform.version}</version>-->
-<!--        <type>pom</type>-->
-<!--        <scope>import</scope>-->
-<!--      </dependency>-->
+      <!--      <dependency>-->
+      <!--        <groupId>${quarkus.platform.group-id}</groupId>-->
+      <!--        <artifactId>quarkus-amazon-services-bom</artifactId>-->
+      <!--        <version>${quarkus.platform.version}</version>-->
+      <!--        <type>pom</type>-->
+      <!--        <scope>import</scope>-->
+      <!--      </dependency>-->
     </dependencies>
   </dependencyManagement>
 

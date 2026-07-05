@@ -15,8 +15,7 @@
     <surefire-plugin.version>3.5.3</surefire-plugin.version>
 
 
-    <flatten-maven-plugin.version>1.6.0</flatten-maven-plugin.version>
-
+    <flatten-maven-plugin.version>1.7.2</flatten-maven-plugin.version>
 
     <docker.plugin.version>0.45.1</docker.plugin.version>
     <docker.host>http://192.168.0.100:2375</docker.host>
@@ -26,10 +25,7 @@
     <docker.password>password</docker.password>
 
     <hutool.version>5.8.40</hutool.version>
-
     <lombok.version>1.18.46</lombok.version>
-    <mapstruct-plus.version>1.4.8</mapstruct-plus.version>
-    <mapstruct-plus.lombok.version>0.2.0</mapstruct-plus.lombok.version>
   </properties>
 
   <modules>
@@ -62,13 +58,6 @@
       <groupId>cn.hutool</groupId>
       <artifactId>hutool-http</artifactId>
     </dependency>
-
-    <dependency>
-      <groupId>org.projectlombok</groupId>
-      <artifactId>lombok</artifactId>
-      <version>${lombok.version}</version>
-    </dependency>
-
 
   </dependencies>
 

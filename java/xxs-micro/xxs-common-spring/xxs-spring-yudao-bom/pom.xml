@@ -17,7 +17,9 @@
     <maven.compiler.source>25</maven.compiler.source>
     <maven.compiler.target>25</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
+    <lombok.version>1.18.46</lombok.version>
+    <spring.boot.version>4.1.0</spring.boot.version>
+    <mapstruct.version>1.6.3</mapstruct.version>
   </properties>
 
   <dependencies>
@@ -59,12 +61,41 @@
       <artifactId>spring-boot-starter-validation</artifactId>
     </dependency>
 
+    <!--    todo 要不直接干掉-->
     <!-- DB 相关 -->
-    <dependency>
-      <groupId>cn.iocoder.cloud</groupId>
-      <artifactId>yudao-spring-boot-starter-mybatis</artifactId>
-      <version>${project.version}</version>
-    </dependency>
+    <!--    <dependency>-->
+    <!--      <groupId>cn.iocoder.cloud</groupId>-->
+    <!--      <artifactId>yudao-spring-boot-starter-mybatis</artifactId>-->
+    <!--      <version>${project.version}</version>-->
+    <!--      <exclusions>-->
+    <!--        <exclusion>-->
+    <!--          <groupId>com.baomidou</groupId>-->
+    <!--          <artifactId>mybatis-plus-spring-boot4-starter</artifactId>-->
+    <!--        </exclusion>-->
+    <!--        <exclusion>-->
+    <!--          <groupId>com.baomidou</groupId>-->
+    <!--          <artifactId>mybatis-plus-jsqlparser</artifactId>-->
+    <!--        </exclusion>-->
+    <!--        <exclusion>-->
+    <!--          <groupId>com.baomidou</groupId>-->
+    <!--          <artifactId>dynamic-datasource-spring-boot4-starter</artifactId> &lt;!&ndash; 多数据源 &ndash;&gt;-->
+    <!--        </exclusion>-->
+
+    <!--        <exclusion>-->
+    <!--          <groupId>com.github.yulichang</groupId>-->
+    <!--          <artifactId>mybatis-plus-join-boot-starter</artifactId> &lt;!&ndash; MyBatis 联表查询 &ndash;&gt;-->
+    <!--        </exclusion>-->
+
+    <!--        <exclusion>-->
+    <!--          <groupId>org.dromara</groupId> &lt;!&ndash; VO 数据翻译 &ndash;&gt;-->
+    <!--          <artifactId>easy-trans-spring-boot-starter</artifactId>-->
+    <!--        </exclusion>-->
+    <!--        <exclusion>-->
+    <!--          <groupId>org.dromara</groupId>-->
+    <!--          <artifactId>easy-trans-mybatis-plus-extend</artifactId>-->
+    <!--        </exclusion>-->
+    <!--      </exclusions>-->
+    <!--    </dependency>-->
 
     <dependency>
       <groupId>cn.iocoder.cloud</groupId>
@@ -135,4 +166,88 @@
       </dependency>
     </dependencies>
   </dependencyManagement>
+
+  <build>
+
+    <pluginManagement>
+      <plugins>
+        <!-- maven-surefire-plugin 插件，用于运行单元测试。 -->
+        <!-- 注意，需要使用 3.0.X+，因为要支持 Junit 5 版本 -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>${maven-surefire-plugin.version}</version>
+        </plugin>
+        <!-- maven-compiler-plugin 插件，解决 Lombok + MapStruct 组合 -->
+        <!-- https://stackoverflow.com/questions/33483697/re-run-spring-boot-configuration-annotation-processor-to-update-generated-metada -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>${maven-compiler-plugin.version}</version>
+          <configuration>
+            <annotationProcessorPaths>
+              <path>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-configuration-processor</artifactId>
+                <version>${spring.boot.version}</version>
+              </path>
+              <path>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+              </path>
+              <path>
+                <!-- 确保 Lombok 生成的 getter/setter 方法能被 MapStruct 正确识别，
+                     避免出现 No property named “xxx" exists 的编译错误 -->
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok-mapstruct-binding</artifactId>
+                <version>0.2.0</version>
+              </path>
+              <path>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct-processor</artifactId>
+                <version>${mapstruct.version}</version>
+              </path>
+            </annotationProcessorPaths>
+            <!-- 编译参数写在 arg 内，解决 Spring Boot 3.2 的 Parameter Name Discovery 问题 -->
+            <debug>false</debug>
+            <compilerArgs>
+              <arg>-parameters</arg>
+            </compilerArgs>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+
+    <plugins>
+      <!-- 统一 revision 版本 -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>flatten-maven-plugin</artifactId>
+        <version>${flatten-maven-plugin.version}</version>
+        <configuration>
+          <flattenMode>oss</flattenMode>
+          <updatePomFile>true</updatePomFile>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>flatten</goal>
+            </goals>
+            <id>flatten</id>
+            <phase>process-resources</phase>
+          </execution>
+          <execution>
+            <goals>
+              <goal>clean</goal>
+            </goals>
+            <id>flatten.clean</id>
+            <phase>clean</phase>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+
+
+  </build>
 </project>
