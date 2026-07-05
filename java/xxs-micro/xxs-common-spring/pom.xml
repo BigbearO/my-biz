@@ -32,8 +32,6 @@
     <spring-boot-admin.version>4.1.1</spring-boot-admin.version>
 
 
-    <lombok.version>1.18.46</lombok.version>
-
     <screw.version>0.0.3</screw.version>
     <captcha.version>2.2.5</captcha.version>
     <aws.version>1.12.675</aws.version>
@@ -146,7 +144,6 @@
               <path>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
-                <version>${lombok.version}</version>
               </path>
               <path>
                 <!-- 确保 Lombok 生成的 getter/setter 方法能被 MapStruct 正确识别，
