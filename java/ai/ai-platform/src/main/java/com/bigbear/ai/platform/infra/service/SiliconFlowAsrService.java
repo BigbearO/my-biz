@@ -7,19 +7,13 @@ import com.bigbear.ai.platform.domain.vo.VoiceAsrResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.openai.OpenAiAudioTranscriptionModel;
-import org.springframework.ai.openai.OpenAiAudioTranscriptionOptions;
-import org.springframework.ai.openai.api.OpenAiAudioApi;
-import org.springframework.ai.openai.api.OpenAiAudioApi.TranscriptResponseFormat;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 
@@ -48,21 +42,6 @@ public class SiliconFlowAsrService {
 
     }
 
-    public String data(){
-        //todo 待完善client builder
-        OpenAiAudioApi audioApi =   OpenAiAudioApi.builder()
-            .apiKey(apiKey)
-            .baseUrl(apiUrl)
-            .build( );
-        OpenAiAudioTranscriptionModel audioClient = new OpenAiAudioTranscriptionModel(audioApi);
-        OpenAiAudioTranscriptionOptions options = OpenAiAudioTranscriptionOptions.builder()
-            .model("whisper-1")
-            .language("zh")  // 如"zh"（中文）、"en"（英文）
-            .responseFormat(TranscriptResponseFormat.TEXT)  // 或"srt"、"verbose_json"
-            .build();
-        Resource audioData = null;
-        return audioClient.transcribe(audioData, options);
-    }
 
     /**
      * 调用ASR接口识别语音

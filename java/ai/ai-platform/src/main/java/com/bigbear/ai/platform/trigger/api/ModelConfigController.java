@@ -5,12 +5,14 @@ import com.bigbear.ai.platform.domain.bo.ModelConfigBo;
 import com.bigbear.ai.platform.domain.entity.ModelConfigEntity;
 import com.bigbear.ai.platform.domain.vo.ModelConfigVo;
 import com.bigbear.ai.platform.infra.manager.ModelConfigManager;
+import com.mybatisflex.core.query.QueryWrapper;
 import io.github.linpeilie.Converter;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.common.core.domain.R;
+import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.core.validate.AddGroup;
 import org.dromara.common.core.validate.EditGroup;
 import org.dromara.common.idempotent.annotation.RepeatSubmit;
@@ -158,14 +160,22 @@ public class ModelConfigController extends BaseController {
         return toAjax(modelConfigManager.toggleEnabled(id, isEnabled));
     }
 
-    private com.baomidou.mybatisplus.core.conditions.Wrapper<ModelConfigEntity> buildQueryWrapper(ModelConfigBo bo) {
-        com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<ModelConfigEntity> wrapper = new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<>();
-        wrapper.eq(org.dromara.common.core.utils.StringUtils.isNotBlank(bo.getModelType()), ModelConfigEntity::getModelType, bo.getModelType())
-               .like(org.dromara.common.core.utils.StringUtils.isNotBlank(bo.getModelCode()), ModelConfigEntity::getModelCode, bo.getModelCode())
-               .like(org.dromara.common.core.utils.StringUtils.isNotBlank(bo.getModelName()), ModelConfigEntity::getModelName, bo.getModelName())
-               .eq(bo.getIsEnabled() != null, ModelConfigEntity::getIsEnabled, bo.getIsEnabled())
-               .eq(ModelConfigEntity::getDelFlag, 0)
-               .orderByAsc(ModelConfigEntity::getSort);
-        return wrapper;
+    private QueryWrapper buildQueryWrapper(ModelConfigBo bo) {
+        QueryWrapper qw = QueryWrapper.create().from(ModelConfigEntity.class);
+        if (StringUtils.isNotBlank(bo.getModelType())) {
+            qw.and(ModelConfigEntity::getModelType).eq(bo.getModelType());
+        }
+        if (StringUtils.isNotBlank(bo.getModelCode())) {
+            qw.and(ModelConfigEntity::getModelCode).like(bo.getModelCode());
+        }
+        if (StringUtils.isNotBlank(bo.getModelName())) {
+            qw.and(ModelConfigEntity::getModelName).like(bo.getModelName());
+        }
+        if (bo.getIsEnabled() != null) {
+            qw.and(ModelConfigEntity::getIsEnabled).eq(bo.getIsEnabled());
+        }
+        qw.and(ModelConfigEntity::getDelFlag).eq(0);
+        qw.orderBy(ModelConfigEntity::getSort, true);
+        return qw;
     }
 }

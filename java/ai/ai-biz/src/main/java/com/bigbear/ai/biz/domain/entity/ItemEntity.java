@@ -1,11 +1,11 @@
 package com.bigbear.ai.biz.domain.entity;
 
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.mybatisflex.annotation.Id;
+import com.mybatisflex.annotation.KeyType;
+import com.mybatisflex.annotation.Table;
+import com.mybatisflex.core.keygen.KeyGenerators;
 import java.time.LocalDateTime;
 import lombok.Data;
-import org.apache.dubbo.common.logger.FluentLogger.S;
 
 /**
  * 商品实体
@@ -13,10 +13,10 @@ import org.apache.dubbo.common.logger.FluentLogger.S;
  * @author autoagent
  */
 @Data
-@TableName("item")
+@Table("item")
 public class ItemEntity {
 
-    @TableId
+    @Id(keyType = KeyType.Generator, value = KeyGenerators.flexId)
     private Long id;
 
     // 关联的闲鱼平台商品id
@@ -24,8 +24,6 @@ public class ItemEntity {
 
     private String tenantId;
 
-
-    @TableField(typeHandler = com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler.class)
     private String data;
 
     private Double price;

@@ -44,3 +44,8 @@ app:
     connect-timeout: 5000
     read-timeout: 30000
     audio-format: audio-24khz-48kbitrate-mono-mp3
+
+mybatis-flex:
+  mapper-locations: classpath*:mapper/**/*Mapper.xml
+  configuration:
+    map-underscore-to-camel-case: true

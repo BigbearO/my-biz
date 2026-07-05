@@ -1,10 +1,10 @@
 package com.bigbear.ai.platform.domain.entity;
 
 import com.alibaba.fastjson2.JSONObject;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
-import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
+import com.mybatisflex.annotation.Id;
+import com.mybatisflex.annotation.KeyType;
+import com.mybatisflex.annotation.Table;
+import com.mybatisflex.core.keygen.KeyGenerators;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -13,10 +13,10 @@ import java.time.LocalDateTime;
  * 模型配置实体类
  */
 @Data
-@TableName("ai_model_config")
+@Table("ai_model_config")
 public class ModelConfigEntity {
 
-    @TableId
+    @Id(keyType = KeyType.Generator, value = KeyGenerators.flexId)
     private String id;
 
     /**
@@ -47,7 +47,6 @@ public class ModelConfigEntity {
     /**
      * 模型配置（JSON格式）
      */
-    @TableField(typeHandler = JacksonTypeHandler.class)
     private JSONObject configJson;
 
     /**

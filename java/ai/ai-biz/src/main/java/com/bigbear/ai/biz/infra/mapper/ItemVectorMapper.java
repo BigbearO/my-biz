@@ -1,6 +1,6 @@
 package com.bigbear.ai.biz.infra.mapper;
 
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.mybatisflex.core.BaseMapper;
 import com.bigbear.ai.biz.domain.entity.ItemVectorEntity;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;

@@ -1,7 +1,7 @@
 package com.bigbear.ai.biz.infra.manager;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.mybatisflex.core.query.QueryWrapper;
+import com.mybatisflex.spring.service.impl.ServiceImpl;
 import com.bigbear.ai.biz.domain.entity.ItemEntity;
 import com.bigbear.ai.biz.infra.mapper.ItemMapper;
 
@@ -23,14 +23,13 @@ public class ItemManager extends ServiceImpl<ItemMapper, ItemEntity> {
         if (item == null) {
             item = new ItemEntity();
             item.setItemId(itemId);
-            baseMapper.insert(item);
+           mapper.insert(item);
         }
 
         item.setData(itemData);
         item.setPrice(price);
         item.setDescription(description);
-
-        baseMapper.updateById(item);
+        mapper.update(item);
         return item;
     }
 
@@ -41,20 +40,18 @@ public class ItemManager extends ServiceImpl<ItemMapper, ItemEntity> {
 
 
     public void deleteItem(String itemId) {
-        this.remove(baseItemIdWrapper(itemId));
+        ItemEntity item = selectByItemId(itemId);
+        if (item != null) {
+            mapper.deleteById(item.getId());
+        }
     }
 
     ItemEntity selectByItemId(String itemId) {
-        LambdaQueryWrapper<ItemEntity> last = baseItemIdWrapper(itemId)
-            //mysql 和pgsql 都支持
-            .last("limit 1");
-        return this.getOne(last);
-    }
-
-    private LambdaQueryWrapper<ItemEntity> baseItemIdWrapper(String itemId) {
-        LambdaQueryWrapper<ItemEntity> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(ItemEntity::getItemId, itemId);
-        return wrapper;
+        QueryWrapper queryWrapper = QueryWrapper.create()
+            .from(ItemEntity.class)
+            .where(ItemEntity::getItemId).eq(itemId)
+            .limit(1);
+        return mapper.selectOneByQuery(queryWrapper);
     }
 
 

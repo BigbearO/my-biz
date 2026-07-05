@@ -2,7 +2,7 @@ package com.bigbear.ai.biz.infra.repository;
 
 import com.bigbear.ai.biz.domain.entity.MessageHistoryEntity;
 import com.bigbear.ai.biz.infra.mapper.MessageHistoryMapper;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.mybatisflex.core.query.QueryWrapper;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,12 +43,13 @@ public class MySQLChatMemoryRepository {
     }
 
     public List<Message> findRecentMessages(String conversationId, int limit) {
-        LambdaQueryWrapper<MessageHistoryEntity> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(MessageHistoryEntity::getChatId, conversationId)
-                .orderByAsc(MessageHistoryEntity::getCreateTime)
-                .last("LIMIT " + limit);
+        QueryWrapper wrapper = QueryWrapper.create()
+            .from(MessageHistoryEntity.class)
+            .where(MessageHistoryEntity::getChatId).eq(conversationId)
+            .orderBy(MessageHistoryEntity::getCreateTime, true)
+            .limit(limit);
         try {
-            return messageHistoryMapper.selectList(wrapper)
+            return messageHistoryMapper.selectListByQuery(wrapper)
                     .stream()
                     .map(this::toMessage)
                     .filter(Objects::nonNull)
@@ -60,10 +61,11 @@ public class MySQLChatMemoryRepository {
     }
 
     public List<MessageHistoryEntity> findAllByConversationId(String conversationId) {
-        LambdaQueryWrapper<MessageHistoryEntity> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(MessageHistoryEntity::getChatId, conversationId)
-                .orderByAsc(MessageHistoryEntity::getCreateTime);
-        return messageHistoryMapper.selectList(wrapper);
+        QueryWrapper wrapper = QueryWrapper.create()
+            .from(MessageHistoryEntity.class)
+            .where(MessageHistoryEntity::getChatId).eq(conversationId)
+            .orderBy(MessageHistoryEntity::getCreateTime, true);
+        return messageHistoryMapper.selectListByQuery(wrapper);
     }
 
     private int detectMessageType(Message message) {

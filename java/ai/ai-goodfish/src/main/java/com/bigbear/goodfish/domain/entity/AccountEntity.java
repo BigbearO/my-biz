@@ -1,6 +1,9 @@
 package com.bigbear.goodfish.domain.entity;
 
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.mybatisflex.annotation.Id;
+import com.mybatisflex.annotation.KeyType;
+import com.mybatisflex.annotation.Table;
+import com.mybatisflex.core.keygen.KeyGenerators;
 import java.util.Date;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -10,7 +13,7 @@ import lombok.EqualsAndHashCode;
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
-@TableName("account")
+@Table("account")
 public class AccountEntity {
 
     private String userId;
@@ -19,6 +22,7 @@ public class AccountEntity {
 
     private String cookieStr;
 
+    @Id(keyType = KeyType.Generator, value = KeyGenerators.flexId)
     protected Long id;
 
     protected Date createTime;

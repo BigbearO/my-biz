@@ -1,6 +1,7 @@
 package com.bigbear.goodfish.infra;
 
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.mybatisflex.core.query.QueryWrapper;
+import com.mybatisflex.spring.service.impl.ServiceImpl;
 import com.bigbear.goodfish.domain.Account;
 import com.bigbear.goodfish.domain.entity.AccountEntity;
 import com.bigbear.goodfish.infra.mapper.AccountMapper;
@@ -15,8 +16,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class AccountManager  extends ServiceImpl<AccountMapper, AccountEntity> {
 
     public AccountEntity getByUserId(String userId) {
-        // 构建lambda查询
-        return lambdaQuery().eq(AccountEntity::getUserId, userId).last(" limit 1").one();
+        QueryWrapper queryWrapper = QueryWrapper.create()
+            .from(AccountEntity.class)
+            .where(AccountEntity::getUserId).eq(userId)
+            .limit(1);
+        return mapper.selectOneByQuery(queryWrapper);
     }
 
 
@@ -27,7 +31,7 @@ public class AccountManager  extends ServiceImpl<AccountMapper, AccountEntity> {
             entity.setUserId(account.getUserId());
             entity.setDeviceId(account.getDeviceId());
             entity.setCookieStr(account.getCookieStr());
-            this.save(entity);
+            mapper.insert(entity);
             return;
         }
 

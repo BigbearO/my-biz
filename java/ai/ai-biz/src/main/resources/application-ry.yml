@@ -53,3 +53,8 @@ goodfish:
   system-prompt: "classpath:prompts/system-prompt.txt"
   emotion-prompt: "classpath:prompts/emotion-prompt.txt"
 
+mybatis-flex:
+  mapper-locations: classpath*:mapper/**/*Mapper.xml
+  configuration:
+    map-underscore-to-camel-case: true
+

@@ -1,6 +1,6 @@
 package com.bigbear.ai.biz.infra.manager;
 
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.mybatisflex.spring.service.impl.ServiceImpl;
 import com.bigbear.ai.biz.domain.entity.MessageHistoryEntity;
 import com.bigbear.ai.biz.infra.mapper.MessageHistoryMapper;
 import lombok.extern.slf4j.Slf4j;

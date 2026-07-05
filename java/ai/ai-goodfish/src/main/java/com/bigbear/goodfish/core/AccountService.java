@@ -1,17 +1,16 @@
 package com.bigbear.goodfish.core;
 
 import cn.hutool.json.JSONUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.toolkit.StringUtils;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bigbear.goodfish.domain.Account;
 import com.bigbear.goodfish.domain.bo.AccountBo;
 import com.bigbear.goodfish.domain.entity.AccountEntity;
 import com.bigbear.goodfish.infra.AccountManager;
+import com.mybatisflex.core.paginate.Page;
+import com.mybatisflex.core.query.QueryWrapper;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -36,22 +35,27 @@ public class AccountService {
 
 
     public TableDataInfo<AccountEntity> queryPageList(AccountBo bo, PageQuery pageQuery) {
-        LambdaQueryWrapper<AccountEntity> lqw = buildQueryWrapper(bo);
-
-        Page<AccountEntity> build = pageQuery.build();
-        Page<AccountEntity> result = accountManager.page(build, lqw);
-
-        return TableDataInfo.build(result);
+        QueryWrapper qw = buildQueryWrapper(bo);
+        Page<AccountEntity> result = accountManager.page(Page.of(pageQuery.getPageNum(), pageQuery.getPageSize()), qw);
+        TableDataInfo<AccountEntity> dataInfo = new TableDataInfo<>();
+        dataInfo.setRows(result.getRecords());
+        dataInfo.setTotal(result.getTotalRow());
+        dataInfo.setCode(200);
+        dataInfo.setMsg("查询成功");
+        return dataInfo;
     }
 
 
-    private LambdaQueryWrapper<AccountEntity> buildQueryWrapper(AccountBo bo) {
-        LambdaQueryWrapper<AccountEntity> lqw = Wrappers.lambdaQuery();
-        lqw.orderByAsc(AccountEntity::getId);
-        lqw.eq(StringUtils.isNotBlank(bo.getUserId()), AccountEntity::getUserId, bo.getUserId());
-        lqw.eq(StringUtils.isNotBlank(bo.getDeviceId()), AccountEntity::getDeviceId,
-            bo.getDeviceId());
-        return lqw;
+    private QueryWrapper buildQueryWrapper(AccountBo bo) {
+        QueryWrapper qw = QueryWrapper.create().from(AccountEntity.class);
+        qw.orderBy(AccountEntity::getId, true);
+        if (StringUtils.isNotBlank(bo.getUserId())) {
+            qw.and(AccountEntity::getUserId).eq(bo.getUserId());
+        }
+        if (StringUtils.isNotBlank(bo.getDeviceId())) {
+            qw.and(AccountEntity::getDeviceId).eq(bo.getDeviceId());
+        }
+        return qw;
     }
 
 

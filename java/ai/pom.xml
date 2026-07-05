@@ -45,6 +45,10 @@
             <artifactId>fastjson</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.bigbear</groupId>
             <artifactId>xxs-common-core</artifactId>
             <version>1.0.0</version>
@@ -57,12 +61,12 @@
             <type>pom</type>
         </dependency>
 
-        <dependency>
-            <groupId>com.bigbear</groupId>
-            <artifactId>xxs-spring-yudao-bom</artifactId>
-            <version>2026.06-jdk25</version>
-            <type>pom</type>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.bigbear</groupId>-->
+<!--            <artifactId>xxs-spring-yudao-bom</artifactId>-->
+<!--            <version>2026.06-jdk25</version>-->
+<!--            <type>pom</type>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>io.github.whitemagic2014</groupId>
             <artifactId>tts-edge-java</artifactId>

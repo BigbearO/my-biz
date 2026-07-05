@@ -17,6 +17,12 @@
     <msgpack.version>0.9.9</msgpack.version>
   </properties>
   <dependencies>
+
+
+    <dependency>
+      <groupId>org.springframework.retry</groupId>
+      <artifactId>spring-retry</artifactId>
+    </dependency>
     <dependency>
       <groupId>com.bigbear</groupId>
       <artifactId>ai-biz</artifactId>

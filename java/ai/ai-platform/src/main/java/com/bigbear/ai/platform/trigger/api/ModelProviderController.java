@@ -5,12 +5,14 @@ import com.bigbear.ai.platform.domain.bo.ModelProviderBo;
 import com.bigbear.ai.platform.domain.entity.ModelProviderEntity;
 import com.bigbear.ai.platform.domain.vo.ModelProviderVo;
 import com.bigbear.ai.platform.infra.manager.ModelProviderManager;
+import com.mybatisflex.core.query.QueryWrapper;
 import io.github.linpeilie.Converter;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.common.core.domain.R;
+import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.core.validate.AddGroup;
 import org.dromara.common.core.validate.EditGroup;
 import org.dromara.common.idempotent.annotation.RepeatSubmit;
@@ -123,13 +125,19 @@ public class ModelProviderController extends BaseController {
         return R.ok();
     }
 
-    private com.baomidou.mybatisplus.core.conditions.Wrapper<ModelProviderEntity> buildQueryWrapper(ModelProviderBo bo) {
-        com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<ModelProviderEntity> wrapper = new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<>();
-        wrapper.eq(org.dromara.common.core.utils.StringUtils.isNotBlank(bo.getModelType()), ModelProviderEntity::getModelType, bo.getModelType())
-               .like(org.dromara.common.core.utils.StringUtils.isNotBlank(bo.getProviderCode()), ModelProviderEntity::getProviderCode, bo.getProviderCode())
-               .like(org.dromara.common.core.utils.StringUtils.isNotBlank(bo.getName()), ModelProviderEntity::getName, bo.getName())
-               .eq(ModelProviderEntity::getDelFlag, 0)
-               .orderByAsc(ModelProviderEntity::getSort);
-        return wrapper;
+    private QueryWrapper buildQueryWrapper(ModelProviderBo bo) {
+        QueryWrapper qw = QueryWrapper.create().from(ModelProviderEntity.class);
+        if (StringUtils.isNotBlank(bo.getModelType())) {
+            qw.and(ModelProviderEntity::getModelType).eq(bo.getModelType());
+        }
+        if (StringUtils.isNotBlank(bo.getProviderCode())) {
+            qw.and(ModelProviderEntity::getProviderCode).like(bo.getProviderCode());
+        }
+        if (StringUtils.isNotBlank(bo.getName())) {
+            qw.and(ModelProviderEntity::getName).like(bo.getName());
+        }
+        qw.and(ModelProviderEntity::getDelFlag).eq(0);
+        qw.orderBy(ModelProviderEntity::getSort, true);
+        return qw;
     }
 }

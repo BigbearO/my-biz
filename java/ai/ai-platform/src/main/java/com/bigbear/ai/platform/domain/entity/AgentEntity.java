@@ -1,7 +1,9 @@
 package com.bigbear.ai.platform.domain.entity;
 
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.mybatisflex.annotation.Id;
+import com.mybatisflex.annotation.KeyType;
+import com.mybatisflex.annotation.Table;
+import com.mybatisflex.core.keygen.KeyGenerators;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -10,10 +12,10 @@ import java.time.LocalDateTime;
  * 智能体配置实体类
  */
 @Data
-@TableName("ai_agent")
+@Table("ai_agent")
 public class AgentEntity {
 
-    @TableId
+    @Id(keyType = KeyType.Generator, value = KeyGenerators.flexId)
     private String id;
 
     /**

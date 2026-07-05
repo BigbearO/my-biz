@@ -1,10 +1,6 @@
 package com.bigbear.goodfish.app;
 
 import cn.hutool.json.JSONUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.bigbear.ai.biz.domain.bo.ItemBo;
 import com.bigbear.ai.biz.domain.entity.ItemEntity;
 import com.bigbear.ai.biz.domain.entity.ItemInfo;
@@ -13,6 +9,9 @@ import com.bigbear.ai.biz.domain.vo.ItemVo;
 import com.bigbear.ai.biz.infra.manager.ItemManager;
 import com.bigbear.ai.biz.infra.mapper.ItemMapper;
 import com.bigbear.ai.biz.infra.mapper.ItemVectorMapper;
+import com.mybatisflex.core.paginate.Page;
+import com.mybatisflex.core.query.QueryWrapper;
+import com.mybatisflex.core.update.UpdateChain;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import java.time.LocalDateTime;
@@ -54,7 +53,8 @@ public class ItemServiceImpl implements IItemService {
      */
     @Override
     public ItemVo queryById(Long id){
-        return baseMapper.selectVoById(id);
+        ItemEntity entity = baseMapper.selectOneById(id);
+        return MapstructUtils.convert(entity, ItemVo.class);
     }
 
     /**
@@ -66,9 +66,14 @@ public class ItemServiceImpl implements IItemService {
      */
     @Override
     public TableDataInfo<ItemVo> queryPageList(ItemBo bo, PageQuery pageQuery) {
-        LambdaQueryWrapper<ItemEntity> lqw = buildQueryWrapper(bo);
-        Page<ItemVo> result = baseMapper.selectVoPage(pageQuery.build(), lqw);
-        return TableDataInfo.build(result);
+        QueryWrapper qw = buildQueryWrapper(bo);
+        Page<ItemEntity> result = baseMapper.paginate(pageQuery.getPageNum(), pageQuery.getPageSize(), qw);
+        TableDataInfo<ItemVo> dataInfo = new TableDataInfo<>();
+        dataInfo.setRows(MapstructUtils.convert(result.getRecords(), ItemVo.class));
+        dataInfo.setTotal(result.getTotalRow());
+        dataInfo.setCode(200);
+        dataInfo.setMsg("查询成功");
+        return dataInfo;
     }
 
     /**
@@ -79,28 +84,57 @@ public class ItemServiceImpl implements IItemService {
      */
     @Override
     public List<ItemVo> queryList(ItemBo bo) {
-        LambdaQueryWrapper<ItemEntity> lqw = buildQueryWrapper(bo);
-        return baseMapper.selectVoList(lqw);
+        QueryWrapper qw = buildQueryWrapper(bo);
+        List<ItemEntity> list = baseMapper.selectListByQuery(qw);
+        return MapstructUtils.convert(list, ItemVo.class);
     }
 
-    private LambdaQueryWrapper<ItemEntity> buildQueryWrapper(ItemBo bo) {
-        LambdaQueryWrapper<ItemEntity> lqw = Wrappers.lambdaQuery();
-        lqw.orderByAsc(ItemEntity::getId);
-        lqw.eq(StringUtils.isNotBlank(bo.getItemId()), ItemEntity::getItemId, bo.getItemId());
-        lqw.eq(StringUtils.isNotBlank(bo.getData()), ItemEntity::getData, bo.getData());
-        lqw.eq(bo.getPrice() != null, ItemEntity::getPrice, bo.getPrice());
-        lqw.eq(StringUtils.isNotBlank(bo.getDescription()), ItemEntity::getDescription, bo.getDescription());
-        lqw.eq(StringUtils.isNotBlank(bo.getTitle()), ItemEntity::getTitle, bo.getTitle());
-        lqw.eq(StringUtils.isNotBlank(bo.getCategory()), ItemEntity::getCategory, bo.getCategory());
-        lqw.eq(StringUtils.isNotBlank(bo.getLocation()), ItemEntity::getLocation, bo.getLocation());
-        lqw.eq(StringUtils.isNotBlank(bo.getImageUrl()), ItemEntity::getImageUrl, bo.getImageUrl());
-        lqw.eq(StringUtils.isNotBlank(bo.getSellerId()), ItemEntity::getSellerId, bo.getSellerId());
-        lqw.eq(StringUtils.isNotBlank(bo.getCondition()), ItemEntity::getCondition, bo.getCondition());
-        lqw.eq(bo.getPublishedDate() != null, ItemEntity::getPublishedDate, bo.getPublishedDate());
-        lqw.eq(StringUtils.isNotBlank(bo.getStockStatus()), ItemEntity::getStockStatus, bo.getStockStatus());
-        lqw.eq(bo.getCreateTime() != null, ItemEntity::getCreatedTime, bo.getCreateTime());
-        lqw.eq(bo.getUpdateTime() != null, ItemEntity::getUpdateTime, bo.getUpdateTime());
-        return lqw;
+    private QueryWrapper buildQueryWrapper(ItemBo bo) {
+        QueryWrapper qw = QueryWrapper.create().from(ItemEntity.class);
+        qw.orderBy(ItemEntity::getId, true);
+        if (StringUtils.isNotBlank(bo.getItemId())) {
+            qw.and(ItemEntity::getItemId).eq(bo.getItemId());
+        }
+        if (StringUtils.isNotBlank(bo.getData())) {
+            qw.and(ItemEntity::getData).eq(bo.getData());
+        }
+        if (bo.getPrice() != null) {
+            qw.and(ItemEntity::getPrice).eq(bo.getPrice());
+        }
+        if (StringUtils.isNotBlank(bo.getDescription())) {
+            qw.and(ItemEntity::getDescription).eq(bo.getDescription());
+        }
+        if (StringUtils.isNotBlank(bo.getTitle())) {
+            qw.and(ItemEntity::getTitle).eq(bo.getTitle());
+        }
+        if (StringUtils.isNotBlank(bo.getCategory())) {
+            qw.and(ItemEntity::getCategory).eq(bo.getCategory());
+        }
+        if (StringUtils.isNotBlank(bo.getLocation())) {
+            qw.and(ItemEntity::getLocation).eq(bo.getLocation());
+        }
+        if (StringUtils.isNotBlank(bo.getImageUrl())) {
+            qw.and(ItemEntity::getImageUrl).eq(bo.getImageUrl());
+        }
+        if (StringUtils.isNotBlank(bo.getSellerId())) {
+            qw.and(ItemEntity::getSellerId).eq(bo.getSellerId());
+        }
+        if (StringUtils.isNotBlank(bo.getCondition())) {
+            qw.and(ItemEntity::getCondition).eq(bo.getCondition());
+        }
+        if (bo.getPublishedDate() != null) {
+            qw.and(ItemEntity::getPublishedDate).eq(bo.getPublishedDate());
+        }
+        if (StringUtils.isNotBlank(bo.getStockStatus())) {
+            qw.and(ItemEntity::getStockStatus).eq(bo.getStockStatus());
+        }
+        if (bo.getCreateTime() != null) {
+            qw.and(ItemEntity::getCreatedTime).eq(bo.getCreateTime());
+        }
+        if (bo.getUpdateTime() != null) {
+            qw.and(ItemEntity::getUpdateTime).eq(bo.getUpdateTime());
+        }
+        return qw;
     }
 
     /**
@@ -130,7 +164,7 @@ public class ItemServiceImpl implements IItemService {
     public Boolean updateByBo(ItemBo bo) {
         ItemEntity update = MapstructUtils.convert(bo, ItemEntity.class);
         validEntityBeforeSave(update);
-        return baseMapper.updateById(update) > 0;
+        return baseMapper.update(update) > 0;
     }
 
     /**
@@ -152,7 +186,7 @@ public class ItemServiceImpl implements IItemService {
         if(isValid){
             //TODO 做一些业务上的校验,判断是否需要校验
         }
-        return baseMapper.deleteByIds(ids) > 0;
+        return baseMapper.deleteBatchByIds(ids) > 0;
     }
 
 
@@ -203,13 +237,13 @@ public class ItemServiceImpl implements IItemService {
 
             if (existing != null) {
                 // 更新
-                LambdaUpdateWrapper<ItemVectorEntity> updateWrapper = new LambdaUpdateWrapper<>();
-                updateWrapper.eq(ItemVectorEntity::getItemId, String.valueOf(itemInfo.getId()))
-                    .eq(ItemVectorEntity::getTenantId, itemInfo.getTenantId())
+                UpdateChain.of(ItemVectorEntity.class)
                     .set(ItemVectorEntity::getVectorData, vectorJson)
                     .set(ItemVectorEntity::getItemContent, itemContent)
-                    .set(ItemVectorEntity::getUpdateTime, LocalDateTime.now());
-                itemVectorMapper.update(null, updateWrapper);
+                    .set(ItemVectorEntity::getUpdateTime, LocalDateTime.now())
+                    .where(ItemVectorEntity::getItemId).eq(String.valueOf(itemInfo.getId()))
+                    .and(ItemVectorEntity::getTenantId).eq(itemInfo.getTenantId())
+                    .update();
             } else {
                 // 新增
                 ItemVectorEntity entity = new ItemVectorEntity();

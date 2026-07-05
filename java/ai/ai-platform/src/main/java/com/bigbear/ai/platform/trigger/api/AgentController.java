@@ -5,12 +5,14 @@ import com.bigbear.ai.platform.domain.bo.AgentBo;
 import com.bigbear.ai.platform.domain.entity.AgentEntity;
 import com.bigbear.ai.platform.domain.vo.AgentVo;
 import com.bigbear.ai.platform.infra.manager.AgentManager;
+import com.mybatisflex.core.query.QueryWrapper;
 import io.github.linpeilie.Converter;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.common.core.domain.R;
+import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.core.validate.AddGroup;
 import org.dromara.common.core.validate.EditGroup;
 import org.dromara.common.idempotent.annotation.RepeatSubmit;
@@ -125,13 +127,19 @@ public class AgentController extends BaseController {
         return R.ok(converter.convert(list, AgentVo.class));
     }
 
-    private com.baomidou.mybatisplus.core.conditions.Wrapper<AgentEntity> buildQueryWrapper(AgentBo bo) {
-        com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<AgentEntity> wrapper = new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<>();
-        wrapper.eq(bo.getUserId() != null, AgentEntity::getUserId, bo.getUserId())
-               .like(org.dromara.common.core.utils.StringUtils.isNotBlank(bo.getAgentCode()), AgentEntity::getAgentCode, bo.getAgentCode())
-               .like(org.dromara.common.core.utils.StringUtils.isNotBlank(bo.getAgentName()), AgentEntity::getAgentName, bo.getAgentName())
-               .eq(AgentEntity::getDelFlag, 0)
-               .orderByAsc(AgentEntity::getSort);
-        return wrapper;
+    private QueryWrapper buildQueryWrapper(AgentBo bo) {
+        QueryWrapper qw = QueryWrapper.create().from(AgentEntity.class);
+        if (bo.getUserId() != null) {
+            qw.and(AgentEntity::getUserId).eq(bo.getUserId());
+        }
+        if (StringUtils.isNotBlank(bo.getAgentCode())) {
+            qw.and(AgentEntity::getAgentCode).like(bo.getAgentCode());
+        }
+        if (StringUtils.isNotBlank(bo.getAgentName())) {
+            qw.and(AgentEntity::getAgentName).like(bo.getAgentName());
+        }
+        qw.and(AgentEntity::getDelFlag).eq(0);
+        qw.orderBy(AgentEntity::getSort, true);
+        return qw;
     }
 }

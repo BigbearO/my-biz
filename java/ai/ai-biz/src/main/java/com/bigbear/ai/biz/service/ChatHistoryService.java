@@ -2,6 +2,7 @@ package com.bigbear.ai.biz.service;
 
 import com.bigbear.ai.biz.domain.entity.MessageHistoryEntity;
 import com.bigbear.ai.biz.infra.manager.MessageHistoryManager;
+import com.mybatisflex.core.query.QueryWrapper;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -78,10 +79,11 @@ public class ChatHistoryService {
      * @return 历史记录列表
      */
     public List<MessageHistoryEntity> getFullHistory(String conversationId) {
-        List<MessageHistoryEntity> list = messageHistoryManager.lambdaQuery()
-                .eq(MessageHistoryEntity::getChatId, conversationId)
-                .orderByAsc(MessageHistoryEntity::getCreateTime)
-                .list();
+        QueryWrapper qw = QueryWrapper.create()
+            .from(MessageHistoryEntity.class)
+            .where(MessageHistoryEntity::getChatId).eq(conversationId)
+            .orderBy(MessageHistoryEntity::getCreateTime, true);
+        List<MessageHistoryEntity> list = messageHistoryManager.list(qw);
 
         log.debug("查询到历史记录 {} 条，conversationId={}", list.size(), conversationId);
         return list;
@@ -94,10 +96,11 @@ public class ChatHistoryService {
      * @return 历史记录列表
      */
     public List<MessageHistoryEntity> getHistoryByUserId(String userId) {
-        List<MessageHistoryEntity> list = messageHistoryManager.lambdaQuery()
-                .eq(MessageHistoryEntity::getUserId, userId)
-                .orderByDesc(MessageHistoryEntity::getCreateTime)
-                .list();
+        QueryWrapper qw = QueryWrapper.create()
+            .from(MessageHistoryEntity.class)
+            .where(MessageHistoryEntity::getUserId).eq(userId)
+            .orderBy(MessageHistoryEntity::getCreateTime, false);
+        List<MessageHistoryEntity> list = messageHistoryManager.list(qw);
 
         log.debug("查询到用户历史记录 {} 条，userId={}", list.size(), userId);
         return list;
@@ -110,10 +113,11 @@ public class ChatHistoryService {
      * @return 历史记录列表
      */
     public List<MessageHistoryEntity> getHistoryByItemId(String itemId) {
-        List<MessageHistoryEntity> list = messageHistoryManager.lambdaQuery()
-                .eq(MessageHistoryEntity::getItemId, itemId)
-                .orderByDesc(MessageHistoryEntity::getCreateTime)
-                .list();
+        QueryWrapper qw = QueryWrapper.create()
+            .from(MessageHistoryEntity.class)
+            .where(MessageHistoryEntity::getItemId).eq(itemId)
+            .orderBy(MessageHistoryEntity::getCreateTime, false);
+        List<MessageHistoryEntity> list = messageHistoryManager.list(qw);
 
         log.debug("查询到商品历史记录 {} 条，itemId={}", list.size(), itemId);
         return list;

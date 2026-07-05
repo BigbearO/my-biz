@@ -1,6 +1,6 @@
 package com.bigbear.ai.biz.common.util;
 
-import com.baomidou.mybatisplus.core.toolkit.StringUtils;
+import cn.hutool.core.util.StrUtil;
 import com.bigbear.ai.biz.common.enums.InterfaceTypeEnum;
 import dev.langchain4j.data.document.Document;
 import dev.langchain4j.data.document.DocumentSplitter;
@@ -23,7 +23,7 @@ public class FundDocumentSplitter implements DocumentSplitter {
 				if (splits.length != 3) {
 					continue;
 				}
-				if (StringUtils.isBlank(splits[2])) {
+				if (StrUtil.isBlank(splits[2])) {
 					continue;
 				}
 				TextSegment textSegment = TextSegment.from(splits[1]);

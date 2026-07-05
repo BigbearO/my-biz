@@ -1,6 +1,6 @@
 package com.bigbear.goodfish.domain.entity;
 
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.mybatisflex.annotation.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,7 +12,7 @@ import org.springframework.data.annotation.Id;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-@TableName("item_context")
+@Table("item_context")
 public class ItemContext {
     @Id
     private String itemId;

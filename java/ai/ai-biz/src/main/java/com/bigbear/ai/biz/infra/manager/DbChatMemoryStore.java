@@ -3,9 +3,9 @@ package com.bigbear.ai.biz.infra.manager;
 import static dev.langchain4j.data.message.ChatMessageDeserializer.messagesFromJson;
 import static dev.langchain4j.data.message.ChatMessageSerializer.messagesToJson;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.bigbear.ai.biz.common.enums.MessageType;
+import com.mybatisflex.core.query.QueryWrapper;
+import com.mybatisflex.core.update.UpdateChain;
 import com.bigbear.ai.biz.domain.entity.ChatMemoryEntity;
 import com.bigbear.ai.biz.domain.entity.MessageHistoryEntity;
 import dev.langchain4j.data.message.AiMessage;
@@ -116,12 +116,12 @@ public class   DbChatMemoryStore implements ChatMemoryStore {
 
             if (existing != null) {
                 // 更新
-                LambdaUpdateWrapper<ChatMemoryEntity> updateWrapper = new LambdaUpdateWrapper<>();
-                updateWrapper.eq(ChatMemoryEntity::getMemoryId, memoryIdStr)
+                UpdateChain.of(ChatMemoryEntity.class)
                     .set(ChatMemoryEntity::getMessages, messagesJson)
                     .set(ChatMemoryEntity::getMessageCount, windowMessages.size())
-                    .set(ChatMemoryEntity::getUpdateTime, LocalDateTime.now());
-                chatMemoryManager.update(null, updateWrapper);
+                    .set(ChatMemoryEntity::getUpdateTime, LocalDateTime.now())
+                    .where(ChatMemoryEntity::getMemoryId).eq(memoryIdStr)
+                    .update();
             } else {
                 // 新增
                 ChatMemoryEntity entity = new ChatMemoryEntity();
@@ -143,9 +143,8 @@ public class   DbChatMemoryStore implements ChatMemoryStore {
     public void deleteMessages(Object memoryId) {
         try {
             String memoryIdStr = String.valueOf(memoryId);
-            LambdaQueryWrapper<ChatMemoryEntity> queryWrapper = new LambdaQueryWrapper<>();
-            queryWrapper.eq(ChatMemoryEntity::getMemoryId, memoryIdStr)
-                ;
+            QueryWrapper queryWrapper = QueryWrapper.create()
+                .where(ChatMemoryEntity::getMemoryId).eq(memoryIdStr);
             chatMemoryManager.remove(queryWrapper);
         } catch (Exception e) {
             log.error("删除对话记忆失败:memoryId={},err： {}", memoryId,e.getMessage(), e);

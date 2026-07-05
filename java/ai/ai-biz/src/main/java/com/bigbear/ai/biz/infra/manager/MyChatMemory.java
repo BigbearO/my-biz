@@ -1,7 +1,7 @@
 package com.bigbear.ai.biz.infra.manager;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.bigbear.ai.biz.domain.entity.MessageHistoryEntity;
+import com.mybatisflex.core.query.QueryWrapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.messages.AssistantMessage;
@@ -43,10 +43,10 @@ public class MyChatMemory implements ChatMemory {
     @Override
     public List<Message> get(String conversationId) {
 
-        LambdaQueryWrapper<MessageHistoryEntity> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(MessageHistoryEntity::getChatId, conversationId);
-        // todo 待优化
-        queryWrapper.last("limit 10");
+        QueryWrapper queryWrapper = QueryWrapper.create()
+            .from(MessageHistoryEntity.class)
+            .where(MessageHistoryEntity::getChatId).eq(conversationId)
+            .limit(10);
 
         List<MessageHistoryEntity> list = messageHistoryManager.list(queryWrapper);
 

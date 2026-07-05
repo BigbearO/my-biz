@@ -1,6 +1,6 @@
 package com.bigbear.goodfish.infra.mapper;
 
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.mybatisflex.core.BaseMapper;
 import com.bigbear.goodfish.domain.entity.AccountEntity;
 import org.apache.ibatis.annotations.Mapper;
 
