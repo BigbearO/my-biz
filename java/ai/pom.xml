@@ -54,6 +54,14 @@
             <version>2.5.2</version>
             <type>pom</type>
         </dependency>
+
+        <dependency>
+            <groupId>com.bigbear</groupId>
+            <artifactId>xxs-spring-yudao-bom</artifactId>
+            <version>2026.06-jdk25</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
         <dependency>
             <groupId>io.github.whitemagic2014</groupId>
             <artifactId>tts-edge-java</artifactId>

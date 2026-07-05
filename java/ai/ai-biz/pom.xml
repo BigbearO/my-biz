@@ -34,10 +34,6 @@
       <artifactId>postgresql</artifactId>
     </dependency>
 
-    <dependency>
-      <groupId>com.alibaba.cloud</groupId>
-      <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
-    </dependency>
 <!--    ai -->
 
     <!--ai 相关依赖-->
