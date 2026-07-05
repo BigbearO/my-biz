@@ -21,7 +21,7 @@
     <flex.version>1.11.7</flex.version>
     <fastexcel.version>1.3.0</fastexcel.version>
     <fesod.version>2.0.2-incubating</fesod.version>
-
+    <fastjson.version>2.0.58</fastjson.version>
 <!--    ai 开始-->
     <sensitive.version>0.29.3</sensitive.version>
     <langchain.version>1.17.0</langchain.version>
@@ -42,6 +42,12 @@
         <version>${hutool.version}</version>
         <type>pom</type>
         <scope>import</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>com.alibaba</groupId>
+        <artifactId>fastjson</artifactId>
+        <version>${fastjson.version}</version>
       </dependency>
 
       <dependency>
