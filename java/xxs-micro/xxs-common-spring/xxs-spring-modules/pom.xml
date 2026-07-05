@@ -15,6 +15,7 @@
   <modules>
     <module>xxs-spring-otlp</module>
     <module>xxs-spring-local-log</module>
+    <module>xxs-spring-mybatis</module>
   </modules>
 
 

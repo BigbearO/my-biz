@@ -32,8 +32,8 @@
     <module>xxs-common-quarkus</module>
     <module>xxs-common-spring</module>
     <module>xxs-component</module>
-    <module>xxs-common-core</module>
     <module>xxs-common-bom</module>
+    <module>xxs-common-module</module>
   </modules>
   <dependencyManagement>
     <dependencies>

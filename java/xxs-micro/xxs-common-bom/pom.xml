@@ -93,6 +93,11 @@
 
       <dependency>
         <groupId>com.mybatis-flex</groupId>
+        <artifactId>mybatis-flex-core</artifactId>
+        <version>${flex.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.mybatis-flex</groupId>
         <artifactId>mybatis-flex-spring-boot3-starter</artifactId>
         <version>${flex.version}</version>
       </dependency>

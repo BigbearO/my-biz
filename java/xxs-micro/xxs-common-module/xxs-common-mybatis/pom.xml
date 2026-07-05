@@ -1,0 +1,34 @@
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.bigbear</groupId>
+    <artifactId>xxs-common-module</artifactId>
+    <version>1.0.0</version>
+  </parent>
+
+  <artifactId>xxs-common-mybatis</artifactId>
+  <name>xxs-common-mybatis</name>
+  <properties>
+    <flex.version>1.11.7</flex.version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.bigbear</groupId>
+      <artifactId>xxs-common-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.mybatis-flex</groupId>
+      <artifactId>mybatis-flex-core</artifactId>
+      <version>${flex.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.mybatis-flex</groupId>
+      <artifactId>mybatis-flex-processor</artifactId>
+      <version>${flex.version}</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+</project>

@@ -22,6 +22,7 @@
     <module>xxs-quarkus-otlp</module>
     <module>xxs-quarkus-log</module>
     <module>xxs-quarkus-restrpc</module>
+    <module>xxs-quarkus-mybatis</module>
   </modules>
 
 
