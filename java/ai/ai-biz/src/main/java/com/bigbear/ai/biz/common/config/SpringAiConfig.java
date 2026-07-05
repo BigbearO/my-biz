@@ -12,7 +12,6 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.mcp.SyncMcpToolCallbackProvider;
-import org.springframework.ai.mcp.customizer.McpSyncClientCustomizer;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.tool.method.MethodToolCallbackProvider;
@@ -58,8 +57,8 @@ public class SpringAiConfig {
         return ChatClient.builder(chatModel)
 
             .defaultAdvisors (new SimpleLoggerAdvisor(), MessageChatMemoryAdvisor.builder(chatMemory).build())
-            .defaultToolCallbacks(toolCallbackProvider)
-
+//            .defaultToolCallbacks(toolCallbackProvider)
+            .defaultTools(toolCallbackProvider)
             .build();
     }
 
@@ -68,13 +67,13 @@ public class SpringAiConfig {
      * 可选：监听 MCP 工具变更[citation:2][citation:9]
      * 当服务器动态添加/移除工具时，客户端可以收到通知
      */
-    @Bean
-    public McpSyncClientCustomizer toolsChangeListener() {
-        return (name, clientSpec) -> clientSpec.toolsChangeConsumer(changeEvent -> {
-            log.info("MCP 工具发生变化: {}", changeEvent);
-            // 这里可以更新客户端状态或重新加载工具
-        });
-    }
+//    @Bean
+//    public McpSyncClientCustomizer toolsChangeListener() {
+//        return (name, clientSpec) -> clientSpec.toolsChangeConsumer(changeEvent -> {
+//            log.info("MCP 工具发生变化: {}", changeEvent);
+//            // 这里可以更新客户端状态或重新加载工具
+//        });
+//    }
 
     public String readSystemPromptValue() throws IOException {
         ClassLoader classLoader = this.getClass().getClassLoader();
@@ -95,7 +94,7 @@ public class SpringAiConfig {
 
         return ChatClient.builder(chatModel)
             .defaultAdvisors(MessageChatMemoryAdvisor.builder(myChatMemory).build())
-            .defaultToolCallbacks(toolCallbackProvider)
+            .defaultTools(toolCallbackProvider)
             .build();
     }
 

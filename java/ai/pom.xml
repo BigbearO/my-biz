@@ -60,7 +60,6 @@
             <artifactId>xxs-spring-yudao-bom</artifactId>
             <version>2026.06-jdk25</version>
             <type>pom</type>
-            <scope>import</scope>
         </dependency>
         <dependency>
             <groupId>io.github.whitemagic2014</groupId>
@@ -73,6 +72,7 @@
         <dependencies>
             <dependency>
                 <groupId>com.bigbear</groupId>
+<!--                <artifactId>xxs-dependencies</artifactId>-->
                 <artifactId>xxs-common-bom</artifactId>
                 <version>1.0.0</version>
                 <type>pom</type>
