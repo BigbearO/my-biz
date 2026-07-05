@@ -9,6 +9,9 @@
         <groupId>org.dromara</groupId>
         <artifactId>ruoyi-cloud-plus</artifactId>
         <version>2.5.2</version>
+<!--        <groupId>com.bigbear</groupId>-->
+<!--        <artifactId>xxs-common-spring</artifactId>-->
+<!--        <version>1.0.0</version>-->
     </parent>
     <groupId>com.bigbear</groupId>
     <artifactId>ai</artifactId>
@@ -40,7 +43,6 @@
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
-
         </dependency>
         <dependency>
             <groupId>com.bigbear</groupId>
@@ -76,10 +78,18 @@
 
     <dependencyManagement>
         <dependencies>
+<!--            <dependency>-->
+<!--                <groupId>com.bigbear</groupId>-->
+<!--&lt;!&ndash;                <artifactId>xxs-dependencies</artifactId>&ndash;&gt;-->
+<!--                <artifactId>xxs-common-bom</artifactId>-->
+<!--                <version>1.0.0</version>-->
+<!--                <type>pom</type>-->
+<!--                <scope>import</scope>-->
+<!--            </dependency>-->
+
             <dependency>
                 <groupId>com.bigbear</groupId>
-<!--                <artifactId>xxs-dependencies</artifactId>-->
-                <artifactId>xxs-common-bom</artifactId>
+                <artifactId>xxs-dependencies</artifactId>
                 <version>1.0.0</version>
                 <type>pom</type>
                 <scope>import</scope>
