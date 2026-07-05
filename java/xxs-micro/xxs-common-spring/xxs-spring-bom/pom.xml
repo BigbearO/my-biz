@@ -20,6 +20,13 @@
 
   <dependencyManagement>
     <dependencies>
+      <dependency>
+        <groupId>com.bigbear</groupId>
+        <artifactId>xxs-dependencies</artifactId>
+        <version>1.0.0</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
 
       <dependency>
         <groupId>org.apache.rocketmq</groupId>
