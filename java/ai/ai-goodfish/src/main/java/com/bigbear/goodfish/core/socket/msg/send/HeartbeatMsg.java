@@ -1,0 +1,17 @@
+package com.bigbear.goodfish.core.socket.msg.send;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.Data;
+import com.bigbear.goodfish.core.socket.msg.Message;
+
+@Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class HeartbeatMsg implements Message {
+    private String lwp = "/!";
+    private Headers headers = new Headers();
+
+    @Data
+    public static class Headers {
+        private String mid = Message.generateMid();
+    }
+}
