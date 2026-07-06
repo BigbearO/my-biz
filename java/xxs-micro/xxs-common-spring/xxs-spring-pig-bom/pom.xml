@@ -10,7 +10,7 @@
   </parent>
 
   <!--  和 pig保持一致-->
-  <version>3.8.3</version>
+  <version>4.0.0</version>
 
   <artifactId>xxs-spring-pig-bom</artifactId>
   <packaging>pom</packaging>
@@ -19,103 +19,118 @@
     <maven.compiler.source>25</maven.compiler.source>
     <maven.compiler.target>25</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <excel.version>3.4.1</excel.version>
+    <excel.version>4.0.0</excel.version>
 
     <rocketmq-spring-boot-starter-version>2.3.6</rocketmq-spring-boot-starter-version>
     <mapstruct.version>1.5.5.Final</mapstruct.version>
 
   </properties>
 
+  <dependencies>
+    <!--注册中心客户端-->
+    <dependency>
+      <groupId>com.alibaba.cloud</groupId>
+      <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+    </dependency>
+    <!--配置中心客户端-->
+    <dependency>
+      <groupId>com.alibaba.cloud</groupId>
+      <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
+    </dependency>
+    <!--数据操作-->
+    <dependency>
+      <groupId>com.pig4cloud</groupId>
+      <artifactId>pig-common-data</artifactId>
+    </dependency>
+    <!--安全模块-->
+    <dependency>
+      <groupId>com.pig4cloud</groupId>
+      <artifactId>pig-common-security</artifactId>
+    </dependency>
+    <!--XSS 安全过滤-->
+    <dependency>
+      <groupId>com.pig4cloud</groupId>
+      <artifactId>pig-common-xss</artifactId>
+    </dependency>
+    <!--sentinel 依赖-->
+    <dependency>
+      <groupId>com.pig4cloud</groupId>
+      <artifactId>pig-common-sentinel</artifactId>
+    </dependency>
+    <!--feign 依赖-->
+    <dependency>
+      <groupId>com.pig4cloud</groupId>
+      <artifactId>pig-common-feign</artifactId>
+    </dependency>
+
+    <!--日志处理-->
+    <dependency>
+      <groupId>com.pig4cloud</groupId>
+      <artifactId>pig-common-log</artifactId>
+    </dependency>
+    <!--mybatis-->
+    <dependency>
+      <groupId>com.baomidou</groupId>
+      <artifactId>mybatis-plus-spring-boot4-starter</artifactId>
+    </dependency>
+    <!--druid 连接池-->
+    <dependency>
+      <groupId>com.alibaba</groupId>
+      <artifactId>druid-spring-boot-4-starter</artifactId>
+    </dependency>
+    <!--mysql 数据库驱动-->
+    <dependency>
+      <groupId>com.mysql</groupId>
+      <artifactId>mysql-connector-j</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+    </dependency>
+    <!--swagger-->
+    <dependency>
+      <groupId>com.pig4cloud</groupId>
+      <artifactId>pig-common-swagger</artifactId>
+    </dependency>
+    <!--web 模块-->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-webmvc</artifactId>
+    </dependency>
+
+
+    <!-- excel 导入导出 https://github.com/pig-mesh/excel-spring-boot-starter -->
+    <dependency>
+      <groupId>com.pig4cloud.excel</groupId>
+      <artifactId>excel-spring-boot-starter</artifactId>
+      <version>${excel.version}</version>
+    </dependency>
+
+    <!-- MapStruct核心依赖 -->
+    <dependency>
+      <groupId>org.mapstruct</groupId>
+      <artifactId>mapstruct</artifactId>
+
+    </dependency>
+
+    <!-- 注解处理器（必须） -->
+    <dependency>
+      <groupId>org.mapstruct</groupId>
+      <artifactId>mapstruct-processor</artifactId>
+      <scope>provided</scope>
+    </dependency>
+
+
+  </dependencies>
   <dependencyManagement>
     <dependencies>
-      <!-- core 工具类 -->
       <dependency>
         <groupId>com.pig4cloud</groupId>
-        <artifactId>pig-common-core</artifactId>
+        <artifactId>pig-common-bom</artifactId>
         <version>${project.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
       </dependency>
-      <!--feign 注解依赖-->
-      <dependency>
-        <groupId>org.springframework.cloud</groupId>
-        <artifactId>spring-cloud-openfeign-core</artifactId>
-        <optional>true</optional>
-      </dependency>
-      <!--mybatis 依赖-->
-      <dependency>
-        <groupId>com.pig4cloud</groupId>
-        <artifactId>pig-common-mybatis</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <!-- excel 导入导出 https://github.com/pig-mesh/excel-spring-boot-starter -->
-      <dependency>
-        <groupId>com.pig4cloud.excel</groupId>
-        <artifactId>excel-spring-boot-starter</artifactId>
-        <version>${excel.version}</version>
-      </dependency>
-
-
-      <dependency>
-        <groupId>cn.hutool</groupId>
-        <artifactId>hutool-all</artifactId>
-        <version>5.8.38</version>
-      </dependency>
-
-
-      <!--选配: orm 模块-->
-      <dependency>
-        <groupId>com.baomidou</groupId>
-        <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
-      </dependency>
-      <dependency>
-        <groupId>com.mysql</groupId>
-        <artifactId>mysql-connector-j</artifactId>
-      </dependency>
-      <!--必备：安全模块-->
-      <dependency>
-        <groupId>com.pig4cloud</groupId>
-        <artifactId>pig-common-security</artifactId>
-      </dependency>
-      <!--必备：服务处理-->
-      <dependency>
-        <groupId>com.pig4cloud</groupId>
-        <artifactId>pig-common-feign</artifactId>
-      </dependency>
-      <!--必备：日志处理-->
-      <dependency>
-        <groupId>com.pig4cloud</groupId>
-        <artifactId>pig-common-log</artifactId>
-      </dependency>
-      <!--必备：swagger-->
-      <dependency>
-        <groupId>com.pig4cloud</groupId>
-        <artifactId>pig-common-swagger</artifactId>
-      </dependency>
-      <!--必备: 注册中心客户端-->
-      <dependency>
-        <groupId>com.alibaba.cloud</groupId>
-        <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
-      </dependency>
-      <!--必备: 配置中心客户端-->
-      <dependency>
-        <groupId>com.alibaba.cloud</groupId>
-        <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
-      </dependency>
-
-      <!-- MapStruct核心依赖 -->
-      <dependency>
-        <groupId>org.mapstruct</groupId>
-        <artifactId>mapstruct</artifactId>
-        <version>${mapstruct.version}</version>
-      </dependency>
-
-      <!-- 注解处理器（必须） -->
-      <dependency>
-        <groupId>org.mapstruct</groupId>
-        <artifactId>mapstruct-processor</artifactId>
-        <version>${mapstruct.version}</version>
-        <scope>provided</scope>
-      </dependency>
-
     </dependencies>
   </dependencyManagement>
 
