@@ -21,10 +21,10 @@ import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.dromara.common.core.domain.PageResult;
 import org.dromara.common.core.utils.MapstructUtils;
 import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.mybatis.core.page.PageQuery;
-import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.springframework.stereotype.Service;
 
 /**
@@ -65,14 +65,13 @@ public class ItemServiceImpl implements IItemService {
      * @return 商品分页列表
      */
     @Override
-    public TableDataInfo<ItemVo> queryPageList(ItemBo bo, PageQuery pageQuery) {
+    public PageResult<ItemVo> queryPageList(ItemBo bo, PageQuery pageQuery) {
         QueryWrapper qw = buildQueryWrapper(bo);
         Page<ItemEntity> result = baseMapper.paginate(pageQuery.getPageNum(), pageQuery.getPageSize(), qw);
-        TableDataInfo<ItemVo> dataInfo = new TableDataInfo<>();
+        PageResult<ItemVo> dataInfo = new PageResult<>();
         dataInfo.setRows(MapstructUtils.convert(result.getRecords(), ItemVo.class));
         dataInfo.setTotal(result.getTotalRow());
-        dataInfo.setCode(200);
-        dataInfo.setMsg("查询成功");
+
         return dataInfo;
     }
 

@@ -68,9 +68,7 @@ public class Account implements Serializable {
      * 生成设备ID
      */
     public String generateDeviceId(String userId) {
-        if(1==1){
-            return "15031543-B111-42D7-B871-6320BB42DB47-2920966133";
-        }
+
         // 简化实现，生成一个基本的UUID格式字符串
         final String pattern = "^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[0-9A-F][89AB][0-9A-F]{2}-[0-9A-F]{12}$";
         RgxGen rgxGen = RgxGen.parse(pattern); // Create generator

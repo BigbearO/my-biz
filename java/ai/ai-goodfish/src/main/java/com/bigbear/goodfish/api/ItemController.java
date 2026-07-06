@@ -10,15 +10,16 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.dromara.common.core.domain.PageResult;
 import org.dromara.common.core.domain.R;
 import org.dromara.common.core.validate.AddGroup;
 import org.dromara.common.core.validate.EditGroup;
-import org.dromara.common.excel.utils.ExcelUtil;
-import org.dromara.common.idempotent.annotation.RepeatSubmit;
+
 import org.dromara.common.log.annotation.Log;
 import org.dromara.common.log.enums.BusinessType;
 import org.dromara.common.mybatis.core.page.PageQuery;
-import org.dromara.common.mybatis.core.page.TableDataInfo;
+
+import org.dromara.common.redis.annotation.RepeatSubmit;
 import org.dromara.common.web.core.BaseController;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -49,7 +50,7 @@ public class ItemController extends BaseController {
      */
     @SaCheckPermission("ai:item:list")
     @GetMapping("/list")
-    public TableDataInfo<ItemVo> list(ItemBo bo, PageQuery pageQuery) {
+    public PageResult<ItemVo> list(ItemBo bo, PageQuery pageQuery) {
         return itemService.queryPageList(bo, pageQuery);
     }
 
@@ -61,7 +62,8 @@ public class ItemController extends BaseController {
     @PostMapping("/export")
     public void export(ItemBo bo, HttpServletResponse response) {
         List<ItemVo> list = itemService.queryList(bo);
-        ExcelUtil.exportExcel(list, "商品", ItemVo.class, response);
+         //todo-x
+//        ExcelUtil.exportExcel(list, "商品", ItemVo.class, response);
     }
 
     /**

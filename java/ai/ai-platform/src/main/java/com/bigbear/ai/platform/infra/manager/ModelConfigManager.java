@@ -9,9 +9,10 @@ import com.mybatisflex.core.update.UpdateChain;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.dromara.common.core.domain.PageResult;
 import org.dromara.common.core.utils.MapstructUtils;
 import org.dromara.common.mybatis.core.page.PageQuery;
-import org.dromara.common.mybatis.core.page.TableDataInfo;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -122,14 +123,12 @@ public class ModelConfigManager extends ServiceImpl<ModelConfigMapper, ModelConf
     /**
      * 分页查询模型配置VO列表
      */
-    public TableDataInfo selectVoPage(PageQuery page, QueryWrapper qw) {
+    public PageResult selectVoPage(PageQuery page, QueryWrapper qw) {
         qw.from(ModelConfigEntity.class);
         Page<ModelConfigEntity> result = mapper.paginate(page.getPageNum(), page.getPageSize(), qw);
-        TableDataInfo<ModelConfigVo> dataInfo = new TableDataInfo<>();
+        PageResult<ModelConfigVo> dataInfo = new PageResult<>();
         dataInfo.setRows(MapstructUtils.convert(result.getRecords(), ModelConfigVo.class));
         dataInfo.setTotal(result.getTotalRow());
-        dataInfo.setCode(200);
-        dataInfo.setMsg("查询成功");
         return dataInfo;
     }
 

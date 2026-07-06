@@ -8,9 +8,10 @@ import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.dromara.common.core.domain.PageResult;
 import org.dromara.common.core.utils.MapstructUtils;
 import org.dromara.common.mybatis.core.page.PageQuery;
-import org.dromara.common.mybatis.core.page.TableDataInfo;
+
 import org.springframework.stereotype.Service;
 
 /**
@@ -77,14 +78,13 @@ public class AgentManager extends ServiceImpl<AgentMapper, AgentEntity> {
     /**
      * 分页查询智能体VO列表
      */
-    public TableDataInfo selectVoPage(PageQuery page, QueryWrapper qw) {
+    public PageResult selectVoPage(PageQuery page, QueryWrapper qw) {
         qw.from(AgentEntity.class);
         Page<AgentEntity> result = mapper.paginate(page.getPageNum(), page.getPageSize(), qw);
-        TableDataInfo<AgentVo> dataInfo = new TableDataInfo<>();
+        PageResult<AgentVo> dataInfo = new PageResult<>();
         dataInfo.setRows(MapstructUtils.convert(result.getRecords(), AgentVo.class));
         dataInfo.setTotal(result.getTotalRow());
-        dataInfo.setCode(200);
-        dataInfo.setMsg("查询成功");
+
         return dataInfo;
     }
 

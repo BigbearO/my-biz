@@ -15,8 +15,9 @@ import java.util.Map;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.dromara.common.core.domain.PageResult;
 import org.dromara.common.mybatis.core.page.PageQuery;
-import org.dromara.common.mybatis.core.page.TableDataInfo;
+//
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -63,7 +64,7 @@ public class AccountController {
      */
 //    @SaCheckPermission("ai:account:list")
     @GetMapping("/list")
-    public TableDataInfo<AccountEntity> list(AccountBo bo, PageQuery pageQuery) {
+    public PageResult<AccountEntity> list(AccountBo bo, PageQuery pageQuery) {
         return accountService.queryPageList(bo, pageQuery);
     }
 

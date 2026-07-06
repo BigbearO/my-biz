@@ -10,9 +10,9 @@ import com.mybatisflex.core.query.QueryWrapper;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.dromara.common.core.domain.PageResult;
 import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.mybatis.core.page.PageQuery;
-import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -34,14 +34,12 @@ public class AccountService {
     private final RedisTemplate<String, Object> redisTemplate;
 
 
-    public TableDataInfo<AccountEntity> queryPageList(AccountBo bo, PageQuery pageQuery) {
+    public PageResult<AccountEntity> queryPageList(AccountBo bo, PageQuery pageQuery) {
         QueryWrapper qw = buildQueryWrapper(bo);
         Page<AccountEntity> result = accountManager.page(Page.of(pageQuery.getPageNum(), pageQuery.getPageSize()), qw);
-        TableDataInfo<AccountEntity> dataInfo = new TableDataInfo<>();
+        PageResult<AccountEntity> dataInfo = new PageResult<>();
         dataInfo.setRows(result.getRecords());
         dataInfo.setTotal(result.getTotalRow());
-        dataInfo.setCode(200);
-        dataInfo.setMsg("查询成功");
         return dataInfo;
     }
 

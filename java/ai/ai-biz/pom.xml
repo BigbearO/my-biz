@@ -17,16 +17,18 @@
 
 
   <dependencies>
+
     <!--必备: 依赖api模块-->
     <dependency>
       <groupId>com.bigbear</groupId>
       <artifactId>ai-api</artifactId>
       <version>1.0.0</version>
     </dependency>
+<!--    todo  抽公共依赖-->
     <dependency>
       <groupId>com.github.curious-odd-man</groupId>
       <artifactId>rgxgen</artifactId>
-      <version>3.0</version> <!-- 检查是否有更新版本 -->
+      <version>3.1</version> <!-- 检查是否有更新版本 -->
     </dependency>
 
     <dependency>
@@ -36,7 +38,53 @@
 
 <!--    ai -->
 
-    <!--ai 相关依赖-->
+
+    <!--  spring ai-->
+
+    <dependency>
+      <groupId>org.springframework.ai</groupId>
+      <artifactId>spring-ai-starter-model-openai</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.ai</groupId>
+      <artifactId>spring-ai-mcp</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.ai</groupId>
+      <artifactId>spring-ai-starter-mcp-client</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.ai</groupId>
+      <artifactId>spring-ai-starter-mcp-client-webflux</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.ai</groupId>
+      <artifactId>spring-ai-tika-document-reader</artifactId>
+    </dependency>
+
+
+    <!-- Spring AI Alibaba Agent Framework -->
+    <dependency>
+      <groupId>com.alibaba.cloud.ai</groupId>
+      <artifactId>spring-ai-alibaba-agent-framework</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.alibaba.cloud.ai</groupId>
+      <artifactId>spring-ai-alibaba-graph-core</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.alibaba.cloud.ai</groupId>
+      <artifactId>spring-ai-alibaba-starter-graph-observation</artifactId>
+    </dependency>
+
+
+
+    <!-- langchain4j 相关依赖-->
     <dependency>
       <groupId>dev.langchain4j</groupId>
       <artifactId>langchain4j</artifactId>
@@ -101,51 +149,6 @@
 
 
 
-<!--    spring ai-->
-
-    <dependency>
-      <groupId>org.springframework.ai</groupId>
-      <artifactId>spring-ai-starter-model-openai</artifactId>
-    </dependency>
-
-
-    <dependency>
-      <groupId>org.springframework.ai</groupId>
-      <artifactId>spring-ai-starter-mcp-client</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.springframework.ai</groupId>
-      <artifactId>spring-ai-starter-mcp-client-webflux</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.springframework.ai</groupId>
-      <artifactId>spring-ai-tika-document-reader</artifactId>
-    </dependency>
-
-
-    <dependency>
-      <groupId>org.springframework.ai</groupId>
-      <artifactId>spring-ai-tika-document-reader</artifactId>
-    </dependency>
-
-    <!-- Spring AI Alibaba Agent Framework -->
-    <dependency>
-      <groupId>com.alibaba.cloud.ai</groupId>
-      <artifactId>spring-ai-alibaba-agent-framework</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>com.alibaba.cloud.ai</groupId>
-      <artifactId>spring-ai-alibaba-graph-core</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>com.alibaba.cloud.ai</groupId>
-      <artifactId>spring-ai-alibaba-starter-graph-observation</artifactId>
-    </dependency>
-
 
     <dependency>
       <groupId>com.github.houbb</groupId>
@@ -166,12 +169,7 @@
       <version>0.31.1</version>
     </dependency>
 
-    <dependency>
-      <groupId>com.github.victools</groupId>
-      <artifactId>jsonschema-generator</artifactId>
-      <!-- 可根据实际情况使用最新稳定版本 -->
-      <version>4.38.0</version>
-    </dependency>
+
 
 
   </dependencies>

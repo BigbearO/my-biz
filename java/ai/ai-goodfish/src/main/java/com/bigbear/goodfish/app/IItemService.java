@@ -5,7 +5,8 @@ import com.bigbear.ai.biz.domain.bo.ItemBo;
 import com.bigbear.ai.biz.domain.entity.ItemInfo;
 import com.bigbear.ai.biz.domain.entity.ItemVectorEntity;
 import com.bigbear.ai.biz.domain.vo.ItemVo;
-import org.dromara.common.mybatis.core.page.TableDataInfo;
+
+import org.dromara.common.core.domain.PageResult;
 import org.dromara.common.mybatis.core.page.PageQuery;
 
 import java.util.Collection;
@@ -34,7 +35,7 @@ public interface IItemService {
      * @param pageQuery 分页参数
      * @return 商品分页列表
      */
-    TableDataInfo<ItemVo> queryPageList(ItemBo bo, PageQuery pageQuery);
+    PageResult<ItemVo> queryPageList(ItemBo bo, PageQuery pageQuery);
 
     /**
      * 查询符合条件的商品列表

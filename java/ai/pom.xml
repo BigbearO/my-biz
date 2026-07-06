@@ -8,7 +8,7 @@
     <parent>
         <groupId>org.dromara</groupId>
         <artifactId>ruoyi-cloud-plus</artifactId>
-        <version>2.5.2</version>
+        <version>6.0.0-BETA</version>
 <!--        <groupId>com.bigbear</groupId>-->
 <!--        <artifactId>xxs-common-spring</artifactId>-->
 <!--        <version>1.0.0</version>-->
@@ -36,6 +36,13 @@
     </modules>
 
     <dependencies>
+<!--        dynamic ds  开启 spring.datasource.dynamic.p6spy: true 时需要此依赖 -->
+        <!-- p6spy SQL日志监控 -->
+        <dependency>
+            <groupId>p6spy</groupId>
+            <artifactId>p6spy</artifactId>
+            <version>3.9.1</version>
+        </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
@@ -57,7 +64,7 @@
         <dependency>
             <groupId>com.bigbear</groupId>
             <artifactId>xxs-spring-ruoyi-bom</artifactId>
-            <version>2.5.2</version>
+            <version>6.0.0-BETA</version>
             <type>pom</type>
         </dependency>
 

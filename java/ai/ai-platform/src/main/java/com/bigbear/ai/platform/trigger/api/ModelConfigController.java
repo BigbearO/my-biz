@@ -11,15 +11,16 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.dromara.common.core.domain.PageResult;
 import org.dromara.common.core.domain.R;
 import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.core.validate.AddGroup;
 import org.dromara.common.core.validate.EditGroup;
-import org.dromara.common.idempotent.annotation.RepeatSubmit;
+import org.dromara.common.redis.annotation.RepeatSubmit;
 import org.dromara.common.log.annotation.Log;
 import org.dromara.common.log.enums.BusinessType;
 import org.dromara.common.mybatis.core.page.PageQuery;
-import org.dromara.common.mybatis.core.page.TableDataInfo;
+
 import org.dromara.common.web.core.BaseController;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -45,7 +46,7 @@ public class ModelConfigController extends BaseController {
     @Operation(summary = "分页查询配置列表")
     @SaCheckPermission("ai:modelConfig:list")
     @GetMapping("/list")
-    public TableDataInfo<ModelConfigVo> list(ModelConfigBo bo, PageQuery pageQuery) {
+    public PageResult<ModelConfigVo> list(ModelConfigBo bo, PageQuery pageQuery) {
         return modelConfigManager.selectVoPage(pageQuery, buildQueryWrapper(bo));
     }
 

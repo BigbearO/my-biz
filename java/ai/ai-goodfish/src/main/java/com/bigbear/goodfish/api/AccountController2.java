@@ -8,7 +8,7 @@
 //import cn.dev33.satoken.annotation.SaCheckPermission;
 //import org.springframework.web.bind.annotation.*;
 //import org.springframework.validation.annotation.Validated;
-//import org.dromara.common.idempotent.annotation.RepeatSubmit;
+//import org.dromara.common.redis.annotation.RepeatSubmit;
 //import org.dromara.common.log.annotation.Log;
 //import org.dromara.common.web.core.BaseController;
 //import org.dromara.common.mybatis.core.page.PageQuery;
@@ -20,7 +20,7 @@
 //import com.xxs.ai.domain.vo.AccountVo;
 //import com.xxs.ai.domain.bo.AccountBo;
 //import com.xxs.ai.service.IAccountService;
-//import org.dromara.common.mybatis.core.page.TableDataInfo;
+//
 //
 ///**
 // * 账号
