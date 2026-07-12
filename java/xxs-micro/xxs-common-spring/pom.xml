@@ -16,7 +16,6 @@
     <module>xxs-spring-ruoyi-bom</module>
     <module>xxs-spring-pig-bom</module>
     <module>xxs-spring-bom</module>
-    <module>xxs-spring-yudao-bom</module>
   </modules>
 
   <properties>
@@ -25,17 +24,10 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
 
-    <!-- 项目版本号 -->
-    <spring-boot.version>4.1.0</spring-boot.version>
-    <spring-cloud.version>2025.1.2</spring-cloud.version>
-    <spring-cloud-alibaba.version>2025.1.0.0</spring-cloud-alibaba.version>
-    <spring-boot-admin.version>4.1.1</spring-boot-admin.version>
-
-
+    <!-- 公共工具版本（与框架无关） -->
     <screw.version>0.0.3</screw.version>
     <captcha.version>2.2.5</captcha.version>
     <aws.version>1.12.675</aws.version>
-    <otel.version>2.20.1</otel.version>
     <velocity.version>2.4</velocity.version>
     <velocity.tool.version>3.1</velocity.tool.version>
     <configuration.version>1.10</configuration.version>
@@ -62,52 +54,7 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
-
-      <!-- spring boot 依赖 -->
-      <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-dependencies</artifactId>
-        <version>${spring-boot.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-      <!-- spring cloud 依赖 -->
-      <dependency>
-        <groupId>org.springframework.cloud</groupId>
-        <artifactId>spring-cloud-dependencies</artifactId>
-        <version>${spring-cloud.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-
-      <dependency>
-        <groupId>io.opentelemetry.instrumentation</groupId>
-        <artifactId>opentelemetry-instrumentation-bom</artifactId>
-        <version>${otel.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-
-      <!-- spring cloud alibaba 依赖 -->
-      <dependency>
-        <groupId>com.alibaba.cloud</groupId>
-        <artifactId>spring-cloud-alibaba-dependencies</artifactId>
-        <version>${spring-cloud-alibaba.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-      <!-- 排除 spring cloud alibaba 令人头疼的日志封装-->
-      <dependency>
-        <groupId>com.alibaba.cloud</groupId>
-        <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
-        <version>${spring-cloud-alibaba.version}</version>
-        <exclusions>
-          <exclusion>
-            <artifactId>logback-adapter</artifactId>
-            <groupId>com.alibaba.nacos</groupId>
-          </exclusion>
-        </exclusions>
-      </dependency>
+      <!-- Spring Boot/Cloud/Alibaba BOMs 已移除，由各框架BOM自行管理 -->
     </dependencies>
   </dependencyManagement>
 
@@ -124,6 +71,12 @@
   </dependencies>
 
   <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+      </resource>
+    </resources>
     <pluginManagement>
       <plugins>
         <!-- maven-surefire-plugin 插件，用于运行单元测试。 -->
@@ -133,8 +86,6 @@
           <artifactId>maven-surefire-plugin</artifactId>
           <version>${maven-surefire-plugin.version}</version>
         </plugin>
-        <!-- maven-compiler-plugin 插件，解决 Lombok + MapStruct 组合 -->
-        <!-- https://stackoverflow.com/questions/33483697/re-run-spring-boot-configuration-annotation-processor-to-update-generated-metada -->
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
@@ -142,17 +93,12 @@
           <configuration>
             <annotationProcessorPaths>
               <path>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-configuration-processor</artifactId>
-                <version>${spring-boot.version}</version>
-              </path>
-              <path>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
               </path>
               <path>
                 <!-- 确保 Lombok 生成的 getter/setter 方法能被 MapStruct 正确识别，
-                     避免出现 No property named “xxx" exists 的编译错误 -->
+                     避免出现 No property named "xxx" exists 的编译错误 -->
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok-mapstruct-binding</artifactId>
                 <version>0.2.0</version>
@@ -181,7 +127,7 @@
         <artifactId>flatten-maven-plugin</artifactId>
         <version>${flatten-maven-plugin.version}</version>
         <configuration>
-          <flattenMode>oss</flattenMode>
+          <flattenMode>resolveCiFriendliesOnly</flattenMode>
           <updatePomFile>true</updatePomFile>
         </configuration>
         <executions>

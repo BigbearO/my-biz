@@ -14,7 +14,9 @@
     <name>langchain4j-mcp-config</name>
     <description>基于 LangChain4j 的 MCP 客户端 Spring Boot Starter</description>
 
-    <properties>
+    <properties><maven.compiler.source>25</maven.compiler.source>
+    <maven.compiler.target>25</maven.compiler.target>
+    <java.version>25</java.version>
 
     </properties>
 

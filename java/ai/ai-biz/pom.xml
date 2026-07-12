@@ -15,6 +15,11 @@
 
   <description>ai 业务模块</description>
 
+  <properties>
+    <maven.compiler.source>25</maven.compiler.source>
+    <maven.compiler.target>25</maven.compiler.target>
+    <java.version>25</java.version>
+  </properties>
 
   <dependencies>
 
@@ -24,19 +29,22 @@
       <artifactId>ai-api</artifactId>
       <version>1.0.0</version>
     </dependency>
-<!--    todo  抽公共依赖-->
+    <!--    todo  抽公共依赖-->
     <dependency>
       <groupId>com.github.curious-odd-man</groupId>
       <artifactId>rgxgen</artifactId>
       <version>3.1</version> <!-- 检查是否有更新版本 -->
     </dependency>
-
+    <dependency>
+      <groupId>com.mybatis-flex</groupId>
+      <artifactId>mybatis-flex-spring-boot4-starter</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
     </dependency>
 
-<!--    ai -->
+    <!--    ai -->
 
 
     <!--  spring ai-->
@@ -81,7 +89,6 @@
       <groupId>com.alibaba.cloud.ai</groupId>
       <artifactId>spring-ai-alibaba-starter-graph-observation</artifactId>
     </dependency>
-
 
 
     <!-- langchain4j 相关依赖-->
@@ -139,15 +146,13 @@
     <dependency>
       <groupId>dev.langchain4j</groupId>
       <artifactId>langchain4j-document-parser-apache-tika</artifactId>
-<!--      <exclusions>-->
-<!--        <exclusion>-->
-<!--          <groupId>org.apache.commons</groupId>-->
-<!--          <artifactId>commons-compress</artifactId>-->
-<!--        </exclusion>-->
-<!--      </exclusions>-->
+      <!--      <exclusions>-->
+      <!--        <exclusion>-->
+      <!--          <groupId>org.apache.commons</groupId>-->
+      <!--          <artifactId>commons-compress</artifactId>-->
+      <!--        </exclusion>-->
+      <!--      </exclusions>-->
     </dependency>
-
-
 
 
     <dependency>
@@ -155,7 +160,7 @@
       <artifactId>sensitive-word</artifactId>
     </dependency>
 
-<!--  jtoon   参考 https://mp.weixin.qq.com/s/Z757KrakqOhewZSSc_qcjQ-->
+    <!--  jtoon   参考 https://mp.weixin.qq.com/s/Z757KrakqOhewZSSc_qcjQ-->
 
     <dependency>
       <groupId>com.felipestanzani</groupId>
@@ -170,10 +175,7 @@
     </dependency>
 
 
-
-
   </dependencies>
-
 
 
 </project>
