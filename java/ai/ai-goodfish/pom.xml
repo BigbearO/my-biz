@@ -39,7 +39,7 @@
     <dependency>
       <groupId>org.dromara</groupId>
       <artifactId>ruoyi-api-system</artifactId>
-      <version>2.5.0</version>
+      <version>6.0.0-BETA</version>
     </dependency>
 
     <dependency>
