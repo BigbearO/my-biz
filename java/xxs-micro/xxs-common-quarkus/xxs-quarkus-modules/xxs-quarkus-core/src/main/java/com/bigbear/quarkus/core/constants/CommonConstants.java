@@ -6,6 +6,8 @@ public interface CommonConstants {
 
     String USER_ID = "X-User-Id";
 
+    String USER_INFO = "X-User-Info";
+
     String CLIENT_ID = "X-Client-Id";
 
 }

@@ -45,6 +45,17 @@
         <artifactId>xxs-spring-local-log</artifactId>
         <version>${project.version}</version>
       </dependency>
+      <dependency>
+        <groupId>com.bigbear</groupId>
+        <artifactId>xxs-spring-auth</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.bigbear</groupId>
+        <artifactId>xxs-spring-grpc</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
 
       <!-- 第三方工具版本 -->
       <dependency>

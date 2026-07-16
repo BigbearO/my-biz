@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.bigbear</groupId>
+    <artifactId>xxs-spring-modules</artifactId>
+    <version>${revision}</version>
+  </parent>
+
+  <artifactId>xxs-spring-auth</artifactId>
+
+  <dependencies>
+    <!-- Jackson：LoginUser / X-User-Info 的 JSON 序列化（版本由 spring-boot-dependencies 管理） -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-json</artifactId>
+    </dependency>
+
+    <!-- Servlet 入站重载（Spring Boot WebMvc 服务） -->
+    <dependency>
+      <groupId>jakarta.servlet</groupId>
+      <artifactId>jakarta.servlet-api</artifactId>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- WebFlux 入站重载（Spring Boot WebFlux / 网关） -->
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-webflux</artifactId>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+</project>

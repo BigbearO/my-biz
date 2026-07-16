@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.bigbear</groupId>
+    <artifactId>xxs-spring-modules</artifactId>
+    <version>${revision}</version>
+  </parent>
+
+  <artifactId>xxs-spring-grpc</artifactId>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.bigbear</groupId>
+      <artifactId>xxs-spring-auth</artifactId>
+      <version>${revision}</version>
+    </dependency>
+
+    <!-- gRPC 核心（版本由 io.grpc:grpc-bom 管理，见 xxs-spring-modules） -->
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-stub</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-core</artifactId>
+    </dependency>
+
+    <!-- devh gRPC Spring Boot Starter：提供 @GrpcGlobalServerInterceptor 自动注册。
+         仅 optional，若消费方未引入则跳过自动装配，拦截器仍可手动挂载。 -->
+    <dependency>
+      <groupId>net.devh</groupId>
+      <artifactId>grpc-server-spring-boot-starter</artifactId>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>net.devh</groupId>
+      <artifactId>grpc-client-spring-boot-starter</artifactId>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <groupId>jakarta.servlet</groupId>
+      <artifactId>jakarta.servlet-api</artifactId>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-webflux</artifactId>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+</project>
