@@ -19,21 +19,3 @@ var (
 	_ codes.Code
 	_ status.Status
 )
-
-// RegisterRedactedGreeterServer wraps the GreeterServer with the redacted server and registers the service in GRPC
-func RegisterRedactedGreeterServer(s grpc.ServiceRegistrar, srv GreeterServer, bypass redact.Bypass) {
-	RegisterGreeterServer(s, RedactedGreeterServer(srv, bypass))
-}
-
-func RedactedGreeterServer(srv GreeterServer, bypass redact.Bypass) GreeterServer {
-	if bypass == nil {
-		bypass = redact.Falsy
-	}
-	return &redactedGreeterServer{srv: srv, bypass: bypass}
-}
-
-type redactedGreeterServer struct {
-	UnsafeGreeterServer
-	srv    GreeterServer
-	bypass redact.Bypass
-}

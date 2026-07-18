@@ -7,7 +7,6 @@
 package servicev1
 
 import (
-	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -25,8 +24,7 @@ var File_admin_service_v1_i_greeter_proto protoreflect.FileDescriptor
 
 const file_admin_service_v1_i_greeter_proto_rawDesc = "" +
 	"\n" +
-	" admin/service/v1/i_greeter.proto\x12\x10admin.service.v1\x1a\x1cgoogle/api/annotations.proto2\t\n" +
-	"\aGreeterB\xb9\x01\n" +
+	" admin/service/v1/i_greeter.proto\x12\x10admin.service.v1B\xb9\x01\n" +
 	"\x14com.admin.service.v1B\rIGreeterProtoP\x01Z0bear-admin/api/gen/go/admin/service/v1;servicev1\xa2\x02\x03ASX\xaa\x02\x10Admin.Service.V1\xca\x02\x10Admin\\Service\\V1\xe2\x02\x1cAdmin\\Service\\V1\\GPBMetadata\xea\x02\x12Admin::Service::V1b\x06proto3"
 
 var file_admin_service_v1_i_greeter_proto_goTypes = []any{}
@@ -51,7 +49,7 @@ func file_admin_service_v1_i_greeter_proto_init() {
 			NumEnums:      0,
 			NumMessages:   0,
 			NumExtensions: 0,
-			NumServices:   1,
+			NumServices:   0,
 		},
 		GoTypes:           file_admin_service_v1_i_greeter_proto_goTypes,
 		DependencyIndexes: file_admin_service_v1_i_greeter_proto_depIdxs,

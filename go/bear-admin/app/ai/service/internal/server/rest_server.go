@@ -54,6 +54,7 @@ func NewRestServer(
 	srv.HandleFunc("ai/v1/chat/stream", service.HandleChatStream)
 
 	aipb.RegisterChatServiceHTTPServer(srv, aiService)
+	aipb.RegisterHelloServiceHTTPServer(srv, aiService)
 
 	return srv
 }

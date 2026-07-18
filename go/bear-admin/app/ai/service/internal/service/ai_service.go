@@ -15,6 +15,7 @@ import (
 
 type AiService struct {
 	aipb.UnimplementedChatServiceServer
+	aipb.UnimplementedHelloServiceServer
 	log    *log.Helper
 	aiRepo *data.AiRepo
 }
@@ -42,6 +43,13 @@ func (s *AiService) Chat(ctx context.Context, req *aipb.ChatRequest) (*aipb.Chat
 
 	return &aipb.ChatResponse{
 		Content: "Echo: " + req.GetMessage(),
+	}, nil
+}
+
+func (s *AiService) SayHello(ctx context.Context, req *aipb.SayHelloRequest) (*aipb.SayHelloResponse, error) {
+	s.log.Info("SayHello receive name: ", req.GetName())
+	return &aipb.SayHelloResponse{
+		Message: "hello " + req.GetName(),
 	}, nil
 }
 

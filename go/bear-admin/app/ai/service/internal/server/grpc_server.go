@@ -40,6 +40,7 @@ func NewGrpcServer(
 	}
 
 	aipb.RegisterChatServiceServer(srv, aiService)
+	aipb.RegisterHelloServiceServer(srv, aiService)
 
 	return srv
 }
