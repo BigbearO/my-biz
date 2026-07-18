@@ -57,7 +57,6 @@ public class TestController {
 	}
 
 	@RequestMapping("/test")
-
 	public R<?> test() {
 		String res = "";
 		try {

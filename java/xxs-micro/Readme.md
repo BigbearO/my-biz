@@ -1,5 +1,7 @@
 ## 说明
 
+todo 服务间鉴权模仿pig inner, 拦截器，只是升级一点，加解密嘛，对的上才调用，现在不管
+
 1 这个项目 作为java 通用架构 公共依赖构建，无论是 spring 还是quarkus
 项目名带quarkus的，就是quarkus，带spring的是spring依赖
 

@@ -16,6 +16,22 @@ public final class RequestUserUtils {
     private RequestUserUtils() {
     }
 
+    /**
+     * 从当前 Servlet 上下文自动获取请求并解析登录用户。
+     *
+     * @return 登录用户，匿名时返回 null
+     */
+    public static LoginUser from() {
+        HttpServletRequest request = UserContext.getRequest();
+        return request == null ? null : from(request);
+    }
+
+    /**
+     * 从 Map 形式的请求头中解析登录用户。
+     *
+     * @param headers 请求头 Map
+     * @return 登录用户，匿名时返回 null
+     */
     public static LoginUser from(Map<String, String> headers) {
         String userId = headers.get(AuthHeaders.HEADER_USER_ID);
         if (userId == null || userId.isBlank()) {
@@ -25,6 +41,12 @@ public final class RequestUserUtils {
         return merge(userId, info);
     }
 
+    /**
+     * 从 Servlet 请求中解析登录用户。
+     *
+     * @param request HttpServletRequest
+     * @return 登录用户，匿名时返回 null
+     */
     public static LoginUser from(HttpServletRequest request) {
         String userId = request.getHeader(AuthHeaders.HEADER_USER_ID);
         if (userId == null || userId.isBlank()) {
@@ -34,6 +56,12 @@ public final class RequestUserUtils {
         return merge(userId, info);
     }
 
+    /**
+     * 从 WebFlux 请求中解析登录用户。
+     *
+     * @param request ServerHttpRequest
+     * @return 登录用户，匿名时返回 null
+     */
     public static LoginUser from(ServerHttpRequest request) {
         String userId = request.getHeaders().getFirst(AuthHeaders.HEADER_USER_ID);
         if (userId == null || userId.isBlank()) {

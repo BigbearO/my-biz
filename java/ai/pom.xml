@@ -21,6 +21,9 @@
     <maven.compiler.target>25</maven.compiler.target>
     <java.version>25</java.version>
     <msgpack.version>0.9.9</msgpack.version>
+    <lombok.version>1.18.46</lombok.version>
+    <mapstruct-plus.version>1.5.1</mapstruct-plus.version>
+    <mapstruct-plus.lombok.version>0.2.0</mapstruct-plus.lombok.version>
   </properties>
   <!--项目子模块-->
   <modules>
@@ -39,6 +42,12 @@
       <groupId>p6spy</groupId>
       <artifactId>p6spy</artifactId>
       <version>3.9.1</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.bigbear</groupId>
+      <artifactId>xxs-spring-auth</artifactId>
+      <version>1.0.0</version>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>

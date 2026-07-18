@@ -1,0 +1,16 @@
+server:
+  port: 8080
+
+spring:
+  grpc:
+    # gRPC 服务端：监听 9090
+    server:
+      port: 9090
+      reflection:
+        enabled: false   # 生产环境关闭反射
+    # gRPC 客户端：greeter 通道指向本服务自身的 gRPC 端口（演示自调用透传）
+    client:
+      channel:
+        greeter:
+          target: static://localhost:9090
+          negotiation-type: plaintext   # 开发期无 TLS；生产改用 ssl.bundle

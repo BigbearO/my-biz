@@ -8,7 +8,6 @@ import io.grpc.Metadata;
 import io.grpc.ServerCall;
 import io.grpc.ServerCallHandler;
 import io.grpc.ServerInterceptor;
-import net.devh.boot.grpc.server.interceptor.GrpcGlobalServerInterceptor;
 
 
 /**
@@ -21,10 +20,9 @@ import net.devh.boot.grpc.server.interceptor.GrpcGlobalServerInterceptor;
  * </ul>
  * {@code userId} 为空即匿名放行。
  *
- * <p>挂入方式：引入 devh {@code grpc-server-spring-boot-starter} 后，
- * 经 {@code @GrpcGlobalServerInterceptor} 自动注册；否则在 gRPC ServerBuilder 中手动 add。
+ * <p>注册方式：由 {@link GrpcAuthAutoConfiguration#authServerInterceptor()} 经
+ * Spring gRPC 官方 {@code @GlobalServerInterceptor} 注解自动注册到所有 gRPC 服务，无需手动挂载。
  */
-@GrpcGlobalServerInterceptor
 public class AuthServerInterceptor implements ServerInterceptor {
 
     public static final Context.Key<LoginUser> USER_KEY = Context.key("loginUser");

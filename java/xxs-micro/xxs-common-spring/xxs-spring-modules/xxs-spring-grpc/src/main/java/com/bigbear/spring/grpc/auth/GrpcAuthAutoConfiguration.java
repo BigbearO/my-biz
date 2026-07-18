@@ -1,32 +1,71 @@
 package com.bigbear.spring.grpc.auth;
 
-
-import net.devh.boot.grpc.server.interceptor.GlobalServerInterceptorRegistry;
+import io.grpc.ClientInterceptor;
+import io.grpc.ServerInterceptor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.grpc.client.GlobalClientInterceptor;
+import org.springframework.grpc.server.GlobalServerInterceptor;
 
 /**
- * gRPC 鉴权透传自动装配。
+ * gRPC 鉴权透传自动装配（基于 Spring Boot 4.1 官方原生 spring-grpc）。
  *
- * <p>仅当消费方引入 devh {@code grpc-server-spring-boot-starter}（提供
- * {@code GlobalServerInterceptorRegistry}）时生效，将 {@link AuthServerInterceptor}
- * 经 {@code @GrpcGlobalServerInterceptor} 自动注册到 gRPC 服务端；
- * {@link AuthClientInterceptor} 注册为 bean 供 {@code @GrpcClient} 调用链使用。
+ * <p>零配置开箱即用：
+ * <ul>
+ *   <li>{@link AuthServerInterceptor} 经官方 {@code @GlobalServerInterceptor} 注册到所有 gRPC 服务，
+ *       将入站 Metadata 四头还原为 {@link com.bigbear.spring.auth.LoginUser}；</li>
+ *   <li>{@link AuthClientInterceptor} 经官方 {@code @GlobalClientInterceptor} 注册到所有 gRPC 通道，
+ *       出站时把当前用户透传给下游。</li>
+ * </ul>
  *
- * <p>未引入 devh 时本配置整体跳过，拦截器类仍可直接手动挂载到 gRPC ServerBuilder。
+ * <p>服务端 / 客户端能力分别按 {@code @ConditionalOnClass} 隔离，消费方即使只引入
+ * server 或只引入 client，对应拦截器也能正常装配，互不依赖。
  */
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnClass(GlobalServerInterceptorRegistry.class)
 public class GrpcAuthAutoConfiguration {
 
-    @Bean
-    public AuthServerInterceptor authServerInterceptor() {
-        return new AuthServerInterceptor();
+    /** 服务端全局拦截器：入站身份还原。 */
+    @Configuration(proxyBeanMethods = false)
+    @ConditionalOnClass(GlobalServerInterceptor.class)
+    static class ServerAuthConfiguration {
+
+        /**
+         * 注册 gRPC 服务端全局拦截器。
+         *
+         * <p>经 {@code @GlobalServerInterceptor} 自动作用于所有 gRPC 服务，
+         * 将 Metadata 四头还原为 {@link com.bigbear.spring.auth.LoginUser} 并写入 {@link com.bigbear.spring.auth.UserContext}。
+         *
+         * @return gRPC 服务端拦截器实例
+         */
+        @Bean
+        @Order(100)
+        @GlobalServerInterceptor
+        public ServerInterceptor authServerInterceptor() {
+            return new AuthServerInterceptor();
+        }
     }
 
-    @Bean
-    public AuthClientInterceptor authClientInterceptor() {
-        return new AuthClientInterceptor();
+    /** 客户端全局拦截器：出站身份透传。 */
+    @Configuration(proxyBeanMethods = false)
+    @ConditionalOnClass(GlobalClientInterceptor.class)
+    static class ClientAuthConfiguration {
+
+        /**
+         * 注册 gRPC 客户端全局拦截器。
+         *
+         * <p>经 {@code @GlobalClientInterceptor} 自动作用于所有 gRPC 通道，
+         * 出站时将 {@link com.bigbear.spring.auth.UserContext} 中的当前用户与
+         * 入站 {@code Authorization}/{@code X-Client-Id} 透传给下游。
+         *
+         * @return gRPC 客户端拦截器实例
+         */
+        @Bean
+        @Order(100)
+        @GlobalClientInterceptor
+        public ClientInterceptor authClientInterceptor() {
+            return new AuthClientInterceptor();
+        }
     }
 }

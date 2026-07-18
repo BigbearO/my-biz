@@ -18,6 +18,7 @@
     <module>xxs-spring-mybatis</module>
     <module>xxs-spring-auth</module>
     <module>xxs-spring-grpc</module>
+<!--    <module>xxs-spring-grpc-demo</module>-->
   </modules>
 
   <properties>
@@ -27,9 +28,7 @@
     <spring-cloud-alibaba.version>2025.1.0.0</spring-cloud-alibaba.version>
     <otel.version>2.20.1</otel.version>
 
-    <!-- gRPC / devh 版本（仅用于本模块编译，不传递给消费者） -->
-    <grpc.version>1.72.0</grpc.version>
-    <devh.grpc.version>3.1.0.RELEASE</devh.grpc.version>
+    <!-- gRPC 版本由 spring-boot-dependencies(4.1.0) 统一管理，无需此处声明 -->
   </properties>
 
   <dependencyManagement>
@@ -78,26 +77,6 @@
         <scope>import</scope>
       </dependency>
 
-      <!-- gRPC BOM（管理 io.grpc:* 版本，供 xxs-spring-grpc 编译） -->
-      <dependency>
-        <groupId>io.grpc</groupId>
-        <artifactId>grpc-bom</artifactId>
-        <version>${grpc.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-
-      <!-- devh gRPC Spring Boot Starter（仅 optional 编译 / 自动装配，不传递） -->
-      <dependency>
-        <groupId>net.devh</groupId>
-        <artifactId>grpc-server-spring-boot-starter</artifactId>
-        <version>${devh.grpc.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>net.devh</groupId>
-        <artifactId>grpc-client-spring-boot-starter</artifactId>
-        <version>${devh.grpc.version}</version>
-      </dependency>
     </dependencies>
   </dependencyManagement>
 
