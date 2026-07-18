@@ -13,6 +13,8 @@ import (
 	"bear-admin/app/ai/service/cmd/server/assets"
 	"bear-admin/app/ai/service/internal/service"
 
+	"bigbear.com/xxs-common/common-auth-go"
+
 	aipb "bear-admin/api/gen/go/ai/service/v1"
 )
 
@@ -21,6 +23,7 @@ type RestMiddlewares []middleware.Middleware
 func NewRestMiddleware(ctx *bootstrap.Context) RestMiddlewares {
 	var ms []middleware.Middleware
 	ms = append(ms, logging.Server(ctx.GetLogger()))
+	ms = append(ms, auth.HTTPServerMiddleware())
 
 	return ms
 }

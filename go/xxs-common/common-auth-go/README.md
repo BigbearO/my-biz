@@ -27,16 +27,25 @@ type LoginUser struct {
 }
 ```
 
-## 服务端中间件 `ServerMiddleware`
+## 服务端中间件
 
-直接挂进 `rpc.CreateGrpcServer` 的 middleware 链表：优先从 kratos gRPC Metadata 读取，REST 入站则回退读 `transport/http` 的 `RequestHeader()`，二者等价处理。`userID` 为空视为匿名，不注入 `LoginUser`。
+按传输协议选择对应的中间件：
+
+- **gRPC** → `GrpcServerMiddleware()`：从 kratos gRPC Metadata 读取
+- **HTTP/REST** → `HTTPServerMiddleware()`：从 `transport/http` 的 `RequestHeader()` 读取
+
+`userID` 为空视为匿名，不注入 `LoginUser`。
 
 ```go
 import "bigbear.com/xxs-common/common-auth-go/auth"
 
-// 拼到 middleware 链表
-middlewares = append(middlewares, auth.ServerMiddleware())
+// gRPC 服务
+middlewares = append(middlewares, auth.GrpcServerMiddleware())
 srv, err := rpc.CreateGrpcServer(cfg, middlewares...)
+
+// HTTP/REST 服务
+middlewares = append(middlewares, auth.HTTPServerMiddleware())
+srv, err := rpc.CreateRestServer(cfg, middlewares...)
 ```
 
 业务透明获取当前用户：

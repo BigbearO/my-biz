@@ -9,6 +9,8 @@ import (
 
 	"bear-admin/app/ai/service/internal/data"
 
+	"bigbear.com/xxs-common/common-auth-go"
+
 	aiconfpb "bear-admin/api/gen/go/ai/conf/v1"
 	aipb "bear-admin/api/gen/go/ai/service/v1"
 )
@@ -47,7 +49,12 @@ func (s *AiService) Chat(ctx context.Context, req *aipb.ChatRequest) (*aipb.Chat
 }
 
 func (s *AiService) SayHello(ctx context.Context, req *aipb.SayHelloRequest) (*aipb.SayHelloResponse, error) {
-	s.log.Info("SayHello receive name: ", req.GetName())
+	u, ok := auth.CurrentUser(ctx)
+	userId := ""
+	if ok {
+		userId = u.UserID
+	}
+	s.log.Info("SayHello receive name: ", req.GetName(), " | userId: ", userId)
 	return &aipb.SayHelloResponse{
 		Message: "hello " + req.GetName(),
 	}, nil

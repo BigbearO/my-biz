@@ -10,6 +10,8 @@ import (
 
 	"bear-admin/app/ai/service/internal/service"
 
+	"bigbear.com/xxs-common/common-auth-go"
+
 	aipb "bear-admin/api/gen/go/ai/service/v1"
 )
 
@@ -18,6 +20,7 @@ type GrpcMiddlewares []middleware.Middleware
 func NewGrpcMiddleware(ctx *bootstrap.Context) GrpcMiddlewares {
 	var ms []middleware.Middleware
 	ms = append(ms, logging.Server(ctx.GetLogger()))
+	ms = append(ms, auth.GrpcServerMiddleware())
 	return ms
 }
 
