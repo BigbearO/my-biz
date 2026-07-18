@@ -8,8 +8,8 @@ registry:
     password: nacos
     timeout: "5s"                  # 连接超时时间
     key: DEFAULT_GROUP
-    app_name: wind-admin
-    app_key: wind-admin
+    app_name: bear-admin
+    app_key: bear-admin
 
 
 config:
