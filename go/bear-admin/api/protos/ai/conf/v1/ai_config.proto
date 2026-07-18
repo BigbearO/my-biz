@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package ai.conf.v1;
+
+option go_package = "bear-admin/api/gen/go/ai/conf/v1;aiconfpb";
+
+// AI服务配置
+
+message AiConfig {
+    string api_key = 1;    // API密钥
+    string model = 2;      // 模型名称
+    string base_url = 3;   // API基础URL
+}
+
+message AiWrapper {
+    AiConfig ai =1 ;
+}

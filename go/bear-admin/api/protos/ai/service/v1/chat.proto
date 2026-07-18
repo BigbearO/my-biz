@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package ai.service.v1;
+
+import "google/api/annotations.proto";
+
+option go_package = "bear-admin/api/gen/go/ai/service/v1;aipb";
+
+// Chat服务
+service ChatService {
+  // 普通聊天 - 同步响应
+  rpc Chat(ChatRequest) returns (ChatResponse) {
+    option (google.api.http) = {
+      post: "/ai/v1/chat"
+      body: "*"
+    };
+  }
+
+
+}
+
+// 聊天请求
+message ChatRequest {
+  string message = 1; // 消息内容
+}
+
+// 聊天响应
+message ChatResponse {
+  string content = 1; // 响应内容
+}
+
+// 流式聊天响应
+message ChatStreamResponse {
+  string content = 1; // 流式响应的内容片段
+  bool done = 2; // 是否完成
+}
+
+// 客户端流式聊天请求
+message ChatClientRequest {
+  string message = 1; // 消息内容
+}
+
+// 客户端流式聊天响应
+message ChatClientResponse {
+  string content = 1; // 汇总响应内容
+}
