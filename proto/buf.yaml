@@ -1,0 +1,20 @@
+version: v2
+
+# proto 契约单一真源：Java（Spring gRPC）与 Go（kratos）共享同一份 .proto。
+# 本文件定义 Buf module、lint 与 breaking 规则，供 CI 执行 `buf lint` / `buf breaking`。
+modules:
+  - path: .
+    lint:
+      use:
+        - STANDARD
+    breaking:
+      use:
+        - FILE
+
+breaking:
+  use:
+    - FILE
+
+lint:
+  use:
+    - DEFAULT

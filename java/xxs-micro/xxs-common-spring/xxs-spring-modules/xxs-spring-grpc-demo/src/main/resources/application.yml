@@ -2,15 +2,36 @@ server:
   port: 8080
 
 spring:
+  application:
+    name: greeter
   grpc:
-    # gRPC 服务端：监听 9090
+    # gRPC 服务端：监听 9090（由 nacos starter 以 greeter-grpc 注册到 Nacos）
     server:
       port: 9090
       reflection:
-        enabled: false   # 生产环境关闭反射
-    # gRPC 客户端：greeter 通道指向本服务自身的 gRPC 端口（演示自调用透传）
+        enabled: false
+    # gRPC 客户端：greeter 通道通过 nacos 发现 greeter-grpc 服务
     client:
       channel:
         greeter:
-          target: static://localhost:9090
-          negotiation-type: plaintext   # 开发期无 TLS；生产改用 ssl.bundle
+          target: nacos://greeter-grpc
+  # 将 HTTP(8080) 以 greeter 注册到 Nacos（与 gRPC 端口分属两个服务名）
+  cloud:
+    nacos:
+      server-addr: 127.0.0.1:8848
+      username: nacos
+      password: nacos
+      discovery:
+        group: DEFAULT_GROUP
+        server-addr: 127.0.0.1:8848
+        namespace: xhf
+
+grpc:
+  nacos:
+    enabled: true
+    server-addr: 127.0.0.1:8848
+    namespace: xhf
+    server-registration: true
+    username: nacos
+    password: nacos
+    group: DEFAULT_GROUP

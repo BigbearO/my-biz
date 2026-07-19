@@ -11,12 +11,15 @@
 
   <artifactId>xxs-spring-bom</artifactId>
   <packaging>pom</packaging>
-  <description>自定义Spring Starter BOM - 仅管理自定义starter和第三方工具版本，不含Spring Boot/Cloud版本</description>
+  <description>自定义Spring Starter BOM</description>
 
   <properties>
     <maven.compiler.source>25</maven.compiler.source>
     <maven.compiler.target>25</maven.compiler.target>
     <rocketmq-spring.version>2.3.6</rocketmq-spring.version>
+    <spring-boot.version>4.1.0</spring-boot.version>
+    <spring-cloud.version>2025.1.2</spring-cloud.version>
+    <spring-cloud-alibaba.version>2025.1.0.0</spring-cloud-alibaba.version>
   </properties>
 
   <dependencyManagement>

@@ -1,0 +1,15 @@
+version: v2
+
+# Buf 生成规则：本地 protoc 插件生成 go + go-grpc 代码（Java 侧由 Maven 插件直接读取 .proto 生成，不依赖本文件）。
+# 用法（在 go 工程中指向本 module）：
+#   buf generate --path ../proto
+managed:
+  enabled: true
+
+plugins:
+  - local: protoc-gen-go
+    out: gen/go
+    opt: paths=source_relative
+  - local: protoc-gen-go-grpc
+    out: gen/go
+    opt: paths=source_relative

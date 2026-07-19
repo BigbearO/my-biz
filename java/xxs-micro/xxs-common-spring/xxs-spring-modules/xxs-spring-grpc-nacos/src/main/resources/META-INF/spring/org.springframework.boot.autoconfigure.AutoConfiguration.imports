@@ -1,0 +1,2 @@
+com.bigbear.spring.grpc.nacos.config.GrpcNacosClientAutoConfiguration
+com.bigbear.spring.grpc.nacos.config.GrpcNacosServerAutoConfiguration

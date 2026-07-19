@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.bigbear</groupId>
+    <artifactId>xxs-spring-modules</artifactId>
+    <version>${revision}</version>
+  </parent>
+
+  <artifactId>xxs-spring-grpc-nacos</artifactId>
+
+  <description>Spring gRPC + Nacos 服务发现与注册（自定义 nacos:// NameResolver + gRPC 端口注册）</description>
+
+  <dependencies>
+    <!-- 框架模块：官方 spring-grpc server/client 透传能力（@GrpcClient/@ImportGrpcClients 等） -->
+    <dependency>
+      <groupId>com.bigbear</groupId>
+      <artifactId>xxs-spring-grpc</artifactId>
+      <version>${revision}</version>
+    </dependency>
+
+    <!-- gRPC 核心 API（NameResolver / EquivalentAddressGroup 等，版本由 spring-boot-dependencies 管理） -->
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-api</artifactId>
+    </dependency>
+
+    <!-- Nacos 命名服务（NamingService / Instance / 订阅），版本由 spring-cloud-alibaba-dependencies 管理 -->
+    <dependency>
+      <groupId>com.alibaba.nacos</groupId>
+      <artifactId>nacos-client</artifactId>
+    </dependency>
+
+    <!-- Spring Boot 自动装配支撑（@ConfigurationProperties / @ConditionalOnProperty） -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-autoconfigure</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-context</artifactId>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- 配置元数据生成（IDE 提示 grpc.nacos.*） -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-configuration-processor</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+  </dependencies>
+</project>

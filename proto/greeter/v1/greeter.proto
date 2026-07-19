@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package greeter.v1;
+
+// Go 生成包路径（kratos 侧 `protoc-gen-go` 使用）
+option go_package = "my-biz/proto/greeter/v1;greeterpb";
+
+// Java 生成包路径（spring-grpc 侧 `protobuf-maven-plugin` 使用）
+option java_multiple_files = true;
+option java_package = "com.bigbear.spring.grpc.greeter";
+option java_outer_classname = "GreeterProto";
+
+// Greeter 演示服务：接收 name，回显 message。
+service Greeter {
+  rpc SayHello (HelloRequest) returns (HelloReply);
+}
+
+message HelloRequest {
+  string name = 1;
+}
+
+message HelloReply {
+  string message = 1;
+}

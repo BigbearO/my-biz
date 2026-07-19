@@ -18,7 +18,9 @@
     <module>xxs-spring-mybatis</module>
     <module>xxs-spring-auth</module>
     <module>xxs-spring-grpc</module>
-<!--    <module>xxs-spring-grpc-demo</module>-->
+    <module>xxs-spring-grpc-nacos</module>
+    <module>greeter-api</module>
+    <module>xxs-spring-grpc-demo</module>
   </modules>
 
   <properties>
@@ -73,6 +75,15 @@
         <groupId>io.opentelemetry.instrumentation</groupId>
         <artifactId>opentelemetry-instrumentation-bom</artifactId>
         <version>${otel.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+
+      <!-- 统一 gRPC 版本：重新导入 grpc-bom，覆盖 spring-cloud-alibaba BOM 可能引入的旧版 io.grpc（旧版无 defaultLoadBalancerPolicy 等 API） -->
+      <dependency>
+        <groupId>io.grpc</groupId>
+        <artifactId>grpc-bom</artifactId>
+        <version>1.80.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>

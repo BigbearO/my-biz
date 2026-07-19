@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.bigbear</groupId>
+    <artifactId>xxs-spring-modules</artifactId>
+    <version>${revision}</version>
+  </parent>
+
+  <artifactId>greeter-api</artifactId>
+  <description>Greeter gRPC 契约 SDK：基于共享 proto 生成 stub，并提供充血客户端</description>
+
+  <properties>
+    <!-- protobuf-maven-plugin 版本（与 spring-boot-dependencies 4.1.0 管理一致） -->
+    <protobuf-maven-plugin.version>5.1.4</protobuf-maven-plugin.version>
+    <!-- protoc / grpc-java 版本（与 spring-boot 4.1.0 管理一致，子模块需显式声明） -->
+    <protobuf-java.version>4.34.2</protobuf-java.version>
+    <grpc-java.version>1.80.0</grpc-java.version>
+    <!-- 共享 proto 契约根目录（与 Java 同仓，路径相对本模块 basedir：上 5 级到 my-biz，再进 proto） -->
+    <proto.dir>${project.basedir}/../../../../../proto</proto.dir>
+  </properties>
+
+  <dependencies>
+    <!-- 框架模块：透传 spring-boot-starter-grpc-client（@ImportGrpcClients 等客户端能力） -->
+    <dependency>
+      <groupId>com.bigbear</groupId>
+      <artifactId>xxs-spring-grpc</artifactId>
+      <version>${revision}</version>
+    </dependency>
+
+    <!-- protobuf 运行时（生成代码依赖，版本由 spring-boot-dependencies 管理） -->
+    <dependency>
+      <groupId>com.google.protobuf</groupId>
+      <artifactId>protobuf-java</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-stub</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-protobuf</artifactId>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <!-- proto → Java 代码生成：源目录指向同仓共享契约 E:/project/my-biz/proto -->
+      <plugin>
+        <groupId>io.github.ascopes</groupId>
+        <artifactId>protobuf-maven-plugin</artifactId>
+        <version>${protobuf-maven-plugin.version}</version>
+        <configuration>
+          <sourceDirectories>
+            <sourceDirectory>${proto.dir}</sourceDirectory>
+          </sourceDirectories>
+          <protoc kind="binary-maven">
+            <version>${protobuf-java.version}</version>
+          </protoc>
+          <plugins>
+            <plugin kind="binary-maven">
+              <groupId>io.grpc</groupId>
+              <artifactId>protoc-gen-grpc-java</artifactId>
+              <version>${grpc-java.version}</version>
+            </plugin>
+          </plugins>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>
