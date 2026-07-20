@@ -33,6 +33,13 @@
       <version>${revision}</version>
     </dependency>
 
+    <!-- User 契约 SDK：生成 stub + 充血 UserClient -->
+    <dependency>
+      <groupId>com.bigbear</groupId>
+      <artifactId>user-api</artifactId>
+      <version>${revision}</version>
+    </dependency>
+
     <!-- REST 入站，演示「HTTP → gRPC」全链路 -->
     <dependency>
       <groupId>org.springframework.boot</groupId>

@@ -56,6 +56,10 @@
           <sourceDirectories>
             <sourceDirectory>${proto.dir}</sourceDirectory>
           </sourceDirectories>
+          <!-- 仅生成本模块契约，避免与 user-api 跨模块重复生成同名类 -->
+          <includes>
+            <include>greeter/v1/greeter.proto</include>
+          </includes>
           <protoc kind="binary-maven">
             <version>${protobuf-java.version}</version>
           </protoc>
