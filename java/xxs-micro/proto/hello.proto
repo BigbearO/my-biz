@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package com.bigbear.quarkus.template.grpc;
+
+option java_package = "com.bigbear.quarkus.template.grpc";
+option java_multiple_files = true;
+
+// 模板 Greeter 服务：演示跨服务 gRPC 调用（经 Nacos 发现 + round_robin 负载均衡）
+service Greeter {
+  // 单向问候调用
+  rpc SayHello (HelloRequest) returns (HelloReply) {}
+}
+
+// 请求：用户名
+message HelloRequest {
+  string name = 1;
+}
+
+// 响应：问候语
+message HelloReply {
+  string message = 1;
+}

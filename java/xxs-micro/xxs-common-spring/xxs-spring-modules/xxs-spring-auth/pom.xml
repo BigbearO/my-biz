@@ -37,7 +37,7 @@
     <dependency>
       <groupId>com.alibaba</groupId>
       <artifactId>transmittable-thread-local</artifactId>
-    </dependency>
+     </dependency>
 
     <dependency>
       <groupId>org.projectlombok</groupId>

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.bigbear</groupId>
+    <artifactId>xxs-quarkus-template</artifactId>
+    <version>${revision}</version>
+  </parent>
+
+  <artifactId>template-consumer</artifactId>
+  <name>template-consumer</name>
+  <description>模板服务消费者：REST 入口 + gRPC 客户端（经 Stork+Nacos 发现 provider-grpc）+ 自身 HTTP 注册</description>
+
+  <dependencies>
+    <!-- gRPC 客户端运行时（含 Stork 集成，用于 stork:// 发现） -->
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-grpc</artifactId>
+    </dependency>
+    <!-- REST（JAX-RS Reactive）入口 -->
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-rest</artifactId>
+    </dependency>
+    <!-- 健康检查 -->
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-smallrye-health</artifactId>
+    </dependency>
+    <!-- 官方配置中心扩展（HTTP 直连 Nacos） -->
+    <dependency>
+      <groupId>io.quarkiverse.config</groupId>
+      <artifactId>quarkus-config-nacos</artifactId>
+      <version>2.5.0</version>
+    </dependency>
+    <!-- 自研 Nacos Stork 适配：服务注册 / 发现（type=nacos） -->
+    <dependency>
+      <groupId>com.bigbear</groupId>
+      <artifactId>xxs-quarkus-nacos-discovery</artifactId>
+      <version>${revision}</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <!-- 构建期将中心 proto（仓库根 proto/）拷贝到默认扫描目录 src/main/proto，
+           使 quarkus:generate-code 能稳定生成 gRPC 桩代码；proto 单一真源仍集中在仓库根 proto/ -->
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-proto-from-center</id>
+            <phase>initialize</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.basedir}/src/main/proto</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${project.basedir}/../../proto</directory>
+                  <includes>
+                    <include>*.proto</include>
+                  </includes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- Quarkus 构建插件：generate-code 目标在 generate-sources 阶段依据 proto 目录生成 gRPC 桩代码；
+           缺它则 mvn compile 找不到 Greeter/HelloReply 等符号。写法与 xxs-quarkus-restrpc 保持一致。 -->
+      <plugin>
+        <groupId>${quarkus.platform.group-id}</groupId>
+        <artifactId>quarkus-maven-plugin</artifactId>
+        <version>${quarkus.platform.version}</version>
+        <extensions>true</extensions>
+        <executions>
+          <execution>
+            <goals>
+              <goal>build</goal>
+              <goal>generate-code</goal>
+              <goal>generate-code-tests</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

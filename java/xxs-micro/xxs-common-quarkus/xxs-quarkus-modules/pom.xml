@@ -23,6 +23,7 @@
     <module>xxs-quarkus-log</module>
     <module>xxs-quarkus-restrpc</module>
     <module>xxs-quarkus-mybatis</module>
+    <module>xxs-quarkus-nacos-discovery</module>
   </modules>
 
 

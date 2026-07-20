@@ -33,6 +33,7 @@
     <module>xxs-component</module>
     <module>xxs-common-bom</module>
     <module>xxs-common-module</module>
+    <module>xxs-quarkus-template</module>
   </modules>
   <dependencyManagement>
     <dependencies>

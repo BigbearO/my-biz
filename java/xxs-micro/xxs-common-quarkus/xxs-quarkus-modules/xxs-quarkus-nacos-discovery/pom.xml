@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.bigbear</groupId>
+    <artifactId>xxs-quarkus-modules</artifactId>
+    <version>${revision}</version>
+  </parent>
+
+  <artifactId>xxs-quarkus-nacos-discovery</artifactId>
+  <name>xxs-quarkus-nacos-discovery</name>
+  <description>Nacos 服务发现与注册 Stork 适配器：纯库实现，通过 SPI 被 Quarkus 自动发现，低耦合可复用于任意 Stork 应用</description>
+
+  <dependencies>
+    <!-- Stork API：仅编译期注解（@ServiceDiscoveryType / @ServiceRegistrarType 等），运行时由 quarkus-smallrye-stork 提供 -->
+    <dependency>
+      <groupId>io.smallrye.stork</groupId>
+      <artifactId>stork-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <!-- Stork 核心：CachingServiceDiscovery / DefaultServiceInstance / ServiceInstanceIds 等运行时依赖 -->
+    <dependency>
+      <groupId>io.smallrye.stork</groupId>
+      <artifactId>stork-core</artifactId>
+    </dependency>
+    <!-- Nacos 客户端：服务注册与发现的 SDK（版本由 xxs-dependencies BOM 统一托管，与官方配置中心扩展共用同线） -->
+    <dependency>
+      <groupId>com.alibaba.nacos</groupId>
+      <artifactId>nacos-client</artifactId>
+    </dependency>
+    <!-- MicroProfile Config API：编译期用于读取 quarkus.config.source.nacos.* 作为 Nacos 连接参数默认回退（运行时由 Quarkus 提供） -->
+    <dependency>
+      <groupId>org.eclipse.microprofile.config</groupId>
+      <artifactId>microprofile-config-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <!-- Lombok：充血模型样板代码简化（编译期，scope=provided） -->
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+</project>

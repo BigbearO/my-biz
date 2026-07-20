@@ -32,6 +32,7 @@
     <spring-ai-util.version>0.7.0</spring-ai-util.version>
     <spring-ai-mcp-security.version>0.1.11</spring-ai-mcp-security.version>
     <ttl.version>2.14.5</ttl.version>
+    <nacos.client.version>2.5.1</nacos.client.version>
   </properties>
 
   <dependencyManagement>
@@ -177,8 +178,8 @@
 
       <!-- Fesod -->
       <dependency>
-        <groupId>org.apache.fesodl</groupId>
-        <artifactId>fesod</artifactId>
+        <groupId>org.apache.fesod</groupId>
+        <artifactId>fesod-bom</artifactId>
         <version>${fesod.version}</version>
       </dependency>
 
@@ -193,6 +194,13 @@
         <groupId>com.alibaba</groupId>
         <artifactId>transmittable-thread-local</artifactId>
         <version>${ttl.version}</version>
+      </dependency>
+
+      <!-- Nacos 客户端：官方 quarkus-config-nacos 扩展走 HTTP，本适配器独立引入 SDK 做服务注册/发现 -->
+      <dependency>
+        <groupId>com.alibaba.nacos</groupId>
+        <artifactId>nacos-client</artifactId>
+        <version>${nacos.client.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.bigbear</groupId>
+    <artifactId>xxs-common-quarkus</artifactId>
+    <version>${revision}</version>
+    <relativePath>../xxs-common-quarkus/pom.xml</relativePath>
+  </parent>
+
+  <artifactId>xxs-quarkus-template</artifactId>
+  <packaging>pom</packaging>
+  <name>xxs-quarkus-template</name>
+  <description>Quarkus 生产落地模板：Nacos 服务注册/发现 + 官方配置中心 + gRPC 双注册（provider / consumer）</description>
+
+  <modules>
+    <module>template-provider</module>
+    <module>template-consumer</module>
+  </modules>
+</project>
