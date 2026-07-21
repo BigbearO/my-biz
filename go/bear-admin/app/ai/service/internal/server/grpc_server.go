@@ -13,6 +13,7 @@ import (
 	"bigbear.com/xxs-common/common-auth-go"
 
 	aipb "bear-admin/api/gen/go/ai/service/v1"
+	userpb "bear-admin/api/gen/go/user/v1"
 )
 
 type GrpcMiddlewares []middleware.Middleware
@@ -30,6 +31,7 @@ func NewGrpcServer(
 	middlewares GrpcMiddlewares,
 
 	aiService *service.AiService,
+	userService *service.UserService,
 ) *grpc.Server {
 	cfg := ctx.GetConfig()
 
@@ -44,6 +46,7 @@ func NewGrpcServer(
 
 	aipb.RegisterChatServiceServer(srv, aiService)
 	aipb.RegisterHelloServiceServer(srv, aiService)
+	userpb.RegisterUserServiceServer(srv, userService)
 
 	return srv
 }
