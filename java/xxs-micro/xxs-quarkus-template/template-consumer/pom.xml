@@ -45,6 +45,11 @@
       <artifactId>xxs-quarkus-nacos-discovery</artifactId>
       <version>${revision}</version>
     </dependency>
+    <!-- Stork 负载均衡器：random（2.7.9 内置类型，quarkus-smallrye-stork 仅带 stork-core，需显式引入） -->
+    <dependency>
+      <groupId>io.smallrye.stork</groupId>
+      <artifactId>stork-load-balancer-random</artifactId>
+    </dependency>
   </dependencies>
 
   <build>

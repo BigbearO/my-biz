@@ -20,8 +20,10 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * Nacos 服务注册实现。
  * <p>
- * Quarkus 启动时调用 {@code registerServiceInstance(serviceName, host, port)}（3 参数默认实现会转调本类的 4 参数实现），
- * 完成实例注册；应用关闭时由 Quarkus Stork 调用 {@code deregisterServiceInstance(serviceName)} 注销。
+ * Quarkus 的自动注册 gate 仅覆盖 Consul/Eureka/Static，不触发自定义 {@code nacos} 注册器，
+ * 故注册动作由 {@link NacosStorkRegistration} 在应用启动后调用本类的 {@link #registerNow()} 完成；
+ * 应用关闭时调用 {@link #deregisterServiceInstance(String)} 注销。
+ * 注册 IP/端口在装配期由 {@link NacosServiceRegistrarLoader} 经 {@code service-registrar.parameters.host/port} 透传保存。
  * 注册时按服务名后缀推断协议（{@code -grpc} 视为 gRPC），写入 Nacos 实例元数据，供发现侧识别。
  *
  * @author xxs-micro
@@ -34,9 +36,17 @@ public class NacosServiceRegistrar implements ServiceRegistrar<NacosMetadataKey>
 
     private final NacosRegistrarConfiguration config;
     private final NacosNamingClient namingClient;
+    /** 注册到 Nacos 的服务名（等同 Stork 注册名） */
+    private final String serviceName;
+    /** 注册实例 IP（来自 service-registrar.parameters.host） */
+    private final String ipAddress;
+    /** 注册实例端口（来自 service-registrar.parameters.port） */
+    private final int defaultPort;
 
     /**
-     * 构造 Nacos 服务注册。
+     * 构造 Nacos 服务注册（默认 IP/端口）。
+     * <p>
+     * 供 Stork 原生 Provider 路径复用，缺省 localhost:8080。
      *
      * @param config                Nacos 服务注册配置
      * @param serviceRegistrarName  Stork 注册名
@@ -44,8 +54,46 @@ public class NacosServiceRegistrar implements ServiceRegistrar<NacosMetadataKey>
      */
     public NacosServiceRegistrar(NacosRegistrarConfiguration config, String serviceRegistrarName,
             StorkInfrastructure infrastructure) {
+        this(config, serviceRegistrarName, infrastructure, "localhost", 8080);
+    }
+
+    /**
+     * 构造携带注册 IP/端口的 Nacos 服务注册。
+     * <p>
+     * IP/端口由 {@link NacosServiceRegistrarLoader} 从 {@code service-registrar.parameters.host/port} 取出并透传，
+     * 应用启动后由 {@link NacosStorkRegistration} 调用 {@link #registerNow()} 完成注册。
+     *
+     * @param config                Nacos 服务注册配置
+     * @param serviceRegistrarName  Stork 注册名（同时作为 Nacos 服务名）
+     * @param infrastructure        Stork 基础设施
+     * @param ipAddress             注册实例 IP
+     * @param defaultPort           注册实例端口
+     */
+    public NacosServiceRegistrar(NacosRegistrarConfiguration config, String serviceRegistrarName,
+            StorkInfrastructure infrastructure, String ipAddress, int defaultPort) {
+        this.serviceName = serviceRegistrarName;
+        this.ipAddress = ipAddress;
+        this.defaultPort = defaultPort;
         this.config = config;
         this.namingClient = NacosNamingClient.getInstance();
+    }
+
+    /**
+     * 应用启动后由 {@link NacosStorkRegistration} 触发，向 Nacos 注册本实例。
+     *
+     * @return 注册完成的 Uni 信号
+     */
+    public Uni<Void> registerNow() {
+        return registerServiceInstance(serviceName, null, ipAddress, defaultPort);
+    }
+
+    /**
+     * 返回注册到 Nacos 的服务名。
+     *
+     * @return 服务名
+     */
+    public String getServiceName() {
+        return serviceName;
     }
 
     @Override

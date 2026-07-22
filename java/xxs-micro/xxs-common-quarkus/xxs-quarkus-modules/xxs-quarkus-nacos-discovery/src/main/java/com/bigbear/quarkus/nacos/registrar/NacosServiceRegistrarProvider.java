@@ -38,4 +38,38 @@ public class NacosServiceRegistrarProvider
                                                                      String serviceRegistrarName, StorkInfrastructure infrastructure) {
         return new NacosServiceRegistrar(config, serviceRegistrarName, infrastructure);
     }
+
+    /**
+     * 创建携带注册 IP/端口的 Nacos 服务注册器。
+     * <p>
+     * Quarkus 的自动注册 gate 仅覆盖 Consul/Eureka/Static，不触发自定义 {@code nacos} 注册器，
+     * 因此由 {@link NacosServiceRegistrarLoader} 在装配阶段取出 {@code host/port} 并透传至此，
+     * 最终由 {@link NacosStorkRegistration} 在应用启动后调用 {@code registerNow()} 完成注册。
+     *
+     * @param config                Nacos 服务注册配置
+     * @param serviceRegistrarName  Stork 注册名（同时作为 Nacos 服务名）
+     * @param infrastructure        Stork 基础设施
+     * @param host                  注册实例 IP（来自 service-registrar.parameters.host）
+     * @param port                  注册实例端口（来自 service-registrar.parameters.port，字符串形式）
+     * @return Nacos 服务注册器
+     */
+    public ServiceRegistrar<NacosMetadataKey> createServiceRegistrar(NacosRegistrarConfiguration config,
+                                                                     String serviceRegistrarName, StorkInfrastructure infrastructure,
+                                                                     String host, String port) {
+        return new NacosServiceRegistrar(config, serviceRegistrarName, infrastructure, host, parsePort(port));
+    }
+
+    /**
+     * 解析注册端口，非法值回退 8080。
+     *
+     * @param value 端口字符串
+     * @return 端口整数
+     */
+    private static int parsePort(String value) {
+        try {
+            return value == null || value.isBlank() ? 8080 : Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            return 8080;
+        }
+    }
 }

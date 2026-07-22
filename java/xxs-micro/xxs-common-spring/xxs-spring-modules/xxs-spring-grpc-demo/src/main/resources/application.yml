@@ -18,7 +18,7 @@ spring:
         # user 通道通过 nacos 发现 bear-admin（Go 提供方）gRPC 实例
         user:
 #          todo 这里改一下
-          target: nacos://bear-admin-http
+          target: nacos://bear-ai.grpc
   # 将 HTTP(8080) 以 greeter 注册到 Nacos（与 gRPC 端口分属两个服务名）
   cloud:
     nacos:
