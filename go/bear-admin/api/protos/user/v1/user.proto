@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package user.v1;
+
+// Go 生成包路径（bear-admin 侧 protoc-gen-go 使用）
+option go_package = "bear-admin/api/gen/go/user/v1;userpb";
+
+// Java 生成包路径（spring-grpc 侧 protobuf-maven-plugin 使用）
+option java_multiple_files = true;
+option java_package = "com.bigbear.spring.grpc.user";
+option java_outer_classname = "UserProto";
+
+// User 服务：按用户标识查询用户基本信息。
+service UserService {
+  rpc GetUser (GetUserRequest) returns (GetUserReply);
+}
+
+message GetUserRequest {
+  string id = 1;
+}
+
+message GetUserReply {
+  string id = 1;
+  string name = 2;
+  int32 age = 3;
+}

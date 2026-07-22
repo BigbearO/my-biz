@@ -14,6 +14,13 @@ import (
 	"github.com/tx7do/kratos-bootstrap/bootstrap"
 )
 
+import (
+	_ "github.com/tx7do/kratos-bootstrap/config/nacos"
+	_ "github.com/tx7do/kratos-bootstrap/registry/nacos"
+)
+
+// Injectors from wire.go:
+
 // initApp 初始化 kratos 应用的 Wire provider 入口。
 // initApp initializes the Wire provider entry for the kratos application.
 //
@@ -30,7 +37,8 @@ func initApp(context *bootstrap.Context) (*kratos.App, func(), error) {
 	aiService := service.NewAiService(context, aiRepo)
 	httpServer := server.NewRestServer(context, restMiddlewares, aiService)
 	grpcMiddlewares := server.NewGrpcMiddleware(context)
-	grpcServer := server.NewGrpcServer(context, grpcMiddlewares, aiService)
+	userService := service.NewUserService()
+	grpcServer := server.NewGrpcServer(context, grpcMiddlewares, aiService, userService)
 	app := newApp(context, httpServer, grpcServer)
 	return app, func() {
 	}, nil
