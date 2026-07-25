@@ -1,6 +1,19 @@
 ## 说明
 
-todo 服务间鉴权模仿pig inner, 拦截器，只是升级一点，加解密嘛，对的上才调用，现在不管
+
+
+1 使用
+spring boot  集成otel 只在部署时挂 -javaagent:opentelemetry-javaagent.jar + 几个 OTEL_* 环境变量
+
+找一找之前 郎的总结
+
+quarkus 采用quarkus-otel 然后配置参考配置文件即可
+
+2  服务间鉴权模仿pig inner, 拦截器，只是升级一点，加解密嘛，对的上才调用，现在不管
+
+
+
+早期待整理
 
 1 这个项目 作为java 通用架构 公共依赖构建，无论是 spring 还是quarkus
 项目名带quarkus的，就是quarkus，带spring的是spring依赖

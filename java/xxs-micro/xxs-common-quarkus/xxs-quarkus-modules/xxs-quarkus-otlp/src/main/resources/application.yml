@@ -1,20 +1,12 @@
+
 quarkus:
   otel:
-    metrics:
-      enabled: true
-    logs:
-       enabled: true
-
-#       tracing 默认开启
-    exporter:
-      otlp:
-        endpoint: http://localhost:4317 # 一样的地址用这个配置，不然用下面单独配置
-        logs:
-          endpoint: 'http://logs-uri:4317 '
-        metrics:
-          endpoint: 'http://metrics-uri:4317 '
-        traces:
-          endpoint: 'http://trace-uri:4317 '
-
+    service.name: ${quarkus.application.name}
+    exporter.otlp.endpoint: http://otel-collector:4317
+    propagators: tracecontext,baggage
+    traces.sampler: parentbased_always_on
+    logs.enabled: false
+    traces.enabled: true  # ← 仍采集链路追踪
+    metrics.enabled: true # ← 仍采集指标
 
 
