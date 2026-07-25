@@ -11,6 +11,8 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/spf13/viper"
 	"github.com/tx7do/kratos-bootstrap/bootstrap"
+
+	"bigbear.com/xxs-common/xxs-otel-log/logx"
 )
 
 type AiRepo struct {
@@ -49,7 +51,7 @@ func NewAiRepo(ctx *bootstrap.Context) *AiRepo {
 	})
 
 	return &AiRepo{
-		log:    ctx.NewLoggerHelper("ai/repo"),
+		log:    logx.NewTracedHelper(ctx.GetLogger(), "ai/repo"),
 		agent:  agent,
 		runner: runner,
 	}

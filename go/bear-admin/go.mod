@@ -4,7 +4,9 @@ go 1.26.3
 
 replace github.com/tx7do/kratos-bootstrap/registry/nacos => /home/xxs/桌面/project/go/wind/kratos-bootstrap/registry/nacos
 
-replace bigbear.com/xxs-common/common-auth-go => /home/xxs/桌面/project/my-biz/go/xxs-common/common-auth-go
+replace bigbear.com/xxs-common/common-auth-go => ../xxs-common/common-auth-go
+
+replace bigbear.com/xxs-common/xxs-otel-log => ../xxs-common/xxs-otel-log
 
 require (
 	github.com/go-kratos/kratos/v2 v2.9.2
@@ -27,6 +29,7 @@ require (
 
 require (
 	bigbear.com/xxs-common/common-auth-go v0.0.0
+	bigbear.com/xxs-common/xxs-otel-log v0.0.0
 	github.com/alibabacloud-go/alibabacloud-gateway-pop v0.1.3 // indirect
 	github.com/alibabacloud-go/alibabacloud-gateway-spi v0.0.5 // indirect
 	github.com/alibabacloud-go/darabonba-array v0.1.0 // indirect

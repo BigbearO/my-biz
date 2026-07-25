@@ -10,6 +10,7 @@ import (
 	"bear-admin/app/ai/service/internal/data"
 
 	"bigbear.com/xxs-common/common-auth-go"
+	"bigbear.com/xxs-common/xxs-otel-log/logx"
 
 	aiconfpb "bear-admin/api/gen/go/ai/conf/v1"
 	aipb "bear-admin/api/gen/go/ai/service/v1"
@@ -25,23 +26,23 @@ type AiService struct {
 func NewAiService(ctx *bootstrap.Context, repo *data.AiRepo) *AiService {
 	svc := &AiService{
 		aiRepo: repo,
-		log:    ctx.NewLoggerHelper("ai/service"),
+		log:    logx.NewTracedHelper(ctx.GetLogger(), "ai/service"),
 	}
 
 	if cfg, ok := ctx.GetCustomConfig("AiWrapper"); ok {
 		wrapper := cfg.(*aiconfpb.AiWrapper)
 		if wrapper.Ai != nil {
-			svc.log.Info("AI Config loaded - apiKey: ", wrapper.Ai.GetApiKey(), ", model: ", wrapper.Ai.GetModel(), ", baseUrl: ", wrapper.Ai.GetBaseUrl())
+			svc.log.WithContext(ctx).Info("AI Config loaded - apiKey: ", wrapper.Ai.GetApiKey(), ", model: ", wrapper.Ai.GetModel(), ", baseUrl: ", wrapper.Ai.GetBaseUrl())
 		}
 	} else {
-		svc.log.Warn("AI Config not found")
+		svc.log.WithContext(ctx).Warn("AI Config not found")
 	}
 
 	return svc
 }
 
 func (s *AiService) Chat(ctx context.Context, req *aipb.ChatRequest) (*aipb.ChatResponse, error) {
-	s.log.Info("Chat receive message: ", req.GetMessage())
+	s.log.WithContext(ctx).Info("Chat receive message: ", req.GetMessage())
 
 	return &aipb.ChatResponse{
 		Content: "Echo: " + req.GetMessage(),
@@ -54,7 +55,7 @@ func (s *AiService) SayHello(ctx context.Context, req *aipb.SayHelloRequest) (*a
 	if ok {
 		userId = u.UserID
 	}
-	s.log.Info("SayHello receive name: ", req.GetName(), " | userId: ", userId)
+	s.log.WithContext(ctx).Info("SayHello receive name: ", req.GetName(), " | userId: ", userId)
 	return &aipb.SayHelloResponse{
 		Message: "hello " + req.GetName(),
 	}, nil
