@@ -2,7 +2,7 @@ logger:
   type: fluent                            # 使用 Fluentd Forward 协议推送日志
 
   fluent:
-    endpoint: "tcp://fluent-bit:24224"    # 指向 Fluent Bit forward 端口
+    endpoint: "tcp://192.168.50.45:24224"    # 指向 Fluent Bit forward 端口
 
   zap:
     level: "debug"

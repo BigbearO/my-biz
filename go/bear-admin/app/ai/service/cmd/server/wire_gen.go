@@ -16,7 +16,9 @@ import (
 
 import (
 	_ "github.com/tx7do/kratos-bootstrap/config/nacos"
+	_ "github.com/tx7do/kratos-bootstrap/logger/fluent"
 	_ "github.com/tx7do/kratos-bootstrap/registry/nacos"
+	_ "github.com/tx7do/kratos-bootstrap/tracer"
 )
 
 // Injectors from wire.go:
@@ -37,7 +39,7 @@ func initApp(context *bootstrap.Context) (*kratos.App, func(), error) {
 	aiService := service.NewAiService(context, aiRepo)
 	httpServer := server.NewRestServer(context, restMiddlewares, aiService)
 	grpcMiddlewares := server.NewGrpcMiddleware(context)
-	userService := service.NewUserService()
+	userService := service.NewUserService(context)
 	grpcServer := server.NewGrpcServer(context, grpcMiddlewares, aiService, userService)
 	app := newApp(context, httpServer, grpcServer)
 	return app, func() {

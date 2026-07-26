@@ -24,7 +24,14 @@ require (
 	github.com/cloudwego/eino-ext/components/model/openai v0.1.13
 	github.com/spf13/viper v1.21.0
 	github.com/tx7do/kratos-bootstrap/config/nacos v0.2.3
+	github.com/tx7do/kratos-bootstrap/logger/fluent v0.1.2
 	github.com/tx7do/kratos-bootstrap/registry/nacos v0.2.2
+)
+
+require (
+	github.com/fluent/fluent-logger-golang v1.10.1 // indirect
+	github.com/philhofer/fwd v1.2.0 // indirect
+	github.com/tinylib/msgp v1.6.1 // indirect
 )
 
 require (
@@ -165,7 +172,7 @@ require (
 	github.com/tx7do/kratos-bootstrap/config v0.2.2 // indirect
 	github.com/tx7do/kratos-bootstrap/logger v0.1.2 // indirect
 	github.com/tx7do/kratos-bootstrap/registry v0.2.2 // indirect
-	github.com/tx7do/kratos-bootstrap/tracer v0.1.3 // indirect
+	github.com/tx7do/kratos-bootstrap/tracer v0.1.3
 	github.com/vearutop/statigz v1.5.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect

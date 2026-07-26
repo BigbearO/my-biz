@@ -29,13 +29,14 @@ func NewAiService(ctx *bootstrap.Context, repo *data.AiRepo) *AiService {
 		log:    logx.NewTracedHelper(ctx.GetLogger(), "ai/service"),
 	}
 
+	var initCtx = context.Background()
 	if cfg, ok := ctx.GetCustomConfig("AiWrapper"); ok {
 		wrapper := cfg.(*aiconfpb.AiWrapper)
 		if wrapper.Ai != nil {
-			svc.log.WithContext(ctx).Info("AI Config loaded - apiKey: ", wrapper.Ai.GetApiKey(), ", model: ", wrapper.Ai.GetModel(), ", baseUrl: ", wrapper.Ai.GetBaseUrl())
+			svc.log.WithContext(initCtx).Info("AI Config loaded - apiKey: ", wrapper.Ai.GetApiKey(), ", model: ", wrapper.Ai.GetModel(), ", baseUrl: ", wrapper.Ai.GetBaseUrl())
 		}
 	} else {
-		svc.log.WithContext(ctx).Warn("AI Config not found")
+		svc.log.WithContext(initCtx).Warn("AI Config not found")
 	}
 
 	return svc
