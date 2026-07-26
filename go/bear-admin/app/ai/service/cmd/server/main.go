@@ -21,7 +21,7 @@ import (
 	//_ "github.com/tx7do/kratos-bootstrap/config/polaris"
 
 	//_ "github.com/tx7do/kratos-bootstrap/logger/aliyun"
-	//_ "github.com/tx7do/kratos-bootstrap/logger/fluent"
+	_ "github.com/tx7do/kratos-bootstrap/logger/fluent"
 	//_ "github.com/tx7do/kratos-bootstrap/logger/logrus"
 	//_ "github.com/tx7do/kratos-bootstrap/logger/tencent"
 	//_ "github.com/tx7do/kratos-bootstrap/logger/zap"
