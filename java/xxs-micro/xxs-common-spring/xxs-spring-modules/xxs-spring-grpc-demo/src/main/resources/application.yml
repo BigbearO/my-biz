@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: 8088
 
 spring:
   application:
@@ -7,7 +7,7 @@ spring:
   grpc:
     # gRPC 服务端：监听 9090（由 nacos starter 以 greeter-grpc 注册到 Nacos）
     server:
-      port: 9090
+      port: 9099
       reflection:
         enabled: false
     # gRPC 客户端：greeter 通道通过 nacos 发现 greeter-grpc 服务

@@ -1,0 +1,25 @@
+
+
+services:
+#  jaeger:
+#    image: jaegertracing/all-in-one:1.72.0
+#    container_name: jaeger
+#    ports:
+#      - "16686:16686"   # UI
+#      - "14250:14250"   # gRPC 端口，collector 会往这里写
+#    environment:
+#      COLLECTOR_OTLP_ENABLED: "true"   # 让 Jaeger 直接支持 OTLP（可选，下面我们用 collector 转）
+
+  # ---------- OpenTelemetry Collector ----------
+  otel-collector:
+#    image: otel/opentelemetry-collector:0.138.0
+    container_name: otel
+    image: otel/opentelemetry-collector-contrib:0.158.0
+    volumes:
+      - ./otlp/otel-collector-config.yml:/etc/otel-collector-config.yml
+    command: ["--config=/etc/otel-collector-config.yml"]
+    ports:
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+#    depends_on:
+#      - jaeger

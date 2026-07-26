@@ -19,4 +19,12 @@
     <module>template-provider</module>
     <module>template-consumer</module>
   </modules>
+
+  <dependencies>
+    <!-- GELF 网络推送日志到 Fluent Bit -->
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-logging-gelf</artifactId>
+    </dependency>
+  </dependencies>
 </project>

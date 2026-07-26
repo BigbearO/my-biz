@@ -1,0 +1,20 @@
+
+services:
+  fluent-bit:
+    image: fluent/fluent-bit:4.0
+    container_name: fluent-bit
+    volumes:
+      - ./fluent:/conf:rw
+    command: ["/fluent-bit/bin/fluent-bit","-c","/conf/fluent-bit.conf"]
+    ports:
+      - "5170:5170"       # TCP JSON 输入（Spring）
+      - "24224:24224"     # Fluentd Forward（Go-Kratos）
+      - "12201:12201"     # GELF TCP（Quarkus）
+    networks:
+      - observability
+    depends_on:
+      - openobserve
+
+networks:
+  observability:
+    driver: bridge

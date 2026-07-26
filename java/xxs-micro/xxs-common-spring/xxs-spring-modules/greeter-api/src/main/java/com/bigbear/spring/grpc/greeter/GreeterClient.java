@@ -2,6 +2,7 @@ package com.bigbear.spring.grpc.greeter;
 
 import com.bigbear.spring.grpc.greeter.GreeterGrpc.GreeterBlockingStub;
 import io.grpc.StatusRuntimeException;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,9 +12,9 @@ import org.slf4j.LoggerFactory;
  * <p>封装 gRPC 阻塞 Stub，向调用方暴露语义化方法，屏蔽 Protocol 细节与异常转译。
  * 由 {@link GreeterClientAutoConfiguration} 装配为 Spring Bean。
  */
+@Slf4j
 public class GreeterClient {
 
-    private static final Logger log = LoggerFactory.getLogger(GreeterClient.class);
 
     /** Greeter 阻塞 Stub（由 Spring gRPC 按通道 greeter 创建）。 */
     private final GreeterBlockingStub stub;
@@ -35,6 +36,7 @@ public class GreeterClient {
      * @throws StatusRuntimeException 调用失败（网络/服务不可用）时向上抛出
      */
     public String sayHello(String name) {
+        log.info("hello={}", name);
         try {
             return stub.sayHello(HelloRequest.newBuilder().setName(name == null ? "" : name).build()).getMessage();
         } catch (StatusRuntimeException e) {

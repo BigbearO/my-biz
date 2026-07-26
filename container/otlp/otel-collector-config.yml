@@ -1,0 +1,27 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:          # 端口 4317
+        endpoint: 0.0.0.0:4317
+      http:          # 端口 4318
+        endpoint: 0.0.0.0:4318
+        cors:
+          allowed_origins:
+            - http://*
+            - https://*
+
+processors:
+  batch:
+
+exporters:
+  otlp:
+    endpoint: openobserve:5081          # 送到 jaeger grpc
+    tls:
+      insecure: true
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp]

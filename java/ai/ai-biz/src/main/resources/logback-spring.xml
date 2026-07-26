@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration debug="false" scan="false">
-    <springProperty scop="context" name="spring.application.name" source="spring.application.name" defaultValue=""/>
+    <springProperty scope="context" name="spring.application.name" source="spring.application.name" defaultValue="ai-biz"/>
+    <springProperty scope="context" name="spring.profiles.active" source="spring.profiles.active" defaultValue="dev"/>
     <property name="log.path" value="logs/${spring.application.name}"/>
     <!-- 彩色日志格式 -->
     <property name="CONSOLE_LOG_PATTERN"
@@ -12,11 +13,39 @@
                     converterClass="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter"/>
     <conversionRule conversionWord="wEx"
                     converterClass="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter"/>
+
     <!-- Console log output -->
     <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>${CONSOLE_LOG_PATTERN}</pattern>
         </encoder>
+    </appender>
+
+    <!-- Fluent Bit TCP 推送：结构化 JSON 日志 -->
+    <appender name="fluentBit" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+        <!-- Docker Compose 内用服务名，本地开发改为 localhost -->
+        <destination>fluent-bit:5170</destination>
+        <connectionTimeout>5000</connectionTimeout>
+        <reconnectionDelay>10000</reconnectionDelay>
+        <ringBufferSize>8192</ringBufferSize>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <customFields>{"app":"${spring.application.name}","env":"${spring.profiles.active}"}</customFields>
+            <includeMdc>true</includeMdc>
+            <includeMdcKeyName>trace_id</includeMdcKeyName>
+            <includeContext>true</includeContext>
+            <includeCallerData>true</includeCallerData>
+            <fieldNames>
+                <timestamp>@timestamp</timestamp>
+                <version>[ignore]</version>
+            </fieldNames>
+        </encoder>
+    </appender>
+
+    <!-- 异步包装：避免网络阻塞影响业务线程 -->
+    <appender name="async_fluentBit" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="fluentBit"/>
+        <queueSize>2048</queueSize>
+        <neverBlock>true</neverBlock>
     </appender>
 
     <!-- Log file debug output -->
@@ -28,7 +57,7 @@
             <maxHistory>30</maxHistory>
         </rollingPolicy>
         <encoder>
-            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
 
@@ -41,7 +70,7 @@
             <maxHistory>30</maxHistory>
         </rollingPolicy>
         <encoder>
-            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
             <level>ERROR</level>
@@ -58,6 +87,6 @@
         <appender-ref ref="console"/>
         <appender-ref ref="debug"/>
         <appender-ref ref="error"/>
+        <appender-ref ref="async_fluentBit"/>
     </root>
 </configuration>
-

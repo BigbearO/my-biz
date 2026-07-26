@@ -2,6 +2,7 @@ package com.bigbear.spring.grpc.demo;
 
 import com.bigbear.spring.grpc.greeter.GreeterClient;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
  * 经由 Nacos 服务发现定位 gRPC 实例。
  */
 
+@Slf4j
 @RestController
 @RequestMapping("/demo")
 @RequiredArgsConstructor
@@ -30,6 +32,7 @@ public class GreeterController {
      */
     @GetMapping("/hello")
     public String hello(@RequestParam(defaultValue = "world") String name) {
+        log.info("say hello start={}", name);
         return greeterClient.sayHello(name);
     }
 }

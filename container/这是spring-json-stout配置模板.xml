@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="60 seconds" debug="false">
+
+    <springProperty   name ="env" source="spring.profiles.active" default=""/>
+
+    <!-- 日志存放路径 -->
+	<property name="log.path" value="logs/${project.artifactId}" />
+	<property name="app" value="${project.artifactId}"  />
+
+    <!-- 日志输出格式 -->
+    <property name="console.log.pattern"
+              value="%cyan(%d{yyyy-MM-dd HH:mm:ss}) %green([%thread]) %highlight(%-5level) %boldMagenta(%logger{36}%n) - %msg%n"/>
+
+    <!-- 控制台输出 -->
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${console.log.pattern}</pattern>
+            <charset>utf-8</charset>
+        </encoder>
+    </appender>
+
+<!--    <include resource="logback-common.xml" />-->
+
+
+
+
+    <!-- 新增：JSON 滚动文件，只给 Fluent-bit 读 -->
+    <appender name="json" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${log.path}/app.json</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log.path}/app.%d{yyyy-MM-dd}.json.gz</fileNamePattern>
+            <maxHistory>7</maxHistory>
+        </rollingPolicy>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <!-- 只保留必要字段，缩短字段名 -->
+            <includeMdc>true</includeMdc>
+            <includeMdcKeyName>trace_id</includeMdcKeyName>
+            <includeContext>true</includeContext>
+            <customFields>{"app":"${app}","env":"${env}"}</customFields>
+        </encoder>
+    </appender>
+
+    <!-- 异步包裹，性能更好 -->
+    <appender name="async_json" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="json"/>
+        <queueSize>2048</queueSize>
+        <neverBlock>true</neverBlock>
+    </appender>
+
+	<!--系统操作日志-->
+    <root level="info">
+        <appender-ref ref="console" />
+        <appender-ref ref="async_json" />
+    </root>
+</configuration>
