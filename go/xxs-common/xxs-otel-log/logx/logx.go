@@ -11,6 +11,7 @@ package logx
 import (
 	"context"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/go-kratos/kratos/v2/errors"
@@ -77,7 +78,7 @@ func NewTracedHelper(base log.Logger, module string) *log.Helper {
 // 参数 base 为原始日志器（通常来自 bootstrap.Context.GetLogger()）；
 // 返回的 Logger 在每次 Log 时同时调用 base 和 stdLogger。
 func TeeLogger(base log.Logger) log.Logger {
-	std := log.NewStdLogger(nil)
+	std := log.NewStdLogger(os.Stdout)
 	return &teeLogger{primary: base, secondary: std}
 }
 
