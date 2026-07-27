@@ -33,8 +33,8 @@ config:
 
 
 trace:
-  endpoint: "192.168.50.45:4317"
-  exporter: "otlp-grpc"
+  endpoint: "192.168.50.45:4318"
+  exporter: "otlp-http"
   sampler: 1.0
   env: "dev"
   insecure: true
