@@ -22,7 +22,7 @@ type RestMiddlewares []middleware.Middleware
 
 func NewRestMiddleware(ctx *bootstrap.Context) RestMiddlewares {
 	var ms []middleware.Middleware
-	ms = append(ms, logx.TracedLoggingServer(logx.TracedLogger(logx.TeeLogger(ctx.GetLogger()))))
+	ms = append(ms, logx.TracedLoggingServer(logx.TeeLogger(ctx.GetLogger())))
 	ms = append(ms, auth.HTTPServerMiddleware())
 
 	return ms

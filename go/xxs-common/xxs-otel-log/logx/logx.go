@@ -65,7 +65,7 @@ func TracedLogger(base log.Logger) log.Logger {
 // 参数 base 为基础日志器（通常来自 bootstrap.Context.GetLogger()）；
 // 参数 module 为业务模块标识，例如 "ai/service"、"ai/repo"。
 func NewTracedHelper(base log.Logger, module string) *log.Helper {
-	return log.NewHelper(log.With(base,
+	return log.NewHelper(log.With(TeeLogger(base),
 		"module", module,
 		"trace_id", TraceID(),
 		"span_id", SpanID(),
@@ -97,11 +97,13 @@ func (t *teeLogger) Log(level log.Level, keyvals ...interface{}) error {
 }
 
 // TracedLoggingServer 创建一个带链路上下文传播的服务端日志中间件，
-// 替代 kratos 内置的 logging.Server，确保 trace_id / span_id Valuer
+// 替代 kratos 内置的 logging.Server，确保 trace_id / span_id
 // 能从请求 context 中正确提取值。
 //
-// 与内置 logging.Server 的区别：使用 log.WithContext(ctx, logger) 创建 Helper，
-// 使 Valuer 在求值时能读取到请求级 ctx 中的 span 信息。
+// 与内置 logging.Server 的区别：
+//   - 直接从 ctx 提取 trace_id/span_id 作为字符串值，绕过 Valuer 机制
+//     （Valuer 在多层 Logger 包装后 context 传播易丢失，导致 trace_id 为空）
+//   - 日志输出内容与内置 logging.Server 完全一致
 func TracedLoggingServer(logger log.Logger) middleware.Middleware {
 	return func(handler middleware.Handler) middleware.Handler {
 		return func(ctx context.Context, req interface{}) (reply interface{}, err error) {
@@ -127,11 +129,14 @@ func TracedLoggingServer(logger log.Logger) middleware.Middleware {
 				level = log.LevelError
 				stack = fmt.Sprintf("%+v", err)
 			}
-			log.NewHelper(log.WithContext(ctx, logger)).Log(level,
+			traceID, spanID := extractTraceIDs(ctx)
+			log.NewHelper(logger).Log(level,
 				"kind", "server",
 				"component", kind,
 				"operation", operation,
 				"args", extractArgs(req),
+				"trace_id", traceID,
+				"span_id", spanID,
 				"code", code,
 				"reason", reason,
 				"stack", stack,
@@ -140,6 +145,15 @@ func TracedLoggingServer(logger log.Logger) middleware.Middleware {
 			return
 		}
 	}
+}
+
+// extractTraceIDs 从 context 中直接提取 trace_id 和 span_id 字符串。
+func extractTraceIDs(ctx context.Context) (string, string) {
+	sc := trace.SpanContextFromContext(ctx)
+	if sc.HasTraceID() {
+		return sc.TraceID().String(), sc.SpanID().String()
+	}
+	return "", ""
 }
 
 // extractArgs 返回请求参数的字符串表示。

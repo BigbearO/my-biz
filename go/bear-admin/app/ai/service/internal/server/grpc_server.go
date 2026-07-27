@@ -20,7 +20,7 @@ type GrpcMiddlewares []middleware.Middleware
 
 func NewGrpcMiddleware(ctx *bootstrap.Context) GrpcMiddlewares {
 	var ms []middleware.Middleware
-	ms = append(ms, logx.TracedLoggingServer(logx.TracedLogger(logx.TeeLogger(ctx.GetLogger()))))
+	ms = append(ms, logx.TracedLoggingServer(logx.TeeLogger(ctx.GetLogger())))
 	ms = append(ms, auth.GrpcServerMiddleware())
 	return ms
 }
