@@ -10,6 +10,7 @@ package logx
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"time"
@@ -76,10 +77,24 @@ func NewTracedHelper(base log.Logger, module string) *log.Helper {
 // 解决 kratos-bootstrap fluent logger 只发到 fluent-bit、控制台无输出的问题。
 //
 // 参数 base 为原始日志器（通常来自 bootstrap.Context.GetLogger()）；
-// 返回的 Logger 在每次 Log 时同时调用 base 和 stdLogger。
+// 返回的 Logger 在每次 Log 时同时调用 base 和 jsonConsoleLogger。
 func TeeLogger(base log.Logger) log.Logger {
-	std := log.NewStdLogger(os.Stdout)
-	return &teeLogger{primary: base, secondary: std}
+	return &teeLogger{primary: base, secondary: &jsonConsoleLogger{}}
+}
+
+type jsonConsoleLogger struct{}
+
+func (l *jsonConsoleLogger) Log(level log.Level, keyvals ...interface{}) error {
+	m := make(map[string]interface{}, len(keyvals)/2+1)
+	m["level"] = level.String()
+	m["ts"] = time.Now().Format("2006-01-02T15:04:05.000Z07:00")
+	for i := 0; i+1 < len(keyvals); i += 2 {
+		k, _ := keyvals[i].(string)
+		m[k] = keyvals[i+1]
+	}
+	data, _ := json.Marshal(m)
+	fmt.Fprintln(os.Stdout, string(data))
+	return nil
 }
 
 type teeLogger struct {
