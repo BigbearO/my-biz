@@ -2,7 +2,6 @@ package server
 
 import (
 	"github.com/go-kratos/kratos/v2/middleware"
-	"github.com/go-kratos/kratos/v2/middleware/logging"
 	"github.com/go-kratos/kratos/v2/transport/http"
 
 	swaggerUI "github.com/tx7do/kratos-swagger-ui"
@@ -23,7 +22,7 @@ type RestMiddlewares []middleware.Middleware
 
 func NewRestMiddleware(ctx *bootstrap.Context) RestMiddlewares {
 	var ms []middleware.Middleware
-	ms = append(ms, logging.Server(logx.TracedLogger(ctx.GetLogger())))
+	ms = append(ms, logx.TracedLoggingServer(logx.TracedLogger(logx.TeeLogger(ctx.GetLogger()))))
 	ms = append(ms, auth.HTTPServerMiddleware())
 
 	return ms

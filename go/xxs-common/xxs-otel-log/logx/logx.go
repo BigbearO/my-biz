@@ -10,8 +10,10 @@ package logx
 
 import (
 	"context"
+	"time"
 
 	"github.com/go-kratos/kratos/v2/log"
+	"github.com/go-kratos/kratos/v2/middleware"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -64,4 +66,50 @@ func NewTracedHelper(base log.Logger, module string) *log.Helper {
 		"trace_id", TraceID(),
 		"span_id", SpanID(),
 	))
+}
+
+// TeeLogger 创建一个双写日志器，同时输出到 fluent（base）和 console（stdout）。
+// 解决 kratos-bootstrap fluent logger 只发到 fluent-bit、控制台无输出的问题。
+//
+// 参数 base 为原始日志器（通常来自 bootstrap.Context.GetLogger()）；
+// 返回的 Logger 在每次 Log 时同时调用 base 和 stdLogger。
+func TeeLogger(base log.Logger) log.Logger {
+	std := log.NewStdLogger(nil)
+	return &teeLogger{primary: base, secondary: std}
+}
+
+type teeLogger struct {
+	primary   log.Logger
+	secondary log.Logger
+}
+
+func (t *teeLogger) Log(level log.Level, keyvals ...interface{}) error {
+	err1 := t.primary.Log(level, keyvals...)
+	err2 := t.secondary.Log(level, keyvals...)
+	if err1 != nil {
+		return err1
+	}
+	return err2
+}
+
+// TracedLoggingServer 创建一个带链路上下文传播的服务端日志中间件，
+// 替代 kratos 内置的 logging.Server，确保 trace_id / span_id Valuer
+// 能从请求 context 中正确提取值。
+//
+// kratos 内置 logging.Server 直接调用 Log() 而非 helper.WithContext(ctx).Info()，
+// 导致 Valuer 以 Background context 求值，trace_id 为空串。
+func TracedLoggingServer(logger log.Logger) middleware.Middleware {
+	return func(handler middleware.Handler) middleware.Handler {
+		return func(ctx context.Context, req interface{}) (interface{}, error) {
+			start := time.Now()
+			reply, err := handler(ctx, req)
+			duration := time.Since(start)
+
+			helper := log.NewHelper(logger)
+			helper.WithContext(ctx).Infow(
+				"took", duration.String(),
+			)
+			return reply, err
+		}
+	}
 }

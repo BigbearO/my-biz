@@ -2,7 +2,6 @@ package server
 
 import (
 	"github.com/go-kratos/kratos/v2/middleware"
-	"github.com/go-kratos/kratos/v2/middleware/logging"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 
 	"github.com/tx7do/kratos-bootstrap/bootstrap"
@@ -21,7 +20,7 @@ type GrpcMiddlewares []middleware.Middleware
 
 func NewGrpcMiddleware(ctx *bootstrap.Context) GrpcMiddlewares {
 	var ms []middleware.Middleware
-	ms = append(ms, logging.Server(logx.TracedLogger(ctx.GetLogger())))
+	ms = append(ms, logx.TracedLoggingServer(logx.TracedLogger(logx.TeeLogger(ctx.GetLogger()))))
 	ms = append(ms, auth.GrpcServerMiddleware())
 	return ms
 }
