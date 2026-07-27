@@ -33,7 +33,7 @@ config:
 
 
 trace:
-  endpoint: "localhost:4317"
+  endpoint: "192.168.50.45:4317"
   exporter: "otlp-grpc"
   sampler: 1.0
   env: "dev"

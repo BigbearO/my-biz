@@ -10,10 +10,13 @@ package logx
 
 import (
 	"context"
+	"fmt"
 	"time"
 
+	"github.com/go-kratos/kratos/v2/errors"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware"
+	"github.com/go-kratos/kratos/v2/transport"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -96,20 +99,52 @@ func (t *teeLogger) Log(level log.Level, keyvals ...interface{}) error {
 // 替代 kratos 内置的 logging.Server，确保 trace_id / span_id Valuer
 // 能从请求 context 中正确提取值。
 //
-// kratos 内置 logging.Server 直接调用 Log() 而非 helper.WithContext(ctx).Info()，
-// 导致 Valuer 以 Background context 求值，trace_id 为空串。
+// 与内置 logging.Server 的区别：使用 log.WithContext(ctx, logger) 创建 Helper，
+// 使 Valuer 在求值时能读取到请求级 ctx 中的 span 信息。
 func TracedLoggingServer(logger log.Logger) middleware.Middleware {
 	return func(handler middleware.Handler) middleware.Handler {
-		return func(ctx context.Context, req interface{}) (interface{}, error) {
-			start := time.Now()
-			reply, err := handler(ctx, req)
-			duration := time.Since(start)
-
-			helper := log.NewHelper(logger)
-			helper.WithContext(ctx).Infow(
-				"took", duration.String(),
+		return func(ctx context.Context, req interface{}) (reply interface{}, err error) {
+			var (
+				code      int32
+				reason    string
+				kind      string
+				operation string
 			)
-			return reply, err
+			start := time.Now()
+			if info, ok := transport.FromServerContext(ctx); ok {
+				kind = info.Kind().String()
+				operation = info.Operation()
+			}
+			reply, err = handler(ctx, req)
+			if se := errors.FromError(err); se != nil {
+				code = se.Code
+				reason = se.Reason
+			}
+			level := log.LevelInfo
+			stack := ""
+			if err != nil {
+				level = log.LevelError
+				stack = fmt.Sprintf("%+v", err)
+			}
+			log.NewHelper(log.WithContext(ctx, logger)).Log(level,
+				"kind", "server",
+				"component", kind,
+				"operation", operation,
+				"args", extractArgs(req),
+				"code", code,
+				"reason", reason,
+				"stack", stack,
+				"latency", time.Since(start).Seconds(),
+			)
+			return
 		}
 	}
+}
+
+// extractArgs 返回请求参数的字符串表示。
+func extractArgs(req interface{}) string {
+	if stringer, ok := req.(fmt.Stringer); ok {
+		return stringer.String()
+	}
+	return fmt.Sprintf("%+v", req)
 }

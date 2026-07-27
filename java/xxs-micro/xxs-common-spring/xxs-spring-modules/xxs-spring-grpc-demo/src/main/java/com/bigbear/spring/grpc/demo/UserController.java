@@ -2,6 +2,7 @@ package com.bigbear.spring.grpc.demo;
 
 import com.bigbear.spring.grpc.user.UserClient;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
  * <p>通道目标 {@code nacos://bear-admin} 由 {@code xxs-spring-grpc-nacos} 解析，
  * 经由 Nacos 服务发现定位 Go 提供方（bear-admin）gRPC 实例。
  */
+@Slf4j
 @RestController
 @RequestMapping("/demo")
 @RequiredArgsConstructor
@@ -29,6 +31,8 @@ public class UserController {
      */
     @GetMapping("/user")
     public String user(@RequestParam(defaultValue = "1") String id) {
+
+        log.info("get user by id:{}", id);
         return userClient.getUser(id).toString();
     }
 }
