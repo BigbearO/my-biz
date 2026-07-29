@@ -1,38 +1,13 @@
 ## 说明
 待优化
 
-1. grpc 限流 不做
-2. 服务间鉴权 不做
 3. 统一proto文件
-4. 链路追踪
 5. 分布式事务 不急
+3. grpc 限流 不做
+4. 服务间鉴权 不做  但是思路是 服务间鉴权模仿pig inner, 拦截器，只是升级一点，加解密嘛，对的上才调用，现在不管
+5. 参考这个 ，集成xxlhttps://github.com/naah69/quarkus-xxl-job
+6.  把study ，xxs-common 里面那些迁移过来
 
-
-1 使用
-spring boot  集成otel 只在部署时挂 -javaagent:opentelemetry-javaagent.jar + 几个 OTEL_* 环境变量
-
-找一找之前 郎的总结
-
-quarkus 采用quarkus-otel 然后配置参考配置文件即可
-
-2  服务间鉴权模仿pig inner, 拦截器，只是升级一点，加解密嘛，对的上才调用，现在不管
-
-
-
-早期待整理
-
-1 这个项目 作为java 通用架构 公共依赖构建，无论是 spring 还是quarkus
-项目名带quarkus的，就是quarkus，带spring的是spring依赖
-
-2 之后再把study ，xxs-common 里面那些迁移过来
-
-3 问题：现在想让微服务继承bom,但是bom 有俩，mirco 不可能继承 其中一个
- 那就只能像pig 一样，bom 包含其他common 模块，再被mirco 引入
- 其他模块不能依赖,继承此bom
- 但是好像能嵌套,把common-core弄进去
-
-4 或者可以， bom不被micro引入,只引入micro下的common ，然后作为parent，
-其他业务项目都继承这个
 
 
  最终方案；
@@ -42,13 +17,16 @@ quarkus 采用quarkus-otel 然后配置参考配置文件即可
    xxs-common-quarkus
    这俩定义为 pig 和 ruoyi 的最顶级父类项目
 
-https://code.quarkus.io/ 好像是项目生成 
 
 
+## otel 
 
+1 使用
+spring boot  集成otel 只在部署时挂 -javaagent:opentelemetry-javaagent.jar + 几个 OTEL_* 环境变量
 
+ 
 
-
+ 
 
 ## grpc
 集成grpc
@@ -58,30 +36,24 @@ https://code.quarkus.io/ 好像是项目生成
 @GrpcClient("greeter")
 Greeter  greeter
 
-//todo 好像 spring的starter @GrpcClient里面可以使用服务名直接进行服务发现？
+ 
 
 然后在调用方配置文件配置，
-
-quarkus.grpc.clients.你在GrpcClient注解里面的服务名.host=dns:///grpc-hello-service 
-这里面就是  
-quarkus.grpc.clients.greeter.host=dns:///grpc-hello-service
-quarkus.grpc.clients.greeter.load-balancing-policy=round_robin 负载均衡-轮询策略，
-文档
-https://quarkus.io/guides/grpc-service-consumption
-
-### 1 怎么集成 服务发现
 
 gRPC 客户端配置
 quarkus.grpc.clients.你的gprc服务名.host=dns:///grpc-hello-service
 
-问ai 
-quarkus集成，grpc，并通过consul注册中心实现服务发现
+quarkus.grpc.clients.greeter.load-balancing-policy=round_robin 负载均衡-轮询策略，
+
+dns 是生产，k8s中的，需要改成什么local
+
+目前自定义了nacos 
 
 
 
 
 
-## RestClient 
+## RestClient -丢弃弃
 
 
 就是类似feign的http代理
@@ -114,22 +86,12 @@ quarkus集成，grpc，并通过consul注册中心实现服务发现
  
 ```
 
-
 //  从当前请求中获取请求头数据，从而rpc获取user信息成功
 //todo restrpc 不能传递请求头,在filter处理了
 
 
 
-参考这个 ，集成xxl
-https://github.com/naah69/quarkus-xxl-job
-
-## todo 
-
- 1 封装 pig 的 依赖 pom.xml文件
- 1 封装 ruoyi-plus 的 依赖 pom。xml文件
-
-两个都是必需项放dependency ，可选项目就放dependencyManagement
-都是将 实际项目模块的依赖迁移
+ 
 
 
 
