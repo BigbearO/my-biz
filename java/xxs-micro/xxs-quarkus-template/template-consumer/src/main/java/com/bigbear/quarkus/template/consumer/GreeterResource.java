@@ -12,6 +12,7 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 
 import java.time.Duration;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 模板消费者 REST 入口：对外暴露 {@code GET /hello?name=xxx}，
@@ -20,6 +21,7 @@ import java.time.Duration;
  *
  * @author xxs-micro
  */
+@Slf4j
 @Path("/hello")
 public class GreeterResource {
 
@@ -38,6 +40,7 @@ public class GreeterResource {
     @GET
     @Produces(MediaType.TEXT_PLAIN)
     public String hello(@QueryParam("name") String name) {
+        log.info("hello {} ", name);
         String finalName = name == null || name.isBlank() ? "world" : name;
         HelloReply reply = greeter.sayHello(HelloRequest.newBuilder().setName(finalName).build())
                 .await().atMost(Duration.ofSeconds(5));

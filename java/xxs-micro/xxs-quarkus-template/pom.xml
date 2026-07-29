@@ -23,8 +23,9 @@
   <dependencies>
     <!-- GELF 网络推送日志到 Fluent Bit -->
     <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-logging-gelf</artifactId>
+      <groupId>com.bigbear</groupId>
+      <artifactId>xxs-quarkus-otlp</artifactId>
+      <version>${revision}</version>
     </dependency>
   </dependencies>
 </project>

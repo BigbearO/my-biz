@@ -1,12 +1,12 @@
-
-quarkus:
-  otel:
-    service.name: ${quarkus.application.name}
-    exporter.otlp.endpoint: http://otel-collector:4317
-    propagators: tracecontext,baggage
-    traces.sampler: parentbased_always_on
-    logs.enabled: false
-    traces.enabled: true  # ← 仍采集链路追踪
-    metrics.enabled: true # ← 仍采集指标
-
-
+#
+#quarkus:
+#  otel:
+#    service.name: ${quarkus.application.name}
+#    exporter.otlp.endpoint: http://otel-collector:4317
+#    propagators: tracecontext,baggage
+#    traces.sampler: parentbased_always_on
+#    logs.enabled: false
+#    traces.enabled: true  # ← 仍采集链路追踪
+#    metrics.enabled: true # ← 仍采集指标
+#
+#

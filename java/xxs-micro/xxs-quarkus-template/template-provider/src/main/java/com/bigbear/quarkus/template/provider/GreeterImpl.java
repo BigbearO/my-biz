@@ -6,6 +6,7 @@ import com.bigbear.quarkus.template.grpc.HelloRequest;
 
 import io.quarkus.grpc.GrpcService;
 import io.smallrye.mutiny.Uni;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Greeter gRPC 服务实现：演示服务提供者（provider）如何以极低代码量暴露 gRPC 接口。
@@ -16,12 +17,14 @@ import io.smallrye.mutiny.Uni;
  *
  * @author xxs-micro
  */
+@Slf4j
 @GrpcService
 public class GreeterImpl implements Greeter {
 
     @Override
     public Uni<HelloReply> sayHello(HelloRequest request) {
-        String name = request.getName() == null || request.getName().isBlank() ? "world" : request.getName();
+        log.info("say hello {} ", request.getName());
+        String name = request.getName().isBlank() ? "world" : request.getName();
         String message = "Hello " + name + " from template-provider";
         return Uni.createFrom().item(HelloReply.newBuilder().setMessage(message).build());
     }

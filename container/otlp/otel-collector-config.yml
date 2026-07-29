@@ -1,9 +1,9 @@
 receivers:
   otlp:
     protocols:
-      grpc:          # 端口 4317
+      grpc: # 端口 4317
         endpoint: 0.0.0.0:4317
-      http:          # 端口 4318
+      http: # 端口 4318
         endpoint: 0.0.0.0:4318
         cors:
           allowed_origins:
@@ -11,17 +11,55 @@ receivers:
             - https://*
 
 processors:
+  memory_limiter:
+    check_interval: 5s
+    limit_mib: 512
+    spike_limit_mib: 128
   batch:
+    send_batch_size: 1024
+    timeout: 10s
+
 
 exporters:
-  otlp:
-    endpoint: openobserve:5081          # 送到 jaeger grpc
+  # traces 继续走 gRPC 通道（已验证链路追踪可到 O2）
+  otlp/traces:
+    endpoint: openobserve:5081
+    headers:
+      Authorization: "Basic cm9vdEBleGFtcGxlLmNvbTpsazEyMzQ1NkFA"
+      organization: default
+      stream-name: default
     tls:
       insecure: true
+    sending_queue:
+      enabled: true
+      queue_size: 512
+    retry_on_failure:
+      enabled: true
+      max_elapsed_time: 60s
+  # logs 改走 HTTP 通道（与 fluent-bit 同路径，已验证可通）
+  # 说明：logs 经 gRPC(5081) 发送失败，故改用 otlphttp 走 5080。
+  #       HTTP 模式下 org 已体现在 URL 路径 /api/default 中，无需 organization header。
+  otlphttp/logs:
+    endpoint: http://openobserve:5080/api/default
+    headers:
+      Authorization: "Basic cm9vdEBleGFtcGxlLmNvbTpsazEyMzQ1NkFA"
+      stream-name: default
+    sending_queue:
+      enabled: true
+      queue_size: 512
+    retry_on_failure:
+      enabled: true
+      max_elapsed_time: 60s
+  debug:
+    verbosity: detailed
 
 service:
   pipelines:
     traces:
-      receivers: [otlp]
-      processors: [batch]
-      exporters: [otlp]
+      receivers: [ otlp ]
+      processors: [ memory_limiter, batch ]
+      exporters: [ otlp/traces ]
+    logs:
+      receivers: [ otlp ]
+      processors: [ memory_limiter, batch ]
+      exporters: [ debug, otlphttp/logs ]
