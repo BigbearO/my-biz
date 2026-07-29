@@ -43,7 +43,7 @@ exporters:
     endpoint: http://openobserve:5080/api/default
     headers:
       Authorization: "Basic cm9vdEBleGFtcGxlLmNvbTpsazEyMzQ1NkFA"
-      stream-name: default
+      stream-name: logs
     sending_queue:
       enabled: true
       queue_size: 512
