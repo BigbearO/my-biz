@@ -69,7 +69,7 @@
     <dependency>
       <groupId>com.bigbear</groupId>
       <artifactId>xxs-spring-ruoyi-bom</artifactId>
-      <version>6.0.0-BETA</version>
+      <version>6.0.0</version>
       <type>pom</type>
     </dependency>
     <dependency>
@@ -104,7 +104,7 @@
       <dependency>
         <groupId>com.bigbear</groupId>
         <artifactId>xxs-spring-ruoyi-bom</artifactId>
-        <version>6.0.0-BETA</version>
+        <version>6.0.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -140,7 +140,7 @@
         <java.version>25</java.version>
         <!-- 环境标识，需要与配置文件的名称相对应 -->
         <profiles.active>xhf</profiles.active>
-        <nacos.server>127.0.0.1:8848</nacos.server>
+        <nacos.server>192.168.50.45:8848</nacos.server>
         <nacos.discovery.group>DEFAULT_GROUP</nacos.discovery.group>
         <nacos.config.group>DEFAULT_GROUP</nacos.config.group>
         <nacos.username>nacos</nacos.username>
