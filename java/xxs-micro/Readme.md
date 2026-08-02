@@ -1,12 +1,14 @@
 ## 说明
 待优化
 
-3. 统一proto文件
-5. 分布式事务 不急
+1. 统一proto文件不急
+2. 分布式事务 不急 -现在spring和go通了，但是go没有做成公共模块，也没有注册中心，等后续官方支持了再说，并且相关配置文件放在configs下，
+3. quarkus seata
 3. grpc 限流 不做
 4. 服务间鉴权 不做  但是思路是 服务间鉴权模仿pig inner, 拦截器，只是升级一点，加解密嘛，对的上才调用，现在不管
 5. 参考这个 ，集成xxlhttps://github.com/naah69/quarkus-xxl-job
-6.  把study ，xxs-common 里面那些迁移过来
+6. 把study ，xxs-common 里面那些迁移过来
+
 
 
 

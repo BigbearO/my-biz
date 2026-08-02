@@ -2,7 +2,7 @@ module bear-admin
 
 go 1.26.3
 
-replace github.com/tx7do/kratos-bootstrap/registry/nacos => /home/xxs/桌面/project/go/wind/kratos-bootstrap/registry/nacos
+replace github.com/tx7do/kratos-bootstrap/registry/nacos => ../../../go/wind/kratos-bootstrap/registry/nacos
 
 replace bigbear.com/xxs-common/common-auth-go => ../xxs-common/common-auth-go
 
@@ -22,16 +22,62 @@ require (
 require (
 	github.com/cloudwego/eino v0.9.12
 	github.com/cloudwego/eino-ext/components/model/openai v0.1.13
+	github.com/jackc/pgx/v5 v5.10.0
 	github.com/spf13/viper v1.21.0
 	github.com/tx7do/kratos-bootstrap/config/nacos v0.2.3
 	github.com/tx7do/kratos-bootstrap/logger/fluent v0.1.2
 	github.com/tx7do/kratos-bootstrap/registry/nacos v0.2.2
+	seata.apache.org/seata-go/v2 v2.1.1-0.20260718120706-2167ed1cbe76
 )
 
 require (
+	dubbo.apache.org/dubbo-go/v3 v3.0.4 // indirect
+	github.com/RoaringBitmap/roaring v1.2.0 // indirect
+	github.com/Workiva/go-datastructures v1.0.52 // indirect
+	github.com/apache/dubbo-getty v1.5.0 // indirect
+	github.com/apache/dubbo-go-hessian2 v1.11.4 // indirect
+	github.com/arana-db/parser v0.2.17 // indirect
+	github.com/bits-and-blooms/bitset v1.2.0 // indirect
+	github.com/bluele/gcache v0.0.2 // indirect
+	github.com/coreos/go-semver v0.3.0 // indirect
+	github.com/coreos/go-systemd/v22 v22.3.2 // indirect
+	github.com/creasty/defaults v1.5.2 // indirect
+	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
+	github.com/dsnet/compress v0.0.1 // indirect
+	github.com/dubbogo/gost v1.13.2 // indirect
 	github.com/fluent/fluent-logger-golang v1.10.1 // indirect
+	github.com/go-sql-driver/mysql v1.6.0 // indirect
+	github.com/goccy/go-json v0.10.2 // indirect
+	github.com/gogo/protobuf v1.3.2 // indirect
+	github.com/golang/snappy v0.0.4 // indirect
+	github.com/gorilla/websocket v1.4.2 // indirect
+	github.com/jackc/pgpassfile v1.0.0 // indirect
+	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
+	github.com/jackc/puddle/v2 v2.2.2 // indirect
+	github.com/jinzhu/copier v0.3.5 // indirect
+	github.com/k0kubun/pp v3.0.1+incompatible // indirect
+	github.com/knadh/koanf v1.5.0 // indirect
+	github.com/magiconair/properties v1.8.6 // indirect
+	github.com/mitchellh/copystructure v1.2.0 // indirect
+	github.com/mitchellh/mapstructure v1.5.0 // indirect
+	github.com/mitchellh/reflectwalk v1.0.2 // indirect
+	github.com/mschoch/smat v0.2.0 // indirect
+	github.com/natefinch/lumberjack v2.0.0+incompatible // indirect
+	github.com/pelletier/go-toml v1.9.3 // indirect
 	github.com/philhofer/fwd v1.2.0 // indirect
+	github.com/pierrec/lz4/v4 v4.1.21 // indirect
+	github.com/pingcap/errors v0.11.5-0.20210425183316-da1aaba5fb63 // indirect
+	github.com/pingcap/log v0.0.0-20210906054005-afc726e70354 // indirect
+	github.com/robertkrimen/otto v0.4.0 // indirect
+	github.com/satori/go.uuid v1.2.1-0.20181028125025-b2ce2384e17b // indirect
 	github.com/tinylib/msgp v1.6.1 // indirect
+	go.etcd.io/etcd/api/v3 v3.5.6 // indirect
+	go.etcd.io/etcd/client/pkg/v3 v3.5.6 // indirect
+	go.etcd.io/etcd/client/v3 v3.5.6 // indirect
+	go.uber.org/atomic v1.11.0 // indirect
+	gopkg.in/sourcemap.v1 v1.0.5 // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
+	vimagination.zapto.org/byteio v0.0.0-20200222190125-d27cba0f0b10 // indirect
 )
 
 require (
@@ -197,5 +243,7 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260427160629-7cedc36a6bc4 // indirect
 	google.golang.org/grpc v1.82.0
 	google.golang.org/protobuf v1.36.11
-	gopkg.in/yaml.v3 v3.0.1 // indirect
+	gopkg.in/yaml.v3 v3.0.1
 )
+
+replace seata.apache.org/seata-go/v2 v2.1.1-0.20260718120706-2167ed1cbe76 => seata.apache.org/seata-go/v2 v2.1.1-0.20260718120706-2167ed1cbe76

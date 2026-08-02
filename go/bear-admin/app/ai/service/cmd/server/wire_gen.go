@@ -39,9 +39,14 @@ func initApp(context *bootstrap.Context) (*kratos.App, func(), error) {
 	aiService := service.NewAiService(context, aiRepo)
 	httpServer := server.NewRestServer(context, restMiddlewares, aiService)
 	grpcMiddlewares := server.NewGrpcMiddleware(context)
-	userService := service.NewUserService(context)
+	userRepo, cleanup, err := data.NewUserRepo(context)
+	if err != nil {
+		return nil, nil, err
+	}
+	userService := service.NewUserService(context, userRepo)
 	grpcServer := server.NewGrpcServer(context, grpcMiddlewares, aiService, userService)
 	app := newApp(context, httpServer, grpcServer)
 	return app, func() {
+		cleanup()
 	}, nil
 }

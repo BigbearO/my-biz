@@ -42,4 +42,21 @@ public class UserClient {
             throw e;
         }
     }
+
+    /**
+     * 创建用户（参与全局事务的跨端写操作）。
+     *
+     * @param name 用户名
+     * @param age  年龄
+     * @return User 服务返回的创建结果（含新用户 id）
+     * @throws StatusRuntimeException 调用失败时向上抛出，供上游全局事务回滚
+     */
+    public CreateUserReply createUser(String name, int age) {
+        try {
+            return stub.createUser(CreateUserRequest.newBuilder().setName(name).setAge(age).build());
+        } catch (StatusRuntimeException e) {
+            log.error("调用 User.createUser(name={}) 失败", name, e);
+            throw e;
+        }
+    }
 }

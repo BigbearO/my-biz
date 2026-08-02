@@ -13,6 +13,8 @@ option java_outer_classname = "UserProto";
 // User 服务：按用户标识查询用户基本信息。
 service UserService {
   rpc GetUser (GetUserRequest) returns (GetUserReply);
+  // 创建用户：参与分布式事务的写操作（bear-admin 侧 XA 分支落库）。
+  rpc CreateUser (CreateUserRequest) returns (CreateUserReply);
 }
 
 message GetUserRequest {
@@ -21,6 +23,17 @@ message GetUserRequest {
 
 message GetUserReply {
   string id = 1;
+  string name = 2;
+  int32 age = 3;
+}
+
+message CreateUserRequest {
+  string name = 1;
+  int32 age = 2;
+}
+
+message CreateUserReply {
+  int64 id = 1;
   string name = 2;
   int32 age = 3;
 }

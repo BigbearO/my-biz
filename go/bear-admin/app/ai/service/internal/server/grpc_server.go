@@ -22,6 +22,7 @@ func NewGrpcMiddleware(ctx *bootstrap.Context) GrpcMiddlewares {
 	var ms []middleware.Middleware
 	ms = append(ms, logx.TracedLoggingServer(logx.TeeLogger(ctx.GetLogger())))
 	ms = append(ms, auth.GrpcServerMiddleware())
+	ms = append(ms, SeataXidMiddleware())
 	return ms
 }
 

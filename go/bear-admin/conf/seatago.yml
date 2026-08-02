@@ -1,0 +1,20 @@
+seata:
+  enabled: true
+  application-id: bear-admin
+  tx-service-group: greeter-group
+  data-source-proxy-mode: XA
+  client:
+    tm:
+      default-global-transaction-timeout: 60s
+  service:
+    vgroup-mapping:
+      greeter-group: default
+    grouplist:
+      # seata-go 不支持 nacos 注册发现（stub），必须直连 TC。
+      default: 192.168.50.45:8091
+  registry:
+    type: file
+    file:
+      name: seatago.yml
+  transport:
+    type: TCP
