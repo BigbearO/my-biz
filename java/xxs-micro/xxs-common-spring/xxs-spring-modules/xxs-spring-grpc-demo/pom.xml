@@ -40,6 +40,13 @@
       <version>${revision}</version>
     </dependency>
 
+    <!-- Biz 契约 SDK：对接 Quarkus XA 分支（biz-api） -->
+    <dependency>
+      <groupId>com.bigbear</groupId>
+      <artifactId>biz-api</artifactId>
+      <version>${revision}</version>
+    </dependency>
+
     <!-- REST 入站，演示「HTTP → gRPC」全链路 -->
     <dependency>
       <groupId>org.springframework.boot</groupId>

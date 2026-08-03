@@ -24,6 +24,8 @@
     <module>xxs-quarkus-restrpc</module>
     <module>xxs-quarkus-mybatis</module>
     <module>xxs-quarkus-nacos-discovery</module>
+    <module>xxs-quarkus-seata</module>
+    <module>xxs-quarkus-seata-deployment</module>
   </modules>
 
 

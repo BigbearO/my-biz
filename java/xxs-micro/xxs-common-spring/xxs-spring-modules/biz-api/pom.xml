@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.bigbear</groupId>
+    <artifactId>xxs-spring-modules</artifactId>
+    <version>${revision}</version>
+  </parent>
+
+  <artifactId>biz-api</artifactId>
+  <description>Biz gRPC 契约 SDK：基于共享 proto 生成 stub，并提供充血客户端（对接 Quarkus XA 分支）</description>
+
+  <properties>
+    <protobuf-maven-plugin.version>5.1.4</protobuf-maven-plugin.version>
+    <protobuf-java.version>4.34.2</protobuf-java.version>
+    <grpc-java.version>1.80.0</grpc-java.version>
+    <proto.dir>${project.basedir}/../../../../../proto</proto.dir>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.bigbear</groupId>
+      <artifactId>xxs-spring-grpc</artifactId>
+      <version>${revision}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.protobuf</groupId>
+      <artifactId>protobuf-java</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-stub</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-protobuf</artifactId>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>io.github.ascopes</groupId>
+        <artifactId>protobuf-maven-plugin</artifactId>
+        <version>${protobuf-maven-plugin.version}</version>
+        <configuration>
+          <sourceDirectories>
+            <sourceDirectory>${proto.dir}</sourceDirectory>
+          </sourceDirectories>
+          <includes>
+            <include>biz/v1/biz.proto</include>
+          </includes>
+          <protoc kind="binary-maven">
+            <version>${protobuf-java.version}</version>
+          </protoc>
+          <plugins>
+            <plugin kind="binary-maven">
+              <groupId>io.grpc</groupId>
+              <artifactId>protoc-gen-grpc-java</artifactId>
+              <version>${grpc-java.version}</version>
+            </plugin>
+          </plugins>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

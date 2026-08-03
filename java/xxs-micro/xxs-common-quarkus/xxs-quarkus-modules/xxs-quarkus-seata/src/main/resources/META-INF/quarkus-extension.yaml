@@ -1,0 +1,10 @@
+name: "Seata (xxs-micro)"
+description: "Quarkus 扩展 runtime：seata 配置 SPI 桥接、TM/RM 客户端初始化、XA 数据源驱动（db-kind=seata）与 gRPC 全局事务 XID 透传"
+metadata:
+  keywords:
+    - "seata"
+    - "distributed-transaction"
+    - "xa"
+  categories:
+    - "data"
+  status: "preview"

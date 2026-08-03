@@ -20,6 +20,7 @@
     <module>xxs-spring-grpc-nacos</module>
     <module>greeter-api</module>
     <module>user-api</module>
+    <module>biz-api</module>
     <module>xxs-spring-grpc-demo</module>
   </modules>
 

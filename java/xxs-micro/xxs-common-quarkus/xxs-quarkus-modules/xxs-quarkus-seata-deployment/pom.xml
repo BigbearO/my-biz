@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.bigbear</groupId>
+    <artifactId>xxs-quarkus-modules</artifactId>
+    <version>${revision}</version>
+  </parent>
+
+  <artifactId>xxs-quarkus-seata-deployment</artifactId>
+  <name>xxs-quarkus-seata-deployment</name>
+  <description>Quarkus Seata 扩展 deployment：注册 db-kind=seata 的 JDBC 驱动与原生镜像服务提供者</description>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.bigbear</groupId>
+      <artifactId>xxs-quarkus-seata</artifactId>
+      <version>${revision}</version>
+    </dependency>
+    <!-- 提供 JdbcDriverBuildItem（io.quarkus.agroal.spi）及 BuildStep 构建链 -->
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-agroal-deployment</artifactId>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <!-- 生成扫描索引：Quarkus 据此在部署类路径中发现 @BuildStep 构建步骤 -->
+      <plugin>
+        <groupId>io.smallrye</groupId>
+        <artifactId>jandex-maven-plugin</artifactId>
+        <version>3.3.2</version>
+        <executions>
+          <execution>
+            <id>make-index</id>
+            <goals>
+              <goal>jandex</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

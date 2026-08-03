@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+// 与 Quarkus template-provider 的 src/main/proto/biz.proto 保持 wire 包一致（服务全名 = 传输路径）。
+package com.bigbear.quarkus.template.grpc;
+
+// Java 生成包路径（spring-grpc 侧 biz-api 使用；仅影响本地 Java 代码，不影响 wire 协议）。
+option java_multiple_files = true;
+option java_package = "com.bigbear.spring.grpc.biz";
+option java_outer_classname = "BizProto";
+
+// Biz 服务：演示跨语言 XA 事务分支（Spring 发起 → Quarkus 写 biz_tbl）。
+service BizService {
+  // 创建业务记录：由 Spring 发起方调用，Quarkus 作 XA 分支写库。
+  rpc CreateBiz (CreateBizRequest) returns (CreateBizReply);
+}
+
+message CreateBizRequest {
+  string name = 1;
+  int32 val = 2;
+}
+
+message CreateBizReply {
+  bool success = 1;
+}

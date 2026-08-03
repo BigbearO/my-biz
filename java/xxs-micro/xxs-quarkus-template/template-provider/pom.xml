@@ -40,6 +40,33 @@
       <artifactId>xxs-quarkus-nacos-discovery</artifactId>
       <version>${revision}</version>
     </dependency>
+
+    <!-- ===== Seata XA 分支：db-kind=seata 自定义驱动 + gRPC XID 透传（含 deployment 模块） ===== -->
+    <dependency>
+      <groupId>com.bigbear</groupId>
+      <artifactId>xxs-quarkus-seata</artifactId>
+      <version>${revision}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.bigbear</groupId>
+      <artifactId>xxs-quarkus-seata-deployment</artifactId>
+      <version>${revision}</version>
+    </dependency>
+    <!-- 数据源与 JDBC 驱动（db-kind=seata 时由 SeataXADriver 供给连接） -->
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-agroal</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-jdbc-postgresql</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>io.quarkus</groupId>
+          <artifactId>quarkus-flyway-postgresql</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
   </dependencies>
 
   <build>

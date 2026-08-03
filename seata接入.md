@@ -90,32 +90,39 @@ Seata 的跨服务事务本质 **不是** 数据库联动，而是 **XID（全�
 **TC 侧（`seata` 库）** —— 取 Seata 官方 `sql/postgresql.sql`（`global_table` / `branch_table` / `lock_table`），
 在 PG 实例上创建 `seata` database 后执行。
 
-**业务侧（Java 库 `seata_java`、Go 库 `seata_go`、Quarkus 库 `seata_quarkus`）** —— XA 模式**不需要** `undo_log`，
-只需普通业务表。建表脚本见 `seata/sql/business.sql`（PostgreSQL 16 语法：`GENERATED ALWAYS AS IDENTITY` 替代 `AUTO_INCREMENT`）。
+**业务侧三库**（`seata_java` / `seata_go` / `seata_quarkus`）—— XA 模式**不需要** `undo_log`，只需普通业务表。
+幂等建表脚本：`java/xxs-micro/sql/seata-xa-demo.sql`（`\connect` 分库执行）。
 **注意**：XA 依赖 PG 预备事务，请先确认 `postgresql.conf` 中 `max_prepared_transactions > 0`（详见开头说明）。
 
+三张业务表与三端 INSERT 严格对应（列不可随意改动）：
+
 ```sql
--- Java 侧业务库 seata_java（发起方本地分支）
+-- seata_java.biz_tbl（Spring 发起方本地分支；demo 写 name + amount，amount numeric）
 CREATE TABLE IF NOT EXISTS biz_tbl (
-  id   BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  name VARCHAR(64),
-  val  INT DEFAULT 0
+  id     SERIAL PRIMARY KEY,
+  name   VARCHAR(128) NOT NULL,
+  amount NUMERIC(18, 2) NOT NULL DEFAULT 0,
+  ts     TIMESTAMP NOT NULL DEFAULT now()
 );
 
--- Go 侧业务库 seata_go
+-- seata_go.user_tbl（Go 分支；demo 经 CreateUser RPC 调用，仅写 name）
 CREATE TABLE IF NOT EXISTS user_tbl (
-  id   BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  name VARCHAR(64),
-  age  INT DEFAULT 0
+  id   SERIAL PRIMARY KEY,
+  name VARCHAR(128) NOT NULL,
+  ts   TIMESTAMP NOT NULL DEFAULT now()
 );
 
--- Quarkus 侧业务库 seata_quarkus（并列分支, 新增）
+-- seata_quarkus.biz_tbl（Quarkus 并列分支；demo 经 CreateBiz RPC 写入 name + val，val int4）
 CREATE TABLE IF NOT EXISTS biz_tbl (
-  id   BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  name VARCHAR(64),
-  val  INT DEFAULT 0
+  id   BIGSERIAL PRIMARY KEY,
+  name VARCHAR(128) NOT NULL,
+  val  INTEGER NOT NULL,
+  ts   TIMESTAMP NOT NULL DEFAULT now()
 );
 ```
+
+> **列对齐提醒**：`seata_java.biz_tbl` 与 `seata_quarkus.biz_tbl` 同名不同列（前者 `amount numeric`、后者 `val int`），
+> 属两个独立库的独立表，勿混用；改表结构时需同步改三端 INSERT。
 
 ---
 
@@ -246,17 +253,16 @@ seata:
       default: 127.0.0.1:8091
 ```
 
-### 3.3 新增 `SeataClientInterceptor`（gRPC 出站透传 XID）
+### 3.3 新增 `SeataXidClientInterceptor`（gRPC 出站透传 XID）
 
-仿照 `xxs-spring-grpc/.../auth/AuthClientInterceptor` 的骨架，
-在 **grpc-demo 模块**内新增拦截器，把当前线程的 XID 写入 gRPC Metadata。
-**该拦截器同时挂到 `user`（→Go）和 `quarkus`（→Quarkus）两个通道。**
+在 grpc-demo 模块内新增拦截器，把当前线程的 XID 写入 gRPC Metadata `TX_XID` 头。
 
-`src/main/java/com/bigbear/spring/grpc/demo/seata/SeataClientInterceptor.java`：
+`src/main/java/com/bigbear/spring/grpc/demo/seata/SeataXidClientInterceptor.java`：
 
 ```java
 package com.bigbear.spring.grpc.demo.seata;
 
+import org.apache.seata.core.context.RootContext;
 import io.grpc.CallOptions;
 import io.grpc.Channel;
 import io.grpc.ClientCall;
@@ -264,25 +270,21 @@ import io.grpc.ClientInterceptor;
 import io.grpc.ForwardingClientCall;
 import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
-import org.apache.seata.core.context.RootContext;
 
 /**
- * gRPC 客户端拦截器：将 Seata 全局事务 XID 透传至下游（Go / Quarkus 服务）。
- *
- * <p>在 {@code @GlobalTransactional} 标注的方法内，{@link RootContext} 持有当前 XID；
- * 拦截器于请求发出前将其写入 {@code Metadata[TX_XID]}，下游据此 JOIN 同一全局事务。
+ * gRPC 客户端拦截器：全局事务 XID 透传（Seata → Go / Quarkus 分支）。
  */
-public class SeataClientInterceptor implements ClientInterceptor {
+public class SeataXidClientInterceptor implements ClientInterceptor {
 
-    /** Seata XID 元数据键，须与 Go {@code constant.XidKey}、Quarkus {@code RootContext.KEY_XID} 一致（"TX_XID"）。 */
-    private static final Metadata.Key<String> XID_KEY =
-            Metadata.Key.of(RootContext.KEY_XID, Metadata.ASCII_STRING_MARSHALLER);
+    /** 与 Go / Quarkus 入站侧约定的 XID 透传头。 */
+    public static final Metadata.Key<String> XID_KEY =
+        Metadata.Key.of("TX_XID", Metadata.ASCII_STRING_MARSHALLER);
 
     @Override
     public <ReqT, RespT> ClientCall<ReqT, RespT> interceptCall(
-            MethodDescriptor<ReqT, RespT> method, CallOptions options, Channel next) {
+        MethodDescriptor<ReqT, RespT> method, CallOptions callOptions, Channel next) {
 
-        return new ForwardingClientCall.SimpleForwardingClientCall<ReqT, RespT>(next.newCall(method, options)) {
+        return new ForwardingClientCall.SimpleForwardingClientCall<>(next.newCall(method, callOptions)) {
             @Override
             public void start(Listener<RespT> responseListener, Metadata headers) {
                 String xid = RootContext.getXID();
@@ -296,99 +298,84 @@ public class SeataClientInterceptor implements ClientInterceptor {
 }
 ```
 
-### 3.4 把拦截器挂到 `user` 与 `quarkus` 两个通道
+### 3.4 以全局拦截器挂载（覆盖 `user` 与 `quarkus` 两个通道）
 
-修改 `user-api/.../UserClientAutoConfiguration.java`（挂 `user` 通道），
-并在 `biz-api/.../BizClientAutoConfiguration.java`（挂 `quarkus` 通道）同样挂载：
+demo 通过 Spring gRPC 官方 `@GlobalClientInterceptor` 把拦截器注册为**全局客户端拦截器**，
+自动应用到 demo 的所有 gRPC 通道（含 `user` →Go、`quarkus` →Quarkus），无需在每个通道的
+`@ImportGrpcClients` 上单独挂载 `intercept=`。
+
+`src/main/java/com/bigbear/spring/grpc/demo/seata/SeataXidGrpcConfiguration.java`：
 
 ```java
 @Configuration(proxyBeanMethods = false)
-@ImportGrpcClients(
-    target = "user",
-    types = UserServiceGrpc.UserServiceBlockingStub.class,
-    intercept = SeataClientInterceptor.class   // 出站透传 XID
-)
-public class UserClientAutoConfiguration {
+public class SeataXidGrpcConfiguration {
+
+    /** 注册 gRPC 客户端全局拦截器：出站自动携带当前全局事务 XID。 */
     @Bean
-    public UserClient userClient(UserServiceBlockingStub stub) {
-        return new UserClient(stub);
+    @Order(200)
+    @GlobalClientInterceptor
+    public ClientInterceptor seataXidClientInterceptor() {
+        return new SeataXidClientInterceptor();
     }
 }
 ```
 
-```java
-@Configuration(proxyBeanMethods = false)
-@ImportGrpcClients(
-    target = "quarkus",
-    types = BizServiceGrpc.BizServiceBlockingStub.class,
-    intercept = SeataClientInterceptor.class   // 出站透传 XID（同一拦截器复用）
-)
-public class BizClientAutoConfiguration {
-    @Bean
-    public BizClient bizClient(BizServiceBlockingStub stub) {
-        return new BizClient(stub);
-    }
-}
-```
+### 3.5 事务编排服务与回滚演练（`SeataDemoService`）
 
-### 3.5 新增事务编排服务（本地写库 + gRPC 调 Go + gRPC 调 Quarkus）
+demo 的编排服务为 `seata/SeataDemoService`：`@GlobalTransactional` 开启全局事务，
+`@DS("seata_java")` 路由本地写库，再分别经 `userClient`（→Go）、`bizClient`（→Quarkus）跨端写库；
+另提供 `createUserThenFail` —— 三端落库后主动抛错，用于回滚演练。
 
-在 demo 模块新增一个充血服务，使用 `@GlobalTransactional` 把三段写入纳入同一事务。
-
-`src/main/java/com/bigbear/spring/grpc/demo/BizTransactionService.java`：
+`src/main/java/com/bigbear/spring/grpc/demo/seata/SeataDemoService.java`（核心节选）：
 
 ```java
-package com.bigbear.spring.grpc.demo;
-
-import com.bigbear.spring.grpc.user.UserClient;
-import com.bigbear.spring.grpc.biz.BizClient;
-import io.seata.spring.annotation.GlobalTransactional;
-import lombok.RequiredArgsConstructor;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Service;
-
-/**
- * 分布式事务编排：演示「本地写库 + 跨语言 gRPC 写库(Go + Quarkus)」同一 XA 事务。
- *
- * <p>三段分支任一抛异常，Java/Go/Quarkus 两侧 XA 分支均回滚。
- */
+@Slf4j
 @Service
 @RequiredArgsConstructor
-public class BizTransactionService {
+public class SeataDemoService {
 
-    /** 指向 dynamic-datasource 代理后的 master（seata_java 库）。 */
-    private final JdbcTemplate jdbcTemplate;
+    /** → Go 分支（seata-go XA）。 */
     private final UserClient userClient;
+
+    /** → Quarkus 分支（seata-quarkus XA）。 */
     private final BizClient bizClient;
 
-    /**
-     * 开启全局事务：先写本地 biz_tbl，再经 gRPC 调用 Go 写 user_tbl、调 Quarkus 写 biz_tbl。
-     *
-     * @param name 业务名
-     * @return 结果摘要
-     */
-    @GlobalTransactional(name = "demo-create-biz", rollbackFor = Exception.class)
-    public String createBiz(String name) {
-        // 1) 本地分支（XA）
-        jdbcTemplate.update("INSERT INTO biz_tbl(name, val) VALUES (?, ?)", name, 1);
+    /** 多数据源模板：路由到 seata_java 数据源。 */
+    private final JdbcTemplate jdbcTemplate;
 
-        // 2) 跨语言分支 A：gRPC → Go，拦截器自动透传 XID
-        userClient.createUser(name, 18);
+    @GlobalTransactional
+    @DS("seata_java")
+    public String createUser(String name, int age) {
+        return doCreateUser(name, age);
+    }
 
-        // 3) 跨语言分支 B：gRPC → Quarkus，拦截器自动透传 XID
-        bizClient.createBiz(name, 2);
+    /** 三端落库后主动抛错，验证 Seata XA 整单回滚。 */
+    @GlobalTransactional
+    @DS("seata_java")
+    public String createUserThenFail(String name, int age) {
+        String goId = doCreateUser(name, age);
+        throw new RuntimeException("rollback drill after 3-branch write");
+    }
 
-        // 演示回滚：放开下行，整个全局事务将回滚（含 Go + Quarkus 侧已写入）
-        // int i = 1 / 0;
-        return "ok:" + name;
+    /** 三端落库核心：Java(seata_java.biz_tbl) → Go(seata_go.user_tbl) → Quarkus(seata_quarkus.biz_tbl)。 */
+    private String doCreateUser(String name, int age) {
+        // 1) Java 分支
+        jdbcTemplate.update("INSERT INTO biz_tbl(name, amount) VALUES (?, ?)", name, 0);
+        // 2) Go 分支：gRPC 透传 XID 调用 seata-go
+        long goId = userClient.createUser(name, age).getId();
+        // 3) Quarkus 分支：gRPC 透传 XID 调用 template-provider
+        bizClient.createBiz(name, age);
+        return String.valueOf(goId);
     }
 }
 ```
 
-> `UserClient` 需补 `createUser(name, age)`；`BizClient` 提供 `createBiz(name, val)`，对应 proto 见第六章。
+`SeataController` 暴露两个 REST 入口：
+
+- `POST /demo/seata/create-user?name=&age=` —— 三端正常落库；
+- `POST /demo/seata/create-user-fail?name=&age=` —— 三端落库后主动抛错，验证整单回滚（三表均无残留）。
 
 ---
-
 ## 四、Go 侧改造（seata-go XA）
 
 > **修正点（相对初稿）：** ① 配置须包在 `seata:` 根键下；② 模块路径以实际 `go get` 为准；
@@ -638,631 +625,386 @@ func (s *UserService) CreateUser(ctx context.Context, req *userpb.CreateUserRequ
 ## 五、Quarkus 侧改造（template-provider，新增并列分支）
 
 > **核心挑战：** Seata **无官方 Quarkus 扩展**，`seata-spring-boot-starter` / `spring-cloud-starter-alibaba-seata`
-> 均为 Spring 专属，Quarkus（CDI 体系）无法直接复用。方案：用 `seata-core`（非 `seata-all`，避免拉入 Spring）
-> 手动 CDI 装配 —— TM/RM 初始化 + XA 数据源代理 + gRPC 入站 XID 绑定。
+> 均为 Spring 专属，Quarkus（CDI 体系）无法直接复用。方案：基于 `seata-core` 自研公共扩展
+> `xxs-quarkus-seata`（runtime + deployment 双模块）—— 配置 SPI 桥接 + TM/RM 客户端初始化 +
+> `db-kind=seata` 自定义驱动（`SeataXADriver` → `DataSourceProxyXA`）+ gRPC XID 透传拦截器。
 >
-> 落点：新建公共模块 `xxs-quarkus-seata`，再集成进 `xxs-quarkus-template/template-provider`。
+> 落点：新建公共扩展 `xxs-quarkus-seata`（deployment 为 `xxs-quarkus-seata-deployment`），
+> 再集成进 `xxs-quarkus-template/template-provider`。
 
-### 5.1 BOM 增加 seata 版本管理
+### 5.1 Seata 依赖与版本管理
 
-`java/xxs-micro/xxs-common-quarkus/xxs-quarkus-bom/pom.xml` 的 `dependencyManagement` 增加：
+`xxs-quarkus-seata` runtime 模块直接在 `pom.xml` 声明
+`org.apache.seata:seata-core / seata-tm / seata-rm / seata-rm-datasource / seata-discovery-nacos / seata-config-nacos`，
+**版本固定 2.6.0**，与 Spring 侧 `ruoyi-common-seata` 携带的 apache seata 版本对齐（两端与 TC 同主版本才可互通）。
 
-```xml
-<dependencyManagement>
-    <dependencies>
-        <!-- 新增：apache seata-core（排除任何传递的 spring-* 依赖，避免污染 Quarkus） -->
-        <dependency>
-            <groupId>org.apache.seata</groupId>
-            <artifactId>seata-core</artifactId>
-            <version>${seata.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-    </dependencies>
-</dependencyManagement>
-```
+> 早期方案拟在 `xxs-quarkus-bom` 的 `dependencyManagement` 纳入 `seata-core` 并排除传递的 `spring-*`；
+> 当前实现未走 BOM，由 runtime 模块内直接声明（见 5.2 pom 片段）。后续如新增模块依赖 seata，可再收口到 BOM。
 
-> `seata.version` 与 Spring 侧 `ruoyi-common-seata` 使用的 apache seata 版本对齐（建议同主版本）。
+### 5.2 新建公共扩展（runtime `xxs-quarkus-seata` + deployment `xxs-quarkus-seata-deployment`）
 
-### 5.2 新建公共模块 `xxs-quarkus-seata`
+在 `java/xxs-micro/xxs-common-quarkus/xxs-quarkus-modules/` 下新增**两个子模块**（runtime + deployment，
+均已在 `xxs-quarkus-modules/pom.xml` 聚合）：
 
-在 `java/xxs-micro/xxs-common-quarkus/xxs-quarkus-modules/` 下新增子模块 `xxs-quarkus-seata`，
-并在 `xxs-quarkus-modules/pom.xml` 的 `<modules>` 聚合它。
+- `xxs-quarkus-seata`（runtime）：seata 配置 SPI 桥接 + TM/RM 客户端初始化 + XA 数据源驱动 + gRPC XID 透传拦截器；
+- `xxs-quarkus-seata-deployment`（deployment）：注册 `db-kind=seata` → `SeataXADriver` 映射与扩展功能声明。
 
-`xxs-quarkus-modules/xxs-quarkus-seata/pom.xml`：
+`xxs-quarkus-modules/xxs-quarkus-seata/pom.xml`（核心依赖，seata 版本 2.6.0 与 Spring 侧对齐）：
 
 ```xml
 <dependencies>
     <dependency>
-        <groupId>com.bigbear.xxs</groupId>
-        <artifactId>xxs-quarkus-core</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>com.bigbear.xxs</groupId>
-        <artifactId>xxs-quarkus-grpc</artifactId>
-    </dependency>
-    <!-- seata-core（CDI 手动装配，非 spring-boot-starter） -->
-    <dependency>
-        <groupId>org.apache.seata</groupId>
-        <artifactId>seata-core</artifactId>
-    </dependency>
-    <!-- PostgreSQL XA 驱动（含 pgx 与 XA 能力，由 Quarkus 托管） -->
-    <dependency>
         <groupId>io.quarkus</groupId>
-        <artifactId>quarkus-jdbc-postgresql</artifactId>
+        <artifactId>quarkus-core</artifactId>
     </dependency>
     <dependency>
         <groupId>io.quarkus</groupId>
         <artifactId>quarkus-arc</artifactId>
     </dependency>
+    <dependency>
+        <groupId>io.quarkus</groupId>
+        <artifactId>quarkus-grpc</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>io.quarkus</groupId>
+        <artifactId>quarkus-agroal</artifactId>
+    </dependency>
+    <!-- 排除 quarkus-flyway-postgresql：离线仓库缺失，且 generate-code 会解析，导致离线构建失败 -->
+    <dependency>
+        <groupId>io.quarkus</groupId>
+        <artifactId>quarkus-jdbc-postgresql</artifactId>
+        <exclusions>
+            <exclusion>
+                <groupId>io.quarkus</groupId>
+                <artifactId>quarkus-flyway-postgresql</artifactId>
+            </exclusion>
+        </exclusions>
+    </dependency>
+
+    <dependency>
+        <groupId>org.apache.seata</groupId>
+        <artifactId>seata-core</artifactId>
+        <version>2.6.0</version>
+    </dependency>
+    <dependency>
+        <groupId>org.apache.seata</groupId>
+        <artifactId>seata-tm</artifactId>
+        <version>2.6.0</version>
+    </dependency>
+    <dependency>
+        <groupId>org.apache.seata</groupId>
+        <artifactId>seata-rm</artifactId>
+        <version>2.6.0</version>
+    </dependency>
+    <dependency>
+        <groupId>org.apache.seata</groupId>
+        <artifactId>seata-rm-datasource</artifactId>
+        <version>2.6.0</version>
+    </dependency>
+    <dependency>
+        <groupId>org.apache.seata</groupId>
+        <artifactId>seata-discovery-nacos</artifactId>
+        <version>2.6.0</version>
+    </dependency>
+    <dependency>
+        <groupId>org.apache.seata</groupId>
+        <artifactId>seata-config-nacos</artifactId>
+        <version>2.6.0</version>
+    </dependency>
 </dependencies>
 ```
 
-模块内提供以下组件（包名 `com.bigbear.quarkus.seata`）。
+> 构建细节：`META-INF/quarkus-extension.properties` 需要资源过滤内插 `${revision}`（deployment-artifact）；
+> runtime 用 `jandex-maven-plugin` 生成索引，使 Bean / 拦截器被 Quarkus Arc 与 gRPC 扫描到。
 
-#### 5.2.1 `SeataProperties` —— 配置映射
+组件全部位于 `com.bigbear.quarkus.seata` 包下，按职责拆分如下。
+
+#### 5.2.1 配置桥接 SPI（`config/`）—— 摆脱 `registry.conf`
+
+**问题**：seata-core 的 `ConfigurationFactory` 默认从 classpath 读 `registry.conf`/`file.conf` 确定
+`registry.type`/`config.type`，而 Quarkus 的 ClassLoader 资源隔离导致该文件**无法稳定解析**
+（`NotSupportYetException: config type can not be null`）。
+
+**方案**：不依赖文件，全部配置经 Quarkus MicroProfile Config（`application.properties` 的 `seata.*` 键）承载，
+再通过 Seata 官方 SPI `ExtConfigurationProvider` 以 `java.lang.reflect.Proxy` 动态代理叠加到 `Configuration` 上：
+seata 内部按裸 key（如 `registry.type`、`service.vgroupMapping.xxx`）读取时，先解析 `seata.<dataId>`
+（兼容驼峰 / 中划线 / 下划线变体，支持 `Duration` 转换），命中则返回，未命中回退原实现与默认值。
 
 ```java
-package com.bigbear.quarkus.seata;
-
-import io.smallrye.config.ConfigMapping;
-import io.smallrye.config.WithName;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-
-import java.util.Map;
-
-/**
- * Seata 客户端配置映射（对齐 Spring 侧 seata.* 配置）。
- *
- * <p>Quarkus 运行时 seata-core 无法稳定发现 classpath 内的 registry.conf（ClassLoader 资源隔离），
- * 故所有 registry/config 参数改由本映射接收，并在 SeataBootstrap 中映射为 seata 系统属性。
- */
-@ConfigMapping(prefix = "seata")
-public interface SeataProperties {
-
-    /** 环境总开关：本地开发默认 false（走普通本地事务、不连 TC），测试/生产设为 true。 */
-    @ConfigProperty(name = "enabled", defaultValue = "false")
-    boolean enabled();
-
-    /** 应用标识。 */
-    @ConfigProperty(name = "application-id", defaultValue = "quarkus-app")
-    String applicationId();
-
-    /** 事务分组。 */
-    @ConfigProperty(name = "tx-service-group", defaultValue = "default_tx_group")
-    String txServiceGroup();
-
-    /** vgroup → cluster 映射。 */
-    @WithName("service.vgroup-mapping")
-    Map<String, String> vgroupMapping();
-
-    /** cluster → host:port TC 地址列表。 */
-    @WithName("service.grouplist")
-    Map<String, String> grouplist();
-
-    /** Nacos 注册/配置中心连接信息。 */
-    NacosConfig nacos();
-
-    /** Nacos 连接配置。 */
-    interface NacosConfig {
-        @ConfigProperty(name = "server-addr", defaultValue = "127.0.0.1:8848")
-        String serverAddr();
-        @ConfigProperty(name = "namespace", defaultValue = "xhf")
-        String namespace();
-        @ConfigProperty(name = "group", defaultValue = "DEFAULT_GROUP")
-        String group();
-        @ConfigProperty(name = "application", defaultValue = "seata-server")
-        String application();
-        @ConfigProperty(name = "username", defaultValue = "nacos")
-        String username();
-        @ConfigProperty(name = "password", defaultValue = "nacos")
-        String password();
-        @ConfigProperty(name = "data-id", defaultValue = "seata-server.properties")
-        String dataId();
+// config/SeataConfigProvider.java（核心）
+public class SeataConfigProvider implements ExtConfigurationProvider {
+    @Override
+    public Configuration provide(Configuration originalConfiguration) {
+        return (Configuration) Proxy.newProxyInstance(
+                Configuration.class.getClassLoader(),
+                new Class<?>[] {Configuration.class},
+                new ConfigurationBridge(originalConfiguration));
     }
+    // ConfigurationBridge.invoke：get* 方法命中 seata.<dataId> 时按返回类型转换并返回，否则走原实现
 }
 ```
 
-#### 5.2.2 `SeataBootstrap` —— TM/RM 初始化
+SPI 声明：`META-INF/services/org.apache.seata.config.ExtConfigurationProvider` →
+`com.bigbear.quarkus.seata.config.SeataConfigProvider`。
+
+所有 `seata.*` 键在 `config/SeataConfigConstants.java` 统一定义：`seata.enabled` / `seata.application-id` /
+`seata.tx-service-group` / `seata.datasource.url|username|password` / gRPC 透传头 `TX_XID`。
+
+#### 5.2.2 运行时引导（`runtime/SeataRuntime`）—— TM/RM 初始化
+
+`@ApplicationScoped @Startup` 应用启动钩子：`seata.enabled=true` 时调用
+`RmNettyRemotingClient.getInstance(appId, group).init()` 与 `TmNettyRemotingClient.getInstance(appId, group).init()`，
+使客户端连上 TC；`seata.enabled=false` 时跳过（普通本地事务，不连 TC）。`@PreDestroy` 时 `destroy()` 释放资源。
+
+> 先后关系：RM 客户端**必须先于** `SeataXADriver` 首次构造 `DataSourceProxyXA` 完成初始化（资源管理器注册）。
+> 因驱动为请求期懒加载，天然满足。
+
+#### 5.2.3 事务协调客户端（`runtime/SeataTransactionClient`）
+
+以 TM 身份向 TC 发起 `GlobalBegin / GlobalCommit / GlobalRollback`（`TmNettyRemotingClient.sendSyncRequest`），
+供 Quarkus 端作为**全局事务协调者**（如 rollback-drill 演练、事务兜底补偿）时使用；作为普通 JOIN 分支时无需调用。
+所有方法受 `SeataRuntime.isEnabled()` 门控，未启用直接返回失败。
+
+#### 5.2.4 XA 数据源驱动（`runtime/SeataXADriver`）—— `db-kind=seata`
+
+`java.sql.Driver` 实现，静态块注册进 `DriverManager`；承接 URL 前缀 `jdbc:seata:`（实际形如
+`jdbc:seata:jdbc:postgresql://...`），懒加载构造全局单例 `DataSourceProxyXA(buildRealDataSource())`。
 
 ```java
-package com.bigbear.quarkus.seata;
+// runtime/SeataXADriver.java（核心）
+public class SeataXADriver implements Driver {
+    private static final String URL_PREFIX = "jdbc:seata:";
+    private static volatile DataSourceProxyXA dataSourceProxy;
 
-import io.quarkus.runtime.StartupEvent;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.event.Observes;
-import jakarta.inject.Inject;
-import org.apache.seata.rm.RMClient;
-import org.apache.seata.tm.TMClient;
-import org.jboss.logging.Logger;
-
-import java.util.Map;
-
-/**
- * Seata 客户端启动初始化：在 Quarkus 启动时初始化 TM 与 RM。
- *
- * <p>Quarkus 无 seata-spring-boot-starter 自动装配，故手动调用
- * {@link TMClient#init} / {@link RMClient#init} 注册到 TC。
- *
- * <p>Quarkus 运行时 seata-core 无法稳定发现 classpath 内的 registry.conf（ClassLoader 资源隔离），
- * 因此本类在初始化前将配置以 seata 系统属性形式注入（seata 优先读取系统属性，覆盖文件发现），
- * 规避 {@code config type can not be null} 启动异常。
- */
-@ApplicationScoped
-public class SeataBootstrap {
-
-    private static final Logger LOG = Logger.getLogger(SeataBootstrap.class);
-
-    @Inject
-    SeataProperties props;
-
-    /**
-     * 应用启动时初始化 Seata TM/RM 客户端。
-     *
-     * <p>调用 {@link TMClient#init} 会触发 seata-core ConfigurationFactory 类初始化，
-     * 故必须在它之前完成系统属性注入，否则报 {@code config type can not be null}。
-     *
-     * @param ev 启动事件
-     */
-    void onStart(@Observes StartupEvent ev) {
-        // 环境开关关闭：跳过 TM/RM 初始化，本服务走普通本地事务，不连 TC。
-        if (!props.enabled()) {
-            LOG.info("Seata disabled by config (seata.enabled=false), skip TM/RM init.");
-            return;
-        }
-
-        // 关键：在 TMClient.init 触发 seata 配置类初始化前，注入 seata 系统属性
-        applySeataSystemProperties();
-
-        String appId = props.applicationId();
-        String txGroup = props.txServiceGroup();
-        LOG.infof("Seata init: appId=%s, txServiceGroup=%s", appId, txGroup);
-
-        TMClient.init(appId, txGroup);
-        RMClient.init(appId, txGroup);
-        LOG.info("Seata TM/RM initialized.");
+    static {
+        DriverManager.registerDriver(new SeataXADriver());   // 供 DriverManager / Agroal 发现
     }
-
-    /** 将 Quarkus 配置映射为 seata-core 可识别的 seata.* 系统属性（绕过 registry.conf 文件发现）。 */
-    private void applySeataSystemProperties() {
-        SeataProperties.NacosConfig nacos = props.nacos();
-        setIfAbsent("seata.registry.type", "nacos");
-        setIfAbsent("seata.registry.nacos.application", nacos.application());
-        setIfAbsent("seata.registry.nacos.serverAddr", nacos.serverAddr());
-        setIfAbsent("seata.registry.nacos.group", nacos.group());
-        setIfAbsent("seata.registry.nacos.namespace", nacos.namespace());
-        setIfAbsent("seata.registry.nacos.username", nacos.username());
-        setIfAbsent("seata.registry.nacos.password", nacos.password());
-
-        setIfAbsent("seata.config.type", "nacos");
-        setIfAbsent("seata.config.nacos.serverAddr", nacos.serverAddr());
-        setIfAbsent("seata.config.nacos.group", nacos.group());
-        setIfAbsent("seata.config.nacos.namespace", nacos.namespace());
-        setIfAbsent("seata.config.nacos.dataId", nacos.dataId());
-        setIfAbsent("seata.config.nacos.username", nacos.username());
-        setIfAbsent("seata.config.nacos.password", nacos.password());
-
-        if (props.vgroupMapping() != null) {
-            props.vgroupMapping().forEach((g, c) -> setIfAbsent("seata.service.vgroupMapping." + g, c));
-        }
-        if (props.grouplist() != null) {
-            props.grouplist().forEach((c, a) -> setIfAbsent("seata.service.grouplist." + c, a));
-        }
-    }
-
-    /** 仅在系统属性未设置时写入，避免覆盖外部显式配置。 */
-    private void setIfAbsent(String key, String value) {
-        if (System.getProperty(key) == null && value != null) {
-            System.setProperty(key, value);
-        }
-    }
-}
-```
-
-> **关键坑（Quarkus 专属）**：seata-core 在 `ConfigurationFactory` 类初始化时读取配置，默认依赖
-> classpath 内的 `registry.conf` 确定 `config.type`。Quarkus 的 ClassLoader 资源隔离导致该文件
-> **无法被稳定发现**，进而抛 `NotSupportYetException: config type can not be null`，阻断启动。
-> 解决方式：不依赖文件，改为在 `TMClient.init` 之前用 `System.setProperty("seata.*", ...)` 注入
-> （seata 优先读系统属性）。`application.properties` 中 `seata.nacos.*` 提供 Nacos 连接信息，
-> 经 `SeataProperties` 映射后写入系统属性。
-> 模块 resources 下的 `registry.conf` 可作为兜底保留，但不再作为主路径。
-
-#### 5.2.3 `SeataXA` —— 限定注解（消除 CDI 歧义）
-
-Quarkus Agroal 会依据 `quarkus.datasource.*` **自动合成**一个带 `@Default` 限定、含连接池的
-`AgroalDataSource`。若本 producer 再产出 `@Default DataSource`，注入点 `DataSource` 将出现两个
-`@Default` 候选（Agroal 合成 bean + 本 producer bean），启动即抛
-`AmbiguousResolutionException`。
-
-故新增自定义限定注解 `@SeataXA`，把 Seata 数据源与 Agroal 默认数据源隔离，业务侧以 `@SeataXA`
-精确注入。
-
-```java
-package com.bigbear.quarkus.seata;
-
-import jakarta.inject.Qualifier;
-
-import java.lang.annotation.Documented;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.ElementType.PARAMETER;
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
-/**
- * 限定 Seata XA 代理数据源，与 Agroal 默认 {@code @Default DataSource} 区分，避免 CDI 歧义解析。
- */
-@Qualifier
-@Documented
-@Retention(RUNTIME)
-@Target({TYPE, FIELD, PARAMETER})
-public @interface SeataXA {
-}
-```
-
-#### 5.2.4 `XADataSourceProducer` —— XA 数据源代理（复用 Agroal 连接池）
-
-```java
-package com.bigbear.quarkus.seata;
-
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.inject.Produces;
-import jakarta.inject.Inject;
-
-import org.apache.seata.rm.datasource.xa.DataSourceProxyXA;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.jboss.logging.Logger;
-
-import javax.sql.DataSource;
-
-/**
- * 生产 Seata XA 代理数据源。
- *
- * <p>Quarkus Agroal 已依据 {@code quarkus.datasource.*} 自动合成带连接池的默认
- * {@code @Default DataSource}，本类<b>复用</b>该连接池（而非另建裸连接）。
- * 开启 Seata 时将其包装为 {@link DataSourceProxyXA}，DB 写自动成为 XA 分支；
- * 关闭时直接透传 Agroal 原生 DataSource（本地提交，不连 TC）。
- *
- * <p>产出的 Bean 带 {@link SeataXA} 限定注解，与 Agroal 默认 {@code @Default DataSource}
- * 隔离，业务侧以 {@code @SeataXA} 精确注入，避免 CDI 歧义解析。
- */
-@ApplicationScoped
-public class XADataSourceProducer {
-
-    private static final Logger LOG = Logger.getLogger(XADataSourceProducer.class);
-
-    /**
-     * Agroal 自动合成的默认 DataSource（已含连接池，带 @Default 限定）。
-     * 不带 {@link SeataXA} 限定，避免与本类产出的 Bean 形成循环依赖。
-     */
-    @Inject
-    DataSource agroalDataSource;
-
-    @Inject
-    SeataProperties props;
-
-    /**
-     * 产出 Seata XA 代理数据源（带 {@link SeataXA} 限定）。
-     *
-     * <p>受 {@code seata.enabled} 环境开关控制：
-     * <ul>
-     *   <li>true：以 Agroal 原生 DataSource 为底层，包装为 {@link DataSourceProxyXA}，
-     *       DB 写自动纳入全局事务 XA 分支；</li>
-     *   <li>false（默认，本地开发）：直接透传 Agroal 原生 DataSource（本地提交，不连 TC）。</li>
-     * </ul>
-     *
-     * <p>复用 Agroal 连接池，避免裸连接无池化；带 {@link SeataXA} 限定保证注入类型唯一。
-     *
-     * @return 数据源（XA 代理或 Agroal 原生 DataSource）
-     */
-    @Produces
-    @ApplicationScoped
-    @SeataXA
-    public DataSource seataDataSource() {
-        // 关闭 Seata：直接透传 Agroal 原生 DataSource，走本地提交，无需 XA 分支注册
-        if (!props.enabled()) {
-            LOG.infof("Seata disabled, native Agroal datasource used (url from quarkus.datasource)");
-            return agroalDataSource;
-        }
-
-        LOG.infof("Seata XA datasource created (based on Agroal pool)");
-        // 包装为 Seata XA 代理，DB 写即自动成为 XA 分支
-        return new DataSourceProxyXA(agroalDataSource);
-    }
-}
-```
-
-> 关键设计：**不再 `new PGXADataSource()` 另建裸连接**，而是注入 Agroal 默认 `DataSource`（含连接池）
-> 后复用为底层。这样 Seata 代理也享受连接池，避免裸连接无池化、连接泄漏风险。
-> PG XA 同样依赖实例 `max_prepared_transactions > 0`。
-
-#### 5.2.5 `SeataServerInterceptor` —— gRPC 入站绑定 XID
-
-仿照现有 `xxs-quarkus-grpc/.../config/MetadataInterceptor` 的 `@GlobalInterceptor` 范式：
-入站读 `TX_XID` → `RootContext.bind`，回调结束 → `RootContext.unbind`。
-
-```java
-package com.bigbear.quarkus.seata;
-
-import io.grpc.Context;
-import io.grpc.Metadata;
-import io.grpc.ServerCall;
-import io.grpc.ServerCallHandler;
-import io.grpc.ServerInterceptor;
-import io.quarkus.grpc.GlobalInterceptor;
-import jakarta.inject.Singleton;
-import org.apache.seata.core.context.RootContext;
-import org.jboss.logging.Logger;
-
-/**
- * gRPC 服务端全局拦截器：入站绑定 Seata XID，使本服务 JOIN 上游全局事务。
- *
- * <p>Quarkus 作并列分支，仅需入站绑定即可（无需发起）；DB 写经 XA 代理自动注册为分支。
- * gRPC 在 Quarkus 下运行于 vert.x event loop，{@link RootContext} 为 ThreadLocal，
- * 故在拦截器入口 bind、调用结束（close/cancel）时 unbind，避免线程复用串数据。
- */
-@Singleton
-@GlobalInterceptor
-public class SeataServerInterceptor implements ServerInterceptor {
-
-    private static final Logger LOG = Logger.getLogger(SeataServerInterceptor.class);
-
-    /** XID 元数据键，须与 Java RootContext.KEY_XID、Go constant.XidKey 一致。 */
-    private static final Metadata.Key<String> XID_KEY =
-            Metadata.Key.of(RootContext.KEY_XID, Metadata.ASCII_STRING_MARSHALLER);
 
     @Override
-    public <ReqT, RespT> ServerCall.Listener<ReqT> interceptCall(
-            ServerCall<ReqT, RespT> call, Metadata headers, ServerCallHandler<ReqT, RespT> next) {
+    public Connection connect(String url, Properties info) {
+        return acceptsURL(url) ? dataSourceProxy().getConnection() : null;
+    }
 
-        String xid = headers.get(XID_KEY);
-        if (xid != null && !xid.isEmpty()) {
-            RootContext.bind(xid);
-            LOG.debugf("Seata XID bound: %s", xid);
-        }
-
-        ServerCall.Listener<ReqT> listener = next.startCall(call, headers);
-
-        // 回调结束时清理 ThreadLocal，防止线程复用串数据
-        return new ForwardingServerCallListener<ReqT>() {
-            @Override
-            public void onComplete() {
-                cleanup(xid);
-                super.onComplete();
-            }
-            @Override
-            public void onCancel() {
-                cleanup(xid);
-                super.onCancel();
-            }
-
-            private void cleanup(String bound) {
-                if (bound != null && !bound.isEmpty()) {
-                    RootContext.unbind();
+    private static DataSourceProxyXA dataSourceProxy() {
+        // 懒加载；真实源为 PGSimpleDataSource（seata.datasource.* 配置）。
+        // 必须在 RM 客户端 init（SeataRuntime 启动钩子）之后首次构造——连接发生在请求期，天然满足。
+        if (dataSourceProxy == null) {
+            synchronized (SeataXADriver.class) {
+                if (dataSourceProxy == null) {
+                    dataSourceProxy = new DataSourceProxyXA(buildRealDataSource());
                 }
             }
-        };
+        }
+        return dataSourceProxy;
     }
 }
 ```
 
-> `ForwardingServerCallListener` 取 `io.grpc.ForwardingServerCallListener.SimpleForwardingServerCallListener`。
-> 实现 XA 分支提交/回滚由 seata-core RM 在连接 close 时自动驱动，业务无需手动 `commit`。
+> **为什么不需要 `PGXADataSource`**：`DataSourceProxyXA` 内部经 Seata `XAUtils.createXAConnection`
+> 从普通 `Connection` 包装真实 XA 资源，底层 `PGSimpleDataSource` 即可。
+> 全局事务内（`RootContext` 已绑定 XID）返回的连接代理自动登记 XA 分支；全局事务外退化为普通直连。
+> `seata.enabled=false` 时 `AbstractResourceManager.registerResource` 仅内存登记、不连 TC，驱动懒构造安全。
 
-#### 5.2.6 `SeataClientInterceptor` —— 出站透传 XID（能力储备）
-
-本场景 Quarkus 作并列分支不出站，但保留出站拦截器以备未来 Quarkus 再调下游。
+#### 5.2.5 XID 跨线程传播（`runtime/SeataXidContext`）
 
 ```java
-package com.bigbear.quarkus.seata;
+public final class SeataXidContext {
+    /** gRPC Context 中承载全局事务 XID 的键 */
+    public static final Context.Key<String> XID = Context.key(SeataConfigConstants.TX_XID);
 
-import io.grpc.*;
-import io.quarkus.grpc.GlobalInterceptor;
-import jakarta.inject.Singleton;
-import org.apache.seata.core.context.RootContext;
+    public static String get() {
+        return XID.get();
+    }
 
-/**
- * gRPC 客户端全局拦截器：出站把当前 XID 写入 Metadata（能力储备）。
- */
-@Singleton
-@GlobalInterceptor
-public class SeataClientInterceptor implements ClientInterceptor {
-
-    private static final Metadata.Key<String> XID_KEY =
-            Metadata.Key.of(RootContext.KEY_XID, Metadata.ASCII_STRING_MARSHALLER);
-
-    @Override
-    public <ReqT, RespT> ClientCall<ReqT, RespT> interceptCall(
-            MethodDescriptor<ReqT, RespT> method, CallOptions options, Channel next) {
-        return new ForwardingClientCall.SimpleForwardingClientCall<>(next.newCall(method, options)) {
-            @Override
-            public void start(Listener<RespT> responseListener, Metadata headers) {
-                String xid = RootContext.getXID();
-                if (xid != null) {
-                    headers.put(XID_KEY, xid);
-                }
-                super.start(responseListener, headers);
-            }
-        };
+    /** 以指定 XID 绑定 RootContext 执行动作，finally 中安全解绑，避免线程本地状态泄漏 */
+    public static <T> T runWithXid(String xid, Supplier<T> action) {
+        if (xid == null || xid.isBlank()) {
+            return action.get();
+        }
+        RootContext.bind(xid);
+        try {
+            return action.get();
+        } finally {
+            RootContext.unbind();
+        }
     }
 }
 ```
+
+#### 5.2.6 gRPC 拦截器（`runtime/SeataServerInterceptor` / `SeataClientInterceptor`）
+
+均通过 `@GlobalInterceptor` 由 Quarkus 自动注册（无需额外配置）。
+
+- **服务端**（`SeataServerInterceptor`）：从入站 Metadata `TX_XID` 头读 XID，写入 gRPC Context
+  （`Contexts.interceptCall`）。**设计要点（reactive 安全）**：Quarkus gRPC 服务方法返回 `Uni`，业务在
+  worker 线程执行，与拦截器所在 event-loop 线程不同；故拦截器**不**直接绑定 `RootContext`
+  （ThreadLocal 跨线程无效且有并发竞态），仅放 gRPC Context，业务侧在执行 DB 写前用
+  `SeataXidContext.runWithXid` 在当前线程重绑。
+- **客户端**（`SeataClientInterceptor`）：出站时优先取 gRPC Context 的 XID，回退 `RootContext.getXID()`，
+  写入 `TX_XID` 头，供下游（Go / Quarkus 分支）JOIN 同一全局事务。
+
+#### 5.2.7 deployment 模块（`xxs-quarkus-seata-deployment`）
+
+`SeataProcessor` 三个 BuildStep：
+
+```java
+@BuildStep FeatureBuildItem feature()                          // "seata"
+@BuildStep JdbcDriverBuildItem registerJdbcDriver()            // "seata" → SeataXADriver
+@BuildStep ServiceProviderBuildItem registerDriverService()    // java.sql.Driver SPI（native 镜像）
+```
+
+> 因本地仓库缺失 `quarkus-extension-processor`，deployment 的构建步骤**手写**：
+> `src/main/resources/META-INF/quarkus-build-steps.list` 内容为
+> `com.bigbear.quarkus.seata.deployment.SeataProcessor`。
+
+runtime 侧扩展元数据（`META-INF/`）：`quarkus-extension.properties`
+（`deployment-artifact=com.bigbear:xxs-quarkus-seata-deployment:${revision}`，需资源过滤内插）+
+`quarkus-extension.yaml`（名称 / 描述 / 关键字）；另有两份 `META-INF/services/`：
+`java.sql.Driver` 与 `org.apache.seata.config.ExtConfigurationProvider`。
 
 ### 5.3 集成进 `template-provider`
 
-`java/xxs-micro/xxs-quarkus-template/template-provider/pom.xml` 增加依赖：
+`template-provider/pom.xml` 增加扩展依赖：
 
 ```xml
 <dependencies>
-    <!-- 现有：quarkus-grpc / config-yaml / health / config-nacos / xxs-quarkus-nacos-discovery ... -->
+    <!-- ... 现有依赖 ... -->
 
-    <!-- 新增：seata 公共能力 -->
     <dependency>
-        <groupId>com.bigbear.xxs</groupId>
+        <groupId>com.bigbear</groupId>
         <artifactId>xxs-quarkus-seata</artifactId>
     </dependency>
-    <!-- MyBatis-Flex（XA 代理 DataSource 注入 Flex） -->
     <dependency>
-        <groupId>com.bigbear.xxs</groupId>
-        <artifactId>xxs-quarkus-mybatis</artifactId>
+        <groupId>com.bigbear</groupId>
+        <artifactId>xxs-quarkus-seata-deployment</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>io.quarkus</groupId>
+        <artifactId>quarkus-agroal</artifactId>
     </dependency>
     <dependency>
         <groupId>io.quarkus</groupId>
         <artifactId>quarkus-jdbc-postgresql</artifactId>
+        <exclusions>
+            <exclusion>
+                <groupId>io.quarkus</groupId>
+                <artifactId>quarkus-flyway-postgresql</artifactId>
+            </exclusion>
+        </exclusions>
     </dependency>
 </dependencies>
 ```
 
-`template-provider/src/main/resources/application.properties` 增加 datasource 与 seata 配置：
+`src/main/resources/application.properties`（数据源 + seata 配置，事务分组与 Spring 侧对齐）：
 
 ```properties
-# 现有 Nacos / Stork / grpc.server.port=9090 配置保持 ...
-
-# ===== 新增：数据源（指向 seata_quarkus 库，由 XADataSourceProducer 代理） =====
-quarkus.datasource.db-kind=postgresql
-quarkus.datasource.jdbc.url=jdbc:postgresql://192.168.50.45:5432/seata_quarkus?currentSchema=public
+# ===== 数据源：db-kind=seata 自定义驱动，连接经 SeataXADriver → DataSourceProxyXA 供给 =====
+quarkus.datasource.db-kind=seata
+quarkus.datasource.jdbc.url=jdbc:seata:jdbc:postgresql://192.168.50.45:5432/seata_quarkus?currentSchema=public
 quarkus.datasource.username=root
 quarkus.datasource.password=123456
 
-# ===== 新增：Seata（对齐 Spring 侧） =====
+# ===== Seata 客户端（对齐 Spring 侧：tx-service-group=greeter-group） =====
+seata.enabled=${SEATA_ENABLED:false}
 seata.application-id=template-provider
-seata.tx-service-group=default_tx_group
-seata.service.vgroup-mapping.default_tx_group=default
+seata.tx-service-group=greeter-group
+seata.service.vgroup-mapping.greeter-group=default
 seata.service.grouplist.default=127.0.0.1:8091
-quarkus.application.name=template-provider
+# XA 数据源真实连接参数（SeataXADriver 内部 PGSimpleDataSource 使用）
+seata.datasource.url=jdbc:postgresql://192.168.50.45:5432/seata_quarkus?currentSchema=public
+seata.datasource.username=root
+seata.datasource.password=123456
+# 注册/配置中心（Nacos xhf 命名空间，经 SPI 桥接读取）
+seata.registry.type=nacos
+seata.registry.nacos.server-addr=127.0.0.1:8848
+seata.registry.nacos.namespace=xhf
+seata.registry.nacos.group=DEFAULT_GROUP
+seata.registry.nacos.application=seata-server
+seata.registry.nacos.username=nacos
+seata.registry.nacos.password=nacos
+seata.config.type=nacos
+seata.config.nacos.server-addr=127.0.0.1:8848
+seata.config.nacos.namespace=xhf
+seata.config.nacos.group=DEFAULT_GROUP
+seata.config.nacos.data-id=seata-server.properties
+seata.config.nacos.username=nacos
+seata.config.nacos.password=nacos
 ```
 
-并在 `src/main/resources` 放置 `registry.conf`（指向 Nacos `xhf`），例：
-
-```
-registry {
-  type = "nacos"
-  nacos {
-    application = "seata-server"
-    serverAddr = "127.0.0.1:8848"
-    group = "DEFAULT_GROUP"
-    namespace = "xhf"
-  }
-}
-config {
-  type = "nacos"
-  nacos {
-    serverAddr = "127.0.0.1:8848"
-    group = "DEFAULT_GROUP"
-    namespace = "xhf"
-    dataId = "seata-server.properties"
-  }
-}
-```
+> 无需再放 `registry.conf`/`file.conf`（SPI 桥接已替代，见 5.2.1）。
+> `quarkus.grpc.server.port=9090` 同时作为 `template-provider-grpc` 的注册端口，与 Spring 侧
+> `spring.grpc.client.channel.quarkus.target=nacos://template-provider-grpc` 对应。
 
 ### 5.4 新增 `biz.proto` 与 `BizService` 实现
 
-`template-provider/src/main/proto/biz.proto`（见第六章共享契约）。Quarkus 用 `quarkus-maven-plugin`
-的 `generate-code` goal 自动生成服务端 stub。
+`template-provider/src/main/proto/biz.proto`（Quarkus 侧契约，`quarkus-maven-plugin` 的 `generate-code`
+goal 自动生成服务端 stub）：wire 包名必须为 `com.bigbear.quarkus.template.grpc`，
+否则与 Spring 客户端的方法路径不一致（详见 6.1）。
 
-`template-provider/src/main/java/com/bigbear/quarkus/template/provider/BizServiceImpl.java`：
+`src/main/java/com/bigbear/quarkus/template/provider/BizServiceImpl.java`：
 
 ```java
-package com.bigbear.quarkus.template.provider;
-
-import com.bigbear.quarkus.seata.SeataXA;
-import com.bigbear.quarkus.template.grpc.BizService;
-import com.bigbear.quarkus.template.grpc.CreateBizReply;
-import com.bigbear.quarkus.template.grpc.CreateBizRequest;
-import io.quarkus.grpc.GrpcService;
-import io.smallrye.mutiny.Uni;
-import org.apache.seata.core.context.RootContext;
-import org.jboss.logging.Logger;
-
-import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-
-/**
- * BizService 实现：在全局事务分支内写入 biz_tbl。
- *
- * <p>XID 由 {@code SeataServerInterceptor} 入站绑定到 RootContext；数据源为 XA 代理
- * （{@code DataSourceProxyXA}），本地写自动注册为该全局事务的 XA 分支。
- */
+@Slf4j
 @GrpcService
 public class BizServiceImpl implements BizService {
 
-    private static final Logger LOG = Logger.getLogger(BizServiceImpl.class);
-
-    /** 注入的 DataSource 为 Seata XA 代理（由 XADataSourceProducer 产出，带 {@link SeataXA} 限定）。 */
+    /** db-kind=seata 的 Agroal 连接池（连接经 SeataXADriver 供给，即 XA 代理连接）。 */
     private final DataSource dataSource;
 
-    /**
-     * 构造 Biz 服务实现。
-     *
-     * @param dataSource Seata XA 代理数据源
-     */
-    public BizServiceImpl(@SeataXA DataSource dataSource) {
-        this.dataSource = dataSource;
-    }
-
-    /**
-     * 创建业务记录（XA 分支）。
-     *
-     * <p>仅当入站携带全局事务 XID（本服务 JOIN 上游事务）时，本次写库才注册为 XA 分支；
-     * 无事务调用退化为普通本地写，不产生副作用。
-     *
-     * @param request 请求
-     * @return 创建结果
-     */
     @Override
     public Uni<CreateBizReply> createBiz(CreateBizRequest request) {
-        LOG.infof("createBiz, name=%s, val=%d, xid=%s",
-            request.getName(), request.getVal(), RootContext.getXID());
-
-        return Uni.createFrom().item(() -> {
-            try (Connection conn = dataSource.getConnection();
-                 PreparedStatement ps = conn.prepareStatement(
-                     "INSERT INTO biz_tbl(name, val) VALUES (?, ?)")) {
-                ps.setString(1, request.getName());
-                ps.setInt(2, request.getVal());
-                ps.executeUpdate();
-            } catch (Exception e) {
-                // 抛异常使 gRPC 调用失败 → 发起方全局事务整体回滚
-                LOG.errorf(e, "createBiz failed, name=%s", request.getName());
-                throw new IllegalStateException("createBiz failed: " + request.getName(), e);
-            }
+        return Uni.createFrom().item(() -> SeataXidContext.runWithXid(SeataXidContext.get(), () -> {
+            insert(request);
             return CreateBizReply.newBuilder().setSuccess(true).build();
-        });
+        }));
+    }
+
+    /** 向本地 biz_tbl 写入；抛异常使 gRPC 调用失败 → 发起方全局事务整体回滚 */
+    private void insert(CreateBizRequest request) {
+        String sql = "INSERT INTO biz_tbl(name, val) VALUES (?, ?)";
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, request.getName());
+            ps.setInt(2, request.getVal());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new IllegalStateException("createBiz failed: " + request.getName(), e);
+        }
     }
 }
 ```
 
-> 注入点必须用 `@SeataXA` 精确选择 Seata 代理数据源，否则会与 Agroal 默认 `@Default DataSource`
-> 形成歧义（见 5.2.3 与第七章风险说明）。`GrpcService` 的 service 接口按实际生成类型
-> （此处为 `BizService`）实现，使用 Mutiny 响应式 `Uni` 返回值。
+> `runWithXid(SeataXidContext.get(), ...)`：入站拦截器已把 XID 放入 gRPC Context，此处取到后
+> 在当前执行线程上临时绑定 `RootContext`，使 `ConnectionProxyXA` 识别全局事务并登记 XA 分支；
+> 无 XID（非事务调用）退化为普通本地写。
+> 注入的 `DataSource` 即 Agroal 池（`db-kind=seata`），无需自定义 `@SeataXA` 限定符，规避 CDI 歧义。
 
 ---
-
 ## 六、共享契约（proto）
 
 ### 6.1 `biz.proto`（Spring ↔ Quarkus，新建）
 
-新建独立 `biz-api` 模块（Spring 客户端用）与 Quarkus `template-provider/proto` 各放一份相同内容：
+**wire 包名必须与 Quarkus 侧一致**（`com.bigbear.quarkus.template.grpc`）：gRPC 方法路径 =
+`/{package}.{Service}/{Method}`，两端 proto package 不同则无法路由。
+Spring 侧的 `java_package` 可独立为 `com.bigbear.spring.grpc.biz`（仅影响本地生成的 Java 类，不影响 wire 协议）。
+
+共享契约落点：`proto/biz/v1/biz.proto`（仓库根 proto 目录），Spring 侧新模块 `biz-api` 经
+`protobuf-maven-plugin` 生成 stub（仿 `user-api`，仅 include `biz/v1/biz.proto`）：
 
 ```protobuf
 syntax = "proto3";
 
-package biz.v1;
+// wire 包名必须与 Quarkus 侧 template-provider/src/main/proto/biz.proto 一致
+package com.bigbear.quarkus.template.grpc;
 
-option java_package = "com.bigbear.spring.grpc.biz";
 option java_multiple_files = true;
+option java_package = "com.bigbear.spring.grpc.biz";
+option java_outer_classname = "BizProto";
 
-// 业务服务：演示跨语言 XA 事务分支。
+// Biz 服务：演示跨语言 XA 事务分支（Spring 发起 → Quarkus 写 biz_tbl）。
 service BizService {
-  // 创建业务记录（由 Spring 发起方调用，Quarkus 作 XA 分支写库）。
-  rpc CreateBiz(CreateBizRequest) returns (CreateBizReply);
+  // 创建业务记录：Spring 发起方调用，Quarkus 作 XA 分支写库。
+  rpc CreateBiz (CreateBizRequest) returns (CreateBizReply);
 }
 
 message CreateBizRequest {
@@ -1275,8 +1017,14 @@ message CreateBizReply {
 }
 ```
 
-> Quarkus 端 `java_package` 可按需调整为 `com.bigbear.quarkus.template.grpc.biz`，但两端 proto 字段定义须一致。
-> Spring 用 `protobuf-maven-plugin` 生成客户端 stub（参照现有 `user-api` 模块范式）。
+**Spring 侧客户端**（新模块 `biz-api`，仿 `user-api`，已注册进 `xxs-spring-modules` 聚合）：
+- `BizClientAutoConfiguration`：`@ImportGrpcClients(target = "quarkus", types = BizServiceGrpc.BizServiceBlockingStub.class)`；
+- `BizClient`：`createBiz(name, val)` 充血方法；
+- demo 中通道目标：`spring.grpc.client.channel.quarkus.target=nacos://template-provider-grpc`；
+- XID 透传不在此处挂载——由 demo 全局拦截器统一覆盖（见 3.4）。
+
+> 早期文档以 `package biz.v1` 起草——**不可用**：会与 Quarkus 侧 `com.bigbear.quarkus.template.grpc`
+> 的方法路径不一致，导致 RPC 无法路由到服务。
 
 ### 6.2 `user.proto` 新增 `CreateUser`（Spring ↔ Go）
 
@@ -1327,13 +1075,12 @@ message CreateUserReply {
   - `cmd/server/main.go`：`SEATA_ENABLED != "true"` 时跳过 `seataclient.InitPath(...)`，不连 TC。
   - `internal/data/user_repo.go`：`SEATA_ENABLED == "true"` 用 `SeataXAPostgresDriver`（XA），
     否则回退普通 `pgx` 驱动走本地事务。
-- **Quarkus（并列分支）** `xxs-quarkus-seata` 模块 + `template-provider`
-  - `SeataProperties.enabled()`：默认 `false`。
-  - `application.properties`：`seata.enabled=${SEATA_ENABLED:false}`。
-  - `SeataBootstrap.onStart`：`enabled=false` 跳过 `TMClient.init` / `RMClient.init`。
-  - `XADataSourceProducer.seataDataSource`：`enabled=false` 直接透传 Agroal 原生 `DataSource`（普通提交）；`true` 包 `DataSourceProxyXA`。
-  - 注入点必须用 `@SeataXA` 限定（如 `BizServiceImpl` 构造函数），与 Agroal 默认 `@Default DataSource` 隔离，否则启动报 `AmbiguousResolutionException`。
-  - `SeataServerInterceptor`：`enabled=false` 跳过 XID 绑定/解绑。
+- **Quarkus（并列分支）** `xxs-quarkus-seata` 扩展 + `template-provider`
+  - `application.properties`：`seata.enabled=${SEATA_ENABLED:false}`（`SeataConfigConstants.SEATA_ENABLED`）。
+  - `SeataRuntime`（`@Startup`）：`enabled=false` 跳过 `RmNettyRemotingClient.init` / `TmNettyRemotingClient.init`，不连 TC。
+  - `SeataXADriver`（`db-kind=seata`）：懒构造 `DataSourceProxyXA`；`enabled=false` 时资源仅内存登记、不连 TC，连接退化为普通直连（本地提交）。
+  - `SeataServerInterceptor` / `SeataClientInterceptor`（`@GlobalInterceptor`）：无 XID 时自然不绑定/不透传，无需按开关分支。
+  - 注入点直接用 Agroal `DataSource`（`db-kind=seata`），**无需** `@SeataXA` 限定符（已规避 CDI 歧义）。
 
 ### 7.3 本地开发快速启动
 
@@ -1349,7 +1096,7 @@ export SEATA_ENABLED=true
 
 ### 7.4 验证开关生效
 
-- `SEATA_ENABLED=false` 启动三端：日志**不出现** `Seata TM/RM initialized.`、`seata-go 连接 TC`；
+- `SEATA_ENABLED=false` 启动三端：日志**不出现** `Seata clients initialized`、`seata-go 连接 TC`；
   调用事务入口，三表各自成功插入（普通提交），放开 `1/0` 则仅 Spring 侧本地回滚（Go/Quarkus 已提交，符合预期——未开启分布式事务）。
 - `SEATA_ENABLED=true` 启动三端：日志出现 Seata 初始化；放开 `1/0` 三表均回滚（XA 一致）。
 
@@ -1358,14 +1105,16 @@ export SEATA_ENABLED=true
 ## 八、验证步骤
 
 1. **启动依赖**：Nacos（`xhf` 命名空间）、Seata Server（注册到 Nacos，存储库 `seata` 用 PostgreSQL）、PostgreSQL 16 实例（已配置 `max_prepared_transactions > 0`）。
-2. **建库建表**：在 PG 实例上创建 `seata` / `seata_java` / `seata_go` / `seata_quarkus` 四个 database，分别执行官方 `postgresql.sql` 与 `seata/sql/business.sql`。
+2. **建库建表**：在 PG 实例上创建 `seata`（TC 存储）与 `seata_java` / `seata_go` / `seata_quarkus`（业务库），
+   TC 库执行官方 `postgresql.sql`，业务库执行 `java/xxs-micro/sql/seata-xa-demo.sql`（幂等）。
 3. **启动 Go `bear-admin`**：观察日志出现 seata-go 连接 TC 成功、注册 RM。
-4. **启动 Quarkus `template-provider`**：观察日志 `Seata TM/RM initialized.`、`XID bound` 在调用时出现。
+4. **启动 Quarkus `template-provider`**：`SEATA_ENABLED=true` 时观察 `Seata clients initialized`；
+   调用时 debug 日志 `seata xid [...] propagated to grpc context`。
 5. **启动 Spring `xxs-spring-grpc-demo`**：观察 seata 自动配置生效、dynamic-datasource 代理 master 成功。
-6. **调用事务入口** `BizTransactionService.createBiz(name)`：
+6. **调用事务入口** `POST /demo/seata/create-user?name=xx&age=18`：
    - **成功路径**：`seata_java.biz_tbl`、`seata_go.user_tbl`、`seata_quarkus.biz_tbl` 三表各插入一条。
-   - **回滚路径**：放开 `createBiz` 中 `1/0`，调用后**三表均无新数据**
-     （Go + Quarkus 已写入的 XA 分支也被回滚）。
+   - **回滚路径**：`POST /demo/seata/create-user-fail?name=xx&age=18`（三端落库后主动抛错），
+     调用后**三表均无新数据**（Go + Quarkus 已写入的 XA 分支也被回滚）。
 7. **TC 控制台**核对全局事务状态：成功 → `Committed`；回滚 → `Rollbacked`，分支数 = 3。
 
 ---
@@ -1378,8 +1127,10 @@ export SEATA_ENABLED=true
 - **占位符差异**：Go 侧 `seata-go`（pgx）与 SQL 模板须用 `$1/$2` 占位符，切勿沿用 MySQL 的 `?`。
 - **ctx 透传是 Go 侧成败关键**：所有 DB 写必须用 `ExecContext(ctx, ...)`，
   ctx 经由 `tm.SetXID` 绑定，否则不会成为全局事务分支（看似成功，实则未纳入）。
-- **Quarkus 线程模型**：Quarkus gRPC 运行于 vert.x event loop，`RootContext` 为 ThreadLocal，
-  入站拦截器必须 bind、回调结束必须 unbind，避免线程复用串数据。
+- **Quarkus 线程模型（reactive 安全）**：Quarkus gRPC 服务方法返回 `Uni`，业务在 worker 线程执行；
+  `RootContext` 为 ThreadLocal，拦截器所在 event-loop 线程不可直接 bind（跨线程无效且有并发竞态）。
+  入站拦截器只把 XID 放入 gRPC Context，业务侧在执行 DB 写前用 `SeataXidContext.runWithXid`
+  在当前线程重绑、`finally` 中安全解绑。
 - **不要双重代理（Spring）**：方案 B 下 `seata.enable-auto-data-source-proxy=false`，
   否则与 `dynamic-datasource.seata=true` 冲突。
 - **只 JOIN 不新开**：Go/Quarkus 作分支拿到 XID 后绑定即可，**严禁** 再开新全局事务
@@ -1393,21 +1144,17 @@ export SEATA_ENABLED=true
 - **Quarkus seata-core 手动装配**：属较前沿做法，seata-core 版本 API 可能有微调，
  上线前以实际拉取版本的 `TMClient`/`RMClient`/`DataSourceProxyXA` 签名为准；
  JVM 模式可用，native 模式需额外反射注册（demo 暂不考虑 native）。
-- **Quarkus CDI 数据源歧义（必踩坑）**：Agroal 会依据 `quarkus.datasource.*` 自动合成一个带
- `@Default` 限定的 `DataSource`。若 `XADataSourceProducer` 也产出 `@Default DataSource`，
- 注入点 `DataSource` 将出现两个 `@Default` 候选，启动即抛 `AmbiguousResolutionException`
- （`io.quarkus.arc.deployment.ArcProcessor#validate`）。
- **正确做法**：producer 产出带自定义 `@SeataXA` 限定的 Bean，且注入 Agroal 默认 `DataSource`
- （不带任何限定）作为底层复用连接池；业务侧以 `@SeataXA` 精确注入。
- 切勿在 producer 中用 `@Inject @SeataXA DataSource` 注入自身产出 Bean，否则形成自循环依赖。
-- **Quarkus 下 seata 配置无法读 registry.conf（必踩坑）**：seata-core 在 `ConfigurationFactory`
- 类初始化时默认从 classpath 读取 `registry.conf` 以确定 `config.type`，但 Quarkus 的 ClassLoader
- 资源隔离导致该文件**无法稳定被发现**，启动即抛
- `NotSupportYetException: config type can not be null`（`ApplicationImpl.doStart` 失败）。
- **正确做法**：不依赖 `registry.conf` 文件发现，改为在 `TMClient.init` 之前用
- `System.setProperty("seata.registry.type", ...)`、`seata.config.type`、`seata.registry.nacos.*`、
- `seata.config.nacos.*`、`seata.service.vgroupMapping.*` 等系统属性注入（seata 优先读系统属性）。
- 具体由 `SeataProperties` + `SeataBootstrap.applySeataSystemProperties()` 完成，Nacos 连接信息
- 来自 `application.properties` 的 `seata.nacos.*`（含默认值，与 registry.conf 对齐）。
+- **Quarkus CDI 数据源（已规避歧义）**：本实现**不**额外产出 `@Default DataSource`，而是通过
+  `db-kind=seata` 自定义驱动 `SeataXADriver` 接管连接供给——Agroal 池内连接即 XA 代理连接，
+  业务侧注入 `DataSource` 无歧义，**无需** `@SeataXA` 限定符。
+  早期 `XADataSourceProducer` + `@SeataXA` 的 producer 方案因 Agroal 自动合成 `@Default DataSource`
+  会造成 `AmbiguousResolutionException`（`io.quarkus.arc.deployment.ArcProcessor#validate`），已弃用。
+- **Quarkus 下 seata 配置无法读 registry.conf（已解决）**：seata-core 在 `ConfigurationFactory`
+  类初始化时默认从 classpath 读取 `registry.conf` 以确定 `config.type`，但 Quarkus 的 ClassLoader
+  资源隔离导致该文件**无法稳定被发现**，启动即抛
+  `NotSupportYetException: config type can not be null`（`ApplicationImpl.doStart` 失败）。
+  **当前做法**：不依赖文件，配置全部经 MicroProfile Config（`application.properties` 的 `seata.*` 键）承载，
+  通过 Seata SPI `ExtConfigurationProvider`（`SeataConfigProvider`，动态代理）把 seata 内部裸 key 桥接为
+  `seata.<dataId>`（含驼峰/中划线/下划线变体），不再使用 `System.setProperty`。
 - **版本兼容**：Spring Boot 版本已确认与 `ruoyi-common-seata` 的 Seata 客户端兼容；
   seata-go / seata-core 与 Seata Server 建议对齐同主版本。

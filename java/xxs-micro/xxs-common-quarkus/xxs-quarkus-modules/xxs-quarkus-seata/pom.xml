@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.bigbear</groupId>
+    <artifactId>xxs-quarkus-modules</artifactId>
+    <version>${revision}</version>
+  </parent>
+
+  <artifactId>xxs-quarkus-seata</artifactId>
+  <name>xxs-quarkus-seata</name>
+  <description>Quarkus Seata 扩展 runtime：seata 配置 SPI 桥接 + TM/RM 客户端初始化 + XA 数据源驱动 + gRPC XID 透传</description>
+
+  <dependencies>
+    <!-- Quarkus 核心 / Arc（CDI Bean 与 @Recorder 运行时类） -->
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-arc</artifactId>
+    </dependency>
+    <!-- gRPC：@GlobalInterceptor 服务端/客户端拦截器依赖 -->
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-grpc</artifactId>
+    </dependency>
+    <!-- Agroal + PostgreSQL：AgroalConnectionConfigurer 与 PGXADataSource（XA 底层）来源 -->
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-agroal</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-jdbc-postgresql</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>io.quarkus</groupId>
+          <artifactId>quarkus-flyway-postgresql</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <!-- Seata 2.6.0（org.apache.seata），版本与 Spring 发起方 / TC 侧对齐 -->
+    <dependency>
+      <groupId>org.apache.seata</groupId>
+      <artifactId>seata-core</artifactId>
+      <version>2.6.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.seata</groupId>
+      <artifactId>seata-tm</artifactId>
+      <version>2.6.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.seata</groupId>
+      <artifactId>seata-rm</artifactId>
+      <version>2.6.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.seata</groupId>
+      <artifactId>seata-rm-datasource</artifactId>
+      <version>2.6.0</version>
+    </dependency>
+    <!-- Netty 协议序列化 SPI（默认 seata 序列化器），缺失则客户端无法编码 RPC 报文 -->
+    <dependency>
+      <groupId>org.apache.seata</groupId>
+      <artifactId>seata-serializer-seata</artifactId>
+      <version>2.6.0</version>
+    </dependency>
+    <!-- XAUtils 依赖 druid JdbcUtils（URL/DB 类型解析），缺失则首次取连接抛 NoClassDefFoundError -->
+    <dependency>
+      <groupId>com.alibaba</groupId>
+      <artifactId>druid</artifactId>
+      <version>1.2.27</version>
+    </dependency>
+    <!-- druid 版 SQL 解析 SPI（DbTypeParser/SQLRecognizerFactory/SQLOperateRecognizerHolder），缺失则 XA 分支无法识别 SQL 类型 -->
+    <dependency>
+      <groupId>org.apache.seata</groupId>
+      <artifactId>seata-sqlparser-druid</artifactId>
+      <version>2.6.0</version>
+    </dependency>
+    <!-- Nacos 注册中心 / 配置中心 SPI 实现（registry.type=nacos / config.type=nacos 时所需） -->
+    <dependency>
+      <groupId>org.apache.seata</groupId>
+      <artifactId>seata-discovery-nacos</artifactId>
+      <version>2.6.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.seata</groupId>
+      <artifactId>seata-config-nacos</artifactId>
+      <version>2.6.0</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+        <includes>
+          <include>META-INF/quarkus-extension.properties</include>
+        </includes>
+      </resource>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>false</filtering>
+        <excludes>
+          <exclude>META-INF/quarkus-extension.properties</exclude>
+        </excludes>
+      </resource>
+    </resources>
+    <plugins>
+      <!-- 生成扫描索引：使本模块 Bean / 拦截器被 Quarkus Arc 发现 -->
+      <plugin>
+        <groupId>io.smallrye</groupId>
+        <artifactId>jandex-maven-plugin</artifactId>
+        <version>3.3.2</version>
+        <executions>
+          <execution>
+            <id>make-index</id>
+            <goals>
+              <goal>jandex</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>
