@@ -1,5 +1,5 @@
 seata:
-  enabled: true
+  enabled: false
   application-id: bear-admin
   tx-service-group: greeter-group
   data-source-proxy-mode: XA

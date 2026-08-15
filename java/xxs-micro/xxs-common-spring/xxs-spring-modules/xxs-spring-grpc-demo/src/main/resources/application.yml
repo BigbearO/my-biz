@@ -37,7 +37,7 @@ spring:
     dynamic:
       primary: seata_java
       strict: false
-      seata: true
+      seata: ${SEATA_ENABLED:false}
       seata-mode: XA
       datasource:
         seata_java:
@@ -58,7 +58,7 @@ grpc:
 
 # Seata 客户端（全局事务发起方）配置
 seata:
-  enabled: true
+  enabled: ${SEATA_ENABLED:false}
   application-id: ${spring.application.name}
   tx-service-group: greeter-group
   # 关闭 Seata 自动代理，由 dynamic-datasource 接管数据源代理，避免双重代理
