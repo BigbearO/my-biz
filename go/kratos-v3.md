@@ -4,8 +4,9 @@
 > 它同时解决三件事：
 > 1. **纠偏**——`v2ToV3.md`、`wind迁移v3.md` 中若干与 kratos v3.0.0 实际发布不符的判断（已实测）；
 > 2. **迁移**——`kratos-bootstrap` 从 kratos v2（v2.9.2）迁到 kratos v3（v3.0.0）；
-> 3. **治本**——`gow`（`go-wind-toolkit/gowind`）生成的项目「生成完不能编译」（`skill.md` 的 10 个问题），
->    在 v3 化的同时一次性修掉，并避免重蹈 `kratos-admin` 的「重、耦合、不可自定义」。
+> 3. **治本 + v3 化**——`gow`（`go-wind-toolkit/gowind`）**直接迁移到 v3、不做 v2 兼容**（§5.0），
+>    同时一次性修掉生成项目「生成完不能编译」（`skill.md` 的 10 个问题），
+>    并避免重蹈 `kratos-admin` 的「重、耦合、不可自定义」。
 >
 > **证据基线**（本次实测，非推断）：
 > - `github.com/go-kratos/kratos/v3@v3.0.0`（源码已落 `GOMODCACHE`，逐文件核对）
@@ -13,6 +14,17 @@
 > - 各第三方依赖 `.mod` 实际内容（见 §2 依赖阻塞矩阵）
 > - `kratos-admin/backend`（`kratos v3 v3.0.0` + `liujitcn/kratos-kit v0.0.85`）作为 v3 参考实现
 > - `bear-admin`（当前 `kratos v2 v2.9.2`）、`kratos-bootstrap`（v2）、`gowind`（v2 模板）
+>
+> **2026-09 实拉取基线更新**（四个仓已拉到本地并逐文件核对，取代上表中过时的「现状」描述）：
+>
+> | 仓 | kratos 版本 | Go 版本 | 关键变化 |
+> |---|---|---|---|
+> | `kratos-bootstrap` | **仍 v2.9.2**（56 个 `go.mod`，逐一核对） | 多数 **1.25.0～1.26.4**；根 `1.23.0`+`toolchain 1.24.3`；`api`/`ai/model`/`script_engine*` 仍 `1.24.6` | **`logger` 已重构为项目自有 ctx-first `Logger` 接口 + slog 实现 + 双向适配器**（§4.2.0）；Go 版本已大面积升级 |
+> | `kratos-transport` | **仍 v2.9.2**（62 个 `go.mod`） | — | 硬阻塞**未解除**，§4.6 方案 C 结论不变 |
+> | `go-wind-admin-template` | **仍 v2.9.2**，`go 1.25.4` | 1.25.4 | 结构：`api/ app/ pkg/ script/ app.mk Makefile` |
+> | `go-wind-toolkit/gowind` | **不依赖 kratos**（仅模板字符串出现） | `go 1.25.5` | 规模翻倍（165 文件）；新增 `build/migrate/extract` 命令、`pkg/frontendgen`、**手写装配 `wiring.tpl`**；`ent add` 已修复可用 |
+>
+> ⚠️ 文档中凡与上表冲突的「现状」描述，**以上表为准**；受影响章节已就地标注修订（§2 / §4.1 / §4.2 / §4.7 / §5 / §6 / §7）。
 
 ---
 
@@ -21,14 +33,15 @@
 | 问题 | 结论 |
 |---|---|
 | kratos v3 好不好升级？ | 核心 API 破坏面**比文档描述的小**：`registry` / `config` / `middleware` / `transport.Server` / `kratos.New` 签名全都没变；**真正变的只有日志（→ `log/slog`）、HTTP binding 包位置、`middleware/tracing` 与 `middleware/metrics` 移出核心**。 |
-| 最大难点是什么？ | **logger 模块族**（`log.Logger` → `slog.Handler`，6 个后端 + 全仓 `log.Helper` / `log.Fatalf` / 包级 `log.Error`）。占整体工作量约 40%。 |
-| 有没有硬阻塞？ | 有 2 个：`tx7do/kratos-transport/transport/*` 与 `tx7do/kratos-authn` **仍依赖 kratos v2**。`go-crud` 在 `v0.0.55` 已解除 kratos 依赖（升版本即可）。 |
-| 推荐策略？ | `kratos-bootstrap` **新增 `/v3` 模块谱系**（`.../bootstrap/v3`、`.../logger/v3` …），与 v2 谱系**并存**。`gow` 增加 `--kratos-version=2\|3` 开关，默认 `3`。 |
+| 最大难点是什么？ | ~~logger 模块族（6 个后端重写为 `slog.Handler`，约占 40% 工作量）~~ → **已作废**（2026-09 实测）：`logger` 早已重构为**项目自有 ctx-first `Logger` 接口 + slog 实现**，kratos 耦合**仅剩 `logger.go` + `adapter.go` 两个文件**，v3 只需换一个 `slog` 桥，**≤0.5d**（详见 §4.2.0）。现在的难点回到 **`gow` 生成物治本**（§5）。 |
+| 有没有硬阻塞？ | 有 2 个（**2026-09 实测确认仍未解除**）：`tx7do/kratos-transport/transport/*`（62 个 `go.mod` 仍 `v2.9.2`）与 `tx7do/kratos-authn`。`go-crud` 实测当前 `v0.0.53`，需升到 **`>= v0.0.55`** 才解除 kratos 依赖。 |
+| 推荐策略？ | `kratos-bootstrap` **新增 `/v3` 模块谱系**（`.../bootstrap/v3`、`.../logger/v3` …），与 v2 谱系**并存**。 |
+| **`gow` 要不要兼容 v2？** | **不兼容，直接 v3 单一输出**（已定，见 §5.0）：不引入 `--kratos-version` 开关，模板与依赖**硬编码 v3**；遇到 `kafka/sse/mqtt/mcp/asynq` **直接报错退出**，不做静默降级。 |
 | `transport/*` 怎么办？ | **已定：采用方案 C，本次不迁移**（v3 谱系不发布 `transport/*`）。依据：`bear-admin` 全仓 **0 处**使用 `kratos-transport`/`kratos-bootstrap/transport`，冻结**不产生功能回退**；`gow` 默认链路也不触碰它。详见 §4.6。 |
 | 为什么不用 kratos-admin 那套？ | `kratos-admin` 把「装配」全部塞进私有 `kratos-core`/`kratos-kit`（40+ 子模块、`wire.Struct(new(Services), "*")` 巨型聚合、包级单例、直接改 `server.Server.Handler`），导致**不可替换**。本方案反其道：**薄装配 + 显式注入 + 可 replace**。 |
 | **不发布，生成的项目怎么拿本地代码？** | **不需要发布**：用 `go.work`（个人联调，零 `go.mod` 污染）+ `go.mod` 目录 `replace`（提交/CI），Go 直接读磁盘目录、零网络。前提是先把本地 `go.mod` 的 `module` 行改成 `/v3` 终态路径。完整答案与命令见 **§4.8**，`gow` 侧的自动化见 **§5.5**。 |
 
-**总工作量估算**：约 **15 人日**（详见 §7；`transport/*` 已定为方案 C，其 fork 工时（≈1d）**不计入**）。
+**总工作量估算**：约 **11.5 人日**（详见 §7；较原估 15d 下调 3.5d，主因是 logger 从 3.5d 降到 0.5d，见 §4.2.0；`transport/*` 已定为方案 C，其 fork 工时（≈1d）**不计入**）。
 
 ---
 
@@ -59,13 +72,15 @@
 | `kratos/contrib/registry/nacos/v3` | `v3.0.0-20260626125723-…` | v3 ✅ | 可用 | — |
 | `kratos/contrib/config/nacos/v3` | `v3.0.0-20260626125723-…` | v3 ✅ | 可用 | — |
 | `kratos/contrib/middleware/validate/v3` | `v3.0.0-20260626125723-…` | v3 ✅ | 可用 | — |
-| `tx7do/kratos-transport/transport/{sse,kafka,asynq,mqtt,mcp}` | `v1.3.8` | **v2.9.2** ❌ | **硬阻塞** | **已定（方案 C）**：v3 谱系**不发布** `transport/*`；`bear-admin` 亦未使用，无功能回退。见 §4.6 |
+| `tx7do/kratos-transport/transport/*` | 实测 `transport v1.3.4` / `broker v1.3.9`（2026-09） | **v2.9.2** ❌（**未变**，62 个 `go.mod` 逐一核对） | **硬阻塞仍未解除** | **已定（方案 C）**：v3 谱系**不发布** `transport/*`；`bear-admin` 亦未使用，无功能回退。见 §4.6 |
 | `tx7do/kratos-authn` | `v1.1.11` | **v2.9.2** ❌ | **硬阻塞** | 不作为 v3 默认依赖；`gow` 模板**去掉 authn/authz 默认耦合**（正好对应 `skill.md` #2） |
 | `tx7do/kratos-authz` | `v1.1.8` | 无 kratos 依赖 ✅ | 可用 | 保留为可选 |
-| `tx7do/go-crud/entgo` | `v0.0.51` → **v0.0.55** | 0.0.51 依赖 v2.9.2 ❌；**0.0.55 已无 kratos 依赖** ✅ | 升版本即可解锁 | 模板 pin `>= v0.0.55` |
+| `tx7do/go-crud/entgo` | 实测 **`v0.0.53`**（2026-09；原文记为 `v0.0.51`） | `0.0.51` 依赖 v2.9.2 ❌；**`>= v0.0.55` 已无 kratos 依赖** ✅ | 升版本即可解锁 | 模板 pin **`>= v0.0.55`**（实测的 `0.0.53` **仍不够**，须继续升） |
 | `tx7do/kratos-swagger-ui` | 任意近版 | 无 kratos 依赖 ✅ | 可用 | 零改动 |
 | `tx7do/kratos-bootstrap`（本仓） | 子模块 v0.1.x | v2.9.2 ❌ | 本次迁移对象 | 见 §4 |
 | `tx7do/go-utils` / `id` / `mapper` | v1.1.40 等 | 无 kratos ✅ | 可用 | 直接升 |
+| `tx7do/go-wind` | 实测 **v0.0.2**（2026-09 新出现，为 `database/ent` 的 indirect 依赖） | 无 kratos ✅ | 可用 | 新增项，原文未收录；需确认其与 `go-crud` 的职责边界 |
+| `tx7do/go-wind-plugins/encoding{,/json}` | 实测 **v0.0.1**（2026-09 新出现，`database/ent` 的 indirect 依赖） | 无 kratos ✅ | 可用 | 新增项；v3 的 `encoding/json` codec 策略需与它对齐（§1 #1） |
 
 ---
 
@@ -115,8 +130,17 @@ github.com/tx7do/kratos-bootstrap/registry/*/v3    v3.0.0
 × github.com/tx7do/kratos-bootstrap/transport/*                不发 v3（见 §4.6）
 ```
 
-**目标 Go 版本**：统一切到 **`go 1.25.0`**（kratos v3 自身要求）。
-现状是「一模块一版本」（根 `1.23.0`、多数 `1.24.6`、database 多模块 `1.25.7`），**必须统一**，否则 `go mod tidy` 会因 `toolchain` 冲突难以复现。
+**目标 Go 版本**：所有模块 **`≥ go 1.25.0`**（kratos v3 自身要求）。
+
+现状（2026-09 实拉取，**56 个 `go.mod` 全量核对**）：只有 **11 个模块低于 1.25.0**，其余 45 个**已达标**（1.25.0 ～ 1.26.4）：
+
+| 区间 | 数量 | 模块 |
+|---|---|---|
+| **`< 1.25.0`（需升级）** | **11** | 根 `1.23.0`（+`toolchain 1.24.3`）、`api`、`ai/model`、`script_engine`、`script_engine/source/{s3,redis,http,git,etcd,database,consul}` —— 除根外均为 `1.24.6` |
+| `1.25.0 ～ 1.25.8` | 多数 | `logger/*`（1.25.0；`aliyun` 1.25.8）、`config/*`、`registry/{nacos,polaris,zookeeper,servicecomb,eureka}`、`cache/redis`、`oss/*`、`tracer`、`database/cassandra`、`bootstrap`(1.25.3)、`transport/{sse,kafka,asynq,mqtt}`(1.25.3)、`transport/mcp`(1.25.5) |
+| `1.26.x` | 较多 | `rpc`(1.26.0)、`database/{ent 1.26.4, gorm/clickhouse/doris/elasticsearch/opensearch/mongodb/influxdb 1.26.3}`、`config/{etcd,consul,kubernetes}`、`registry/{etcd,consul,kubernetes}`、`ai/{eino,langchaingo}` |
+
+> **原方案「统一切到 1.25.0」不再需要全仓反向下压**——已高于 1.25.0 的模块**保持原样**，只需把上述 **11 个 `< 1.25.0` 的模块**抬到 `≥ 1.25.0`。原文担心的「`toolchain` 冲突难以复现」风险已大幅降低。
 
 **替代方案（不推荐）**：单谱系在 `v0.x` 上直接破坏式升级（v0 允许 break）。改动量小，但会让所有存量 v2 用户在某次 `go get -u` 后突然编译失败，且 `transport/*` 无法优雅留后。
 
@@ -125,21 +149,51 @@ github.com/tx7do/kratos-bootstrap/registry/*/v3    v3.0.0
 
 ---
 
-### 4.2 `logger` 模块族改造（核心难点）
+### 4.2 `logger` 模块族改造（**工作量已大幅缩减**）
 
-#### 4.2.1 契约变更
+#### 4.2.0 现状与结论修订（2026-09 实拉取，权威）
+
+> ⚠️ **本节推翻原方案（4.2.1–4.2.3）对 logger 的判断。** 原方案假设「`FactoryFunc` 需改为返回 `*slog.Logger`，6 个后端全部重写为 `slog.Handler`，占整体工作量约 40%」。实测该改造**已在 2026-09 版本中基本完成**。
+
+**实测现状**（`kratos-bootstrap/logger`，kratos 仍是 v2.9.2）：
+
+| 文件 | 内容 | 依赖 kratos？ |
+|---|---|---|
+| `interface.go` | 项目自有 **ctx-first `Logger` 接口**（`Debug/Info/Warn/Error(ctx, msg, keyvals...)` + `With`）、`stdLogger`（基于 `log/slog`）、`traceLogger`（从 ctx 提取 `trace_id`/`span_id`）、`Helper`（`Debugf/Infof/...`）、全局 `SetLogger/GetLogger` | ❌ 零依赖 |
+| `factory.go` | `FactoryFunc func(cfg *conf.Logger) (Logger, error)`——返回**项目 `Logger`**，非 kratos `log.Logger` | ❌ |
+| `types.go` | `Type` 枚举（`std/fluent/logrus/zap/aliyun/tencent/zerolog`） | ❌ |
+| `zap/` `logrus/` `zerolog/` `fluent/` `aliyun/` `tencent/` | **已直接实现 `logger.Logger`**（如 `logger/zap/zap.go:13`：`var _ bLogger.Logger = (*Logger)(nil)`） | ❌ |
+| `adapter.go` | `AsKratosLogger`（项目→kratos）/ `FromKratosLogger`（kratos→项目），用到 `log.Valuer`、`log.DefaultMessageKey`、`log.With` | ✅ 耦合点之一 |
+| `logger.go` | `NewLoggerProvider` 用 `log.With` + `log.DefaultTimestamp`/`DefaultCaller` 挂字段；`NewKratosLogger`/`NewKratosStdLogger` 兼容入口 | ✅ 耦合点之二 |
+
+> 实测 `grep go-kratos/kratos logger/**/*.go` **仅命中 2 个文件**：`logger/logger.go:9`、`logger/adapter.go:6`。
+
+**修订后的 v3 目标（≤0.5d，原估 3.5d）**：
+
+1. **契约保持不变**：`FactoryFunc` 继续返回 `(Logger, error)`（项目接口），**不要**改成 `(*slog.Logger, error)`。
+2. **6 个后端零改动**：已实现项目 `Logger`，v3 下只需随父模块路径加 `/v3`。
+3. **只改 2 处桥接**：
+   - `adapter.go` → 换成**一个** `slog.Handler` 桥（项目 `Logger` → `*slog.Logger`）。理由：kratos v3 的 `kratos.Logger(...)`、`logging.Server(...)` 只接受 `*slog.Logger`；
+   - `logger.go` → 去掉 `log.DefaultTimestamp`/`log.DefaultCaller`（slog 自带 `time`/`source`），`NewLoggerProvider` 直接返回项目 `Logger`。
+4. **`log.Valuer` 在 v3 已删除**，但项目侧本就不用它——trace 字段由 `WrapTrace`（读 ctx）负责，该机制在 v3 下**完全不变**。
+
+**结论**：logger 从「全案最大难点」降级为「两个文件的桥接替换」。
+
+#### 4.2.1 契约变更（修正）
 
 ```go
-// 旧（v2）
-type FactoryFunc func(cfg *conf.Logger) (log.Logger, error)
+// ❌ 原方案的错误假设（已作废）：
+//   type FactoryFunc func(cfg *conf.Logger) (*slog.Logger, error)
 
-// 新（v3）
-type FactoryFunc func(cfg *conf.Logger) (*slog.Logger, error)
+// ✅ 实际（2026-09，保持不变）：
+type FactoryFunc func(cfg *conf.Logger) (Logger, error)   // Logger = 项目自有 ctx-first 接口
 ```
 
-整个模块**只依赖标准库 `log/slog`**（不再 import `kratos/v2/log`）。
+> 项目 `Logger` 接口即稳定的抽象层；**不再需要**「整个模块只依赖 `log/slog`」这类改造——`slog` 已在 `interface.go` 内作为 `stdLogger` 的实现存在。
 
-#### 4.2.2 `logger/logger.go` 重写
+#### 4.2.2【已过时·仅存档】原设想：`logger/logger.go` 重写
+
+> ⛔ 以下代码基于**修订前假设**（`NewLogger` 返回 `*slog.Logger`、依赖 `kratoslog.NewLogger/WithExtractor/WithFilter`），**与实测现状不符，请勿据此施工**。正确口径见 §4.2.0。
 
 ```go
 package logger
@@ -233,7 +287,9 @@ func NewLoggerProvider(cfg *conf.Logger, appInfo *conf.AppInfo) *slog.Logger {
 
 > 注意：`ts`/`caller` 不再需要手工注入——`slog.NewJSONHandler` 自带 `time`/`source`；如需再放宽可加 `log.WithAddSource(true)`。
 
-#### 4.2.3 六个后端：统一 `slog.Handler` 模板
+#### 4.2.3【已过时·仅存档】原设想：六个后端统一 `slog.Handler` 模板
+
+> ⛔ **该改造已不必要**。实测：6 个后端已直接实现项目 `Logger`（§4.2.0 表格），`slog.Handler` 只需**一个**（即 4.2.0 的 `slog` 桥）。以下内容仅作历史记录。
 
 参考 `kratos-admin` 的 `internal/server/middleware/logstream/access_filter.go`（教科书级 4 方法实现）：
 
@@ -325,12 +381,12 @@ func init() {
 
 | 改动点 | v2 现状 | v3 目标 |
 |---|---|---|
-| `Context.logger` 字段类型 | `kratosLog.Logger` | `*slog.Logger` |
-| `NewLoggerHelper(module) *log.Helper` | 返回 `*log.Helper` | **删除**，替换为 `Logger(module string) *slog.Logger`：`return c.logger.With("module", module)` |
-| `GetLogger()` | `log.Logger` | `*slog.Logger` |
-| `NewContextWithParam(..., log log.Logger)` | `log.Logger` | `*slog.Logger` |
+| `Context.logger` 字段类型 | `kratosLog.Logger` | **项目 `logger.Logger`**（ctx-first，2026-09 已存在，见 §4.2.0） |
+| `NewLoggerHelper(module) *log.Helper` | 返回 `*log.Helper` | 替换为 `Logger(module string) logger.Logger`：`return c.logger.With("module", module)` |
+| `GetLogger()` | `log.Logger` | `logger.Logger` |
+| `NewContextWithParam(..., log log.Logger)` | `log.Logger` | `logger.Logger` |
 | `InitAppFunc` / `NewApp` / `RunApp` | `*kratos.App`、`transport.Server` | **不变**（仅 import 换 `/v3`） |
-| 全局 logger 安装 | `kratos.Logger(bLogger.NewLoggerProvider(...))` | **双保险**：`log.SetDefault(l)`（在 `NewLoggerProvider` 内）+ `kratos.Logger(l)` |
+| 全局 logger 安装 | `kratos.Logger(bLogger.NewLoggerProvider(...))` | **双保险**：`logger.SetLogger(x)`（项目级）+ `kratos.Logger(logger.AsSlogLogger(x))`（kratos 边界，见 §4.2.0） |
 
 **提供兼容别名**（降低业务改造量，但标注 deprecated）：
 
@@ -394,8 +450,8 @@ func (c *Context) NewLoggerHelper(moduleName string) *slog.Logger {
 |---|---|---|
 | `config` + 6 个远程配置子模块 | ❌ 不变（`config.Config{Load,Scan,Value,Watch,Close}`、`Source`、`Watcher` 一致） | import `/v3`；包级 `log.Error("...", err.Error())` → `slog.Error("...", "err", err)` |
 | `registry` + 8 个注册中心 | ❌ 不变（`Register/Deregister/GetService/Watch`、`*ServiceInstance`） | import `/v3` |
-| `cache/redis` | ❌ 不变 | `NewClient(cfg *conf.Data, logger *log.Helper)` → `logger *slog.Logger`；`logger.Fatalf` → 返回 error |
-| `database/{ent,gorm,mongodb,cassandra,…}` | ❌ 不变 | `log.Logger`/`log.Helper` 参数 → `*slog.Logger`；`log.Warn`/`log.Fatalf` → `slog.Warn`/返回 error。**注意 `tx7do/go-crud` 的 `WithLogger(l *log.Helper)` 选项**：必须用 `go-crud >= v0.0.55`（已去 kratos 依赖），否则整条链被钉在 v2 |
+| `cache/redis` | ❌ 不变 | `NewClient(cfg *conf.Data, logger *log.Helper)` → `logger logger.Logger`（**项目接口**，§4.2.0）；`logger.Fatalf` → 返回 error |
+| `database/{ent,gorm,mongodb,cassandra,…}` | ❌ 不变 | `log.Logger`/`log.Helper` 参数 → **项目 `logger.Logger`**；`logger.Fatalf` → 返回 error。**注意 `tx7do/go-crud` 的 `WithLogger` 选项**：实测当前为 **`v0.0.53`**，必须用 `go-crud >= v0.0.55`（已去 kratos 依赖），否则整条链被钉在 v2 |
 | `oss/{minio,s3}` | ❌ 不变 | `log.Fatal(...)` → `slog.Error(...)` + `os.Exit(1)`；或改成返回 error（推荐） |
 | `tracer` / `api` / `ai/*` / `script_engine` | 不依赖 kratos | 仅把 `go` 版本对齐到 `1.25.0`，路径加 `/v3` |
 
@@ -423,9 +479,9 @@ func (c *Context) NewLoggerHelper(moduleName string) *slog.Logger {
 
 #### 4.6.2 配套动作（避免「静默降级」）
 
-1. `gow add service x -s kafka` 在 v3 模式下**直接报错并退出**，提示：
+1. `gow add service x -s kafka` **直接报错并退出**（无 v2 回退，见 §5.0），提示：
    > `kratos-transport` 尚未支持 kratos v3，`kafka/sse/mqtt/mcp/asynq` 传输在 v3 谱系下不可用。
-   > 如确需该传输，请使用 `--kratos-version=2`，或等待上游支持。
+   > `gow` 已不做 v2 兼容，请改用 `grpc` / `rest`，或等待上游支持。
 2. `kratos-bootstrap/README` 增加「v3 谱系 transport 支持状态」矩阵，明确哪些模块**不存在于 v3 谱系**；
 3. `transport/*/v3` 仅保留**空目录 + README 说明「待上游支持」**，未来上游对齐时可直接补实现，不需要改动模块路径策略；
 4. 在 `gow doctor` 中增加一项检查：若生成物引用了 `kratos-transport` 但项目是 v3，报 `FAIL` 并给出上述提示。
@@ -442,10 +498,10 @@ func (c *Context) NewLoggerHelper(moduleName string) *slog.Logger {
 
 | 优先级 | 模块 | 文件（相对 v2 仓） | 改动类型 |
 |---|---|---|---|
-| P0 | logger | `logger/{factory,logger,types}.go` | 契约重写（`*slog.Logger`） |
-| P0 | logger | `logger/{logrus,zerolog,fluent,aliyun,tencent}/*.go` | 5 组 → `slog.Handler` |
-| P0 | logger | `logger/zap/{zap,client}.go` | 改 `zapslog` |
-| P0 | bootstrap | `bootstrap/{context,types,bootstrap,options}.go` | `*slog.Logger` + `Logger(module)` |
+| P0 | logger | `logger/adapter.go` | kratos 双向桥 → **单个 `slog.Handler` 桥**（项目 `Logger` → `*slog.Logger`）；删 `AsKratosLogger`/`FromKratosLogger`（§4.2.0） |
+| P0 | logger | `logger/logger.go` | 去 `log.With`/`DefaultTimestamp`/`DefaultCaller`；`NewLoggerProvider` 返回**项目 `Logger`** |
+| P0 | bootstrap | `bootstrap/{context,types,bootstrap,options}.go` | `logger.Logger` 类型 + `Logger(module)`；kratos 边界用 `AsSlogLogger` |
+| ✅ **无需改** | logger | `logger/{interface,factory,types}.go`、`logger/{zap,logrus,zerolog,fluent,aliyun,tencent}/*` | **已完成去 kratos 化**（2026-09 实测，勿再重写为 `slog.Handler`） |
 | P1 | rpc | `rpc/{grpc,rest}.go` | 去 aegis、tracing 换 contrib/v3、`slog` |
 | P1 | rpc | `rpc/middleware/{validate,requestid}/*.go`、`rpc/whitelist.go` | 仅 import |
 | P1 | config | `config/{config,factory,bootstrap_config}.go` + `config/*/`（6） | import + `slog` |
@@ -660,6 +716,33 @@ go list -m all | Select-String "kratos/v2"     # 期望：无输出
 
 ## 5. `gow`（`go-wind-toolkit/gowind`）改造方案
 
+### 5.0 决策：`gow` 不做 v2 兼容，直接 v3 单一输出（已定）
+
+> 本节记录本次政策变更，它是 §5.1–§5.5 的前提。
+
+**决策**：`gow` 只产出 kratos v3 项目，**不提供** `--kratos-version=2` 之类的回退开关。
+
+**落地口径**：
+
+1. **模板硬编码**：`pkg/generators/templates/golang/*.tpl` 直接写 `github.com/go-kratos/kratos/v3`、`github.com/tx7do/kratos-bootstrap/*/v3`、`log/slog`；**不引入** `{{.KratosImport}}` 之类抽象层，也不保留 v2 分支。
+2. **无开关**：`gow new` / `gow add service` 不新增 `--kratos-version` 参数，`cmd.go` 不做版本透传。
+3. **不可用的传输直接失败**：`-s kafka|sse|mqtt|mcp|asynq|...` 在 v3 谱系无实现（§4.6），`ServerImportPaths` 遇到非 `grpc`/`rest` **返回 error**，命令报错退出。
+4. **生成目标固定**：产出项目的 `go` 版本固定 `1.25.0`，依赖版本集中在 `pkg/generators/deps.go`（§5.3.4），其中 `go-crud >= v0.0.55`。
+
+**收益（相对原双版本方案）**：
+
+- 省掉 `pkg/generators/kratosver.go` 抽象、`--kratos-version` 参数透传、v2 模板分支与对应的双份测试用例（约 **0.5d**）；
+- 模板可读性更高，不存在「抽象层前缀猜错」类 bug；
+- 与 §4.6「v3 谱系不发布 `transport/*`」天然自洽：没有 v2 回退，也就不存在「静默降级」的诱惑。
+
+**边界说明**：本决策**只约束 `gow` 的产出**。`kratos-bootstrap` 的 v2 谱系是否保留，属 §4.1 的独立决策（见 §11 待拍板 #1），不受此条影响——即 v2 谱系仍可存在以服务 `bear-admin` 等存量项目，但 `gow` 不再为它生成代码。
+
+**为什么可以这样定（依据）**：
+
+- `gowind/go.mod` **不依赖 kratos**（全仓 0 处 `go-kratos/kratos`），`gow` 只是「代码生成器 + 模板仓库拉取器」，其 v3 化 = 模板文本替换 + 依赖版本常量，风险低；
+- `gow new` 的本质是**克隆 `go-wind-admin-template` 再 `go mod tidy` + `buf generate`**（`internal/project/cmd.go`），项目的 v3 属性主要由**模板仓**（§6）决定，`gow` 侧无需版本开关；
+- 「双版本模式」在原方案中本就是**待新增功能**（`--kratos-version` / `KratosVersion` 在 `gowind` 全仓 0 命中），删掉它是**减法**而非返工。
+
 ### 5.1 修掉 `skill.md` 的 10 个问题（根因 → 落点）
 
 根因：`gow add service` 走 `pkg/service`（只生成 server/main/wire 骨架 + 3 份 wire_set，**不生成 client/repo/service 实现，也不跑 wire**），而 `gow generate` 走 `pkg/sqlkratos`（另一套约定，**且 wire_set 前缀是对的**）。两条链路约定不一致。
@@ -677,29 +760,47 @@ go list -m all | Select-String "kratos/v2"     # 期望：无输出
 | 9 | 无 ent schema | `add service` 不建 schema | 生成 `internal/data/ent/schema/<model>.go` 最小骨架 + 自动跑 `gow ent` |
 | 10 | `main.go` 未用 import 挡住 wire | `main.tpl` 里大量注释残留、按 `Servers` 注入 import 时可能不匹配 | 模板**只输出真正用到的 import**（由 `ServerImportPaths` 驱动，删掉注释残留）；生成后统一跑 `gofmt` + 未用 import 检测 |
 
-### 5.2 模板 v3 化清单（12 个文件命中 `kratos/v2`）
+> **2026-09 实测补充（对 `skill.md` 10 项的复核）**：
+> - **新增事实**：`pkg/service` 现已支持**手写装配**（`GenerateWiring` + `wiring.tpl` + `BuildWiringBlocks`，非 `--wire` 时默认）与 wire 两种模式。原文「只生成 wire 骨架」的描述**已过时**，但两种模式**都必须 v3 化**。
+> - **#3 根因确认仍在**：`pkg/service/service.go` 的 `writeWireSetFunctionCode` 生成 `client.NewXxxClient` 却**不传 `ExtraImports`**；而 `pkg/sqlkratos/render.go` 的 `WriteDataWireSetCode` 会补 `data/client`（两者差异已确认）。
+> - **`redis_client.tpl` 的 3 处编译错误确认仍在**（缺 `bootstrap` import、`return nil` 少 2 个返回值、闭包用未声明的 `l`）。
+> - **#6 / #9 / #10 均未修复**，仍然有效。
+> - **`gow ent add` 已修复**（见 §5.3 第 6 条），从待办中移除。
 
-| 文件 | 改动 |
-|---|---|
-| `pkg/generators/utils.go` | `ServerImportPaths` 中 `kratos/v2/transport/{grpc,http}` → 按 `KratosVersion` 输出 `/v3` |
-| `pkg/generators/templates/golang/main.tpl` | `kratos/v2` → `kratos/v3`；`kratos-bootstrap/*` → `*/v3`；**删除所有注释残留 import** |
-| `…/wire.tpl` | `kratos/v2` → `/v3` |
-| `…/rest_server.tpl` | 去 auth 硬耦合；`log`→`slog`；`kratos-bootstrap/rpc/v3`；mock 语义修正 |
-| `…/grpc_server.tpl` | `/v3` + 中间件构造器签名与 `*slog.Logger` |
-| `…/service.tpl` | `log.Helper` → `*slog.Logger` |
-| `…/ent_client.tpl` | `log` → `slog`；修 `l.Fatalf` / 包级 `log.Fatalf`；**补 import `bootstrap`**；`entBootstrap` 路径加 `/v3` |
-| `…/ent_repo.tpl` / `…/gorm_repo.tpl` | `/v3` + `*slog.Logger` |
-| `…/gorm_client.tpl` | 修 `return nil, err` 错位；`/v3` |
-| `…/redis_client.tpl` | **修 3 处编译错误**：`return nil`（应为 3 值）、未定义的 `l`、缺失 `bootstrap` import |
-| `…/grpc_client.tpl` | `/v3` |
+### 5.2 模板 v3 化清单（实测：15 个模板，**12 个命中 `kratos/v2`**）
+
+> 2026-09 实测：`pkg/generators/templates/golang/` 共 **15 个 `.tpl`**（原文写 12）。其中 `assets.tpl`、`wire_set.tpl`、`gorm_init.tpl` **不含任何 kratos 引用**，无需改动。
+
+| 文件 | 实测命中 | 改动 |
+|---|---|---|
+| `ent_client.tpl` | `kratos/v2` L4；kb L14,15；**`log.Fatalf` L54** | `log`→`slog`；修 L54 包级 `log.Fatalf`（改为返回 error）；**补 `bootstrap` import**；`entBootstrap` 加 `/v3` |
+| `ent_repo.tpl` | `kratos/v2` L7；kb L8；`log *log.Helper` L31 | `/v3`；`*log.Helper` → **项目 `logger.Logger`** |
+| `gorm_repo.tpl` | `kratos/v2` L7；kb L8；`log *log.Helper` L24 | 同上 |
+| `service.tpl` | `kratos/v2` L6；kb L7；`log *log.Helper` L29 | 同上 |
+| `grpc_server.tpl` | `kratos/v2` L4-6；kb L8,9 | `/v3`；中间件构造器签名与 logger 类型 |
+| `rest_server.tpl` | `kratos/v2` L4-6；kb L10,11 | 去 auth 硬耦合；`/v3`；mock 语义修正 |
+| `grpc_client.tpl` | `kratos/v2` L4；kb L5 | `/v3` |
+| `gorm_client.tpl` | kb L6,7 | 修 `return nil, err` 错位；加 `/v3` |
+| `redis_client.tpl` | `kratos/v2` L4；kb L7,8 | **修 3 处编译错误**：缺 `bootstrap` import、`return nil`（应为 3 值）、闭包用未声明的 `l` |
+| `main.tpl` | `kratos/v2` L6；kb L10,11,**L13–36** | `/v3`；**删除 L13–36 的注释残留 import** |
+| `wire.tpl` | `kratos/v2` L19；kb L20 | `/v3` |
+| **`wiring.tpl`**（**原文遗漏**） | `kratos/v2` L4；kb L5 | `/v3`；**手写装配模式（非 `--wire` 时默认）必须同步改，否则主链路仍产 v2 代码** |
+| `assets.tpl` / `wire_set.tpl` / `gorm_init.tpl` | 无 kratos 引用 | 无需改动 |
+
+**同时必须同步的非模板文件**：
+
+| 文件 | 实测 | 改动 |
+|---|---|---|
+| `pkg/generators/utils.go` | `ServerImportPaths` L84,89 为 `kratos/v2/transport/{grpc,http}`；另有 **25 个 `kratos-transport/transport/*` case**（L94–213）；同文件还有 `ServerFormalParameters`(L220-360)、`ServerTransferParameters`(L363-503) | grpc/rest → `/v3`；非 grpc/rest **一律返回 error**（§5.0）；三个函数需一致处理 |
+| `pkg/generators/utils_test.go` | L307,312,318,326 断言 v2 路径；L333-355 断言 kratos-transport | 期望改 `/v3`；**删除 transport 期望用例** |
 
 > `redis_client.tpl` 当前生成物**必然编译失败**（`return nil` 少两个返回值 + 闭包里用了未声明的 `l`），
 > 这是 `skill.md` 未列出但优先级最高的一类问题——生成器必须**默认产出可编译代码**。
 
 ### 5.3 新增能力（让「生成即可编译」可验证）
 
-1. **双版本模式**：`gow new/add --kratos-version=2|3`（默认 `3`）。
-   - 引入 `pkg/generators/kratosver.go`：集中定义 import 前缀与依赖版本，模板只引用 `{{.KratosImport}}`。
+1. **单一 v3 输出**（不做 v2 兼容，见 §5.0）：模板**直接硬编码** `kratos/v3` 与 `kratos-bootstrap/*/v3`，**不引入** `--kratos-version` 开关，也不做 `{{.KratosImport}}` 抽象。
+   - 产出项目 Go 版本固定 `1.25.0`；依赖版本集中在 `pkg/generators/deps.go`（见下第 4 条），其中 `go-crud >= v0.0.55`。
 2. **生成后自动校验**：
    ```
    gow add service user -s rest -s grpc -d ent -d redis
@@ -722,29 +823,34 @@ go list -m all | Select-String "kratos/v2"     # 期望：无输出
    // 本地联调：kratos-bootstrap v3 尚未发布，指向本机源码（发布后删除整个 replace 块）
    // replace github.com/tx7do/kratos-bootstrap/bootstrap/v3 => ../kratos-bootstrap/bootstrap
    ```
-6. **`gow ent add` 修复**：`internal/ent/cmd.go` 里 `entCmd.AddCommand(entGenerateCmd, entAddCmd)` 被注释掉了（`init` 第 30 行），导致 `gow ent add` 不可达 → 恢复注册。
+6. ~~**`gow ent add` 修复**：`internal/ent/cmd.go` 里 `entCmd.AddCommand(...)` 被注释掉了~~ → **已修复，无需再改**（2026-09 实测：`cmd/gow/ent.go:38` 的 `entCmd.AddCommand(entGenerateCmd, entAddCmd)` **未被注释**，`ent add` 已可用；原文所指的「`internal/ent/cmd.go` 被注释」已不成立）。
+7. **既有命令体系已扩容**（实测）：除 `new/project`、`add/service`、`ent`、`wire`、`run`、`version` 外，新增 **`api`（buf 生成，非 `buf` 命令名）、`build`、`migrate`、`generate`、`extract`**。`gow` 的 v3 化需确认这些命令产出的脚手架/配置是否同样硬编码了 kratos v2 路径。
+8. **`pkg/frontendgen/` 与 kratos 无关**（实测）：它把 OpenAPI 规格转成 Vue/React 前端代码（`FrameworkVueVben`/`VueElement`/`ReactAntd`），输入是 OpenAPI YAML，**全目录 0 处 kratos 引用** → v3 迁移**不涉及**该目录。
 
 ### 5.4 `gow` 改动文件总表
 
 | 文件 | 改动 |
 |---|---|
-| `pkg/service/service.go` | 修 #3/#4/#5/#8；末尾接 wire + build 校验 |
-| `pkg/generators/utils.go` | `ServerImportPaths` 支持 v3；非 grpc/rest 且 v3 模式时返回错误（对应 §4.6.2 配套动作 1：`kratos-transport` 在 v3 谱系已冻结） |
+| `pkg/service/service.go` | 修 #3/#4/#5/#8（含 `writeWireSetFunctionCode` 补 `ExtraImports`）；末尾接 wire + build 校验 |
+| `pkg/service/`（手写装配链路） | `GenerateWiring` / `BuildWiringBlocks` / `wiring.tpl` 的 v3 化（**原文未覆盖**） |
+| `pkg/generators/utils.go` | `ServerImportPaths` / `ServerFormalParameters` / `ServerTransferParameters` **直接输出 v3 路径**；非 `grpc`/`rest` 一律返回 error（对应 §4.6.2 配套动作 1：`kratos-transport` 在 v3 谱系已冻结；无 v2 回退） |
 | `pkg/generators/go_generator.go` | `GenerateWireSet` 的 `ExtraImports` 在 `pkg/service` 链路也生效 |
-| `pkg/generators/consts.go`（或新增 `deps.go`） | 依赖版本常量集中 |
-| `pkg/generators/kratosver.go`（新增） | v2/v3 import 前缀策略 |
-| `pkg/generators/templates/golang/*.tpl`（12） | §5.2 |
+| `pkg/generators/deps.go`（新增） | 依赖版本常量集中（kratos v3 / bootstrap v3 / go-crud ≥ v0.0.55） |
+| `pkg/generators/templates/golang/*.tpl`（**15**，12 命中 v2） | §5.2 |
 | `pkg/generators/templates/yaml/server_yaml.tpl` | 补 `rest.middleware` 段、`rest.addr`/`grpc.addr`、cors；去掉 auth 段 |
-| `internal/ent/cmd.go` | 恢复 `entAddCmd` 注册 |
-| `internal/service/cmd.go` | 新增 `--kratos-version`、`--with-auth`、`--verify` 参数 |
+| `internal/service/cmd.go` | 新增 `--with-auth`、`--verify` 参数（**不新增** `--kratos-version`，见 §5.0） |
 | `internal/wire/cmd.go` | 支持在生成流程内被调用（抽 `Generate(serviceRoot)` 可复用函数） |
-| `cmd/gow/*.go` | 新命令 `doctor` / `work` / `deps`；`--kratos-version` 透传 |
-| `go.mod` | `go 1.25.x` |
-| `pkg/generators/utils_test.go` 等 6 个测试 | 期望路径改 `/v3` |
+| `cmd/gow/*.go` | 新命令 `doctor` / `work` / `deps`（**无** `--kratos-version` 透传）；核对既有 `api`/`build`/`migrate`/`generate`/`extract` 的 v3 产物 |
+| `go.mod` | `go 1.25.x`（实测已为 `1.25.5`，无需改动） |
+| `pkg/generators/utils_test.go` 等测试 | 期望路径改 `/v3`；**删除 v2 期望用例**，不再做双版本断言 |
+| `internal/ent/cmd.go`、`pkg/frontendgen/` | **无需改动**（前者已修复，后者与 kratos 无关，见 §5.3） |
 
 ### 5.5 `gow` 的依赖装配能力（对应 §4.8）
 
 `gow` 要把「未发布时怎么拿到本地代码」变成**一条命令**，而不是让用户手工拼 `replace`。
+
+> ⚠️ **实测（2026-09）**：`gowind` 全仓**不存在**任何 `go.work` / `replace` / `go mod edit` 的**写入**逻辑（仅在 `internal/service/cmd.go` 的文案与 `internal/run/watch.go` 的告警字符串中出现字样）。`internal/project/project.go` 的项目创建流程为：**克隆模板 → 字符串替换 module 名 → `go mod tidy` → `buf generate`**，全程不触碰 `replace`/`go.work`。
+> 因此本节**整节都是新增工作**，无历史包袱，也无「已有实现需改造」的连带风险。
 
 | 新命令 / 参数 | 作用 |
 |---|---|
@@ -787,17 +893,19 @@ go list -m all | Select-String "kratos/v2"     # 期望：无输出
 
 ## 6. `go-wind-admin-template`（`gow new` 克隆的模板仓）改造
 
-> 这是「生成物里 admin 模块」的来源，**不在本工作区**，但必须同步，否则 `gow new` 出来的项目仍是 v2。
+> 这是「生成物里 admin 模块」的来源，**2026-09 已下载到本工作区**（`go-wind-admin-template/`），必须同步，否则 `gow new` 出来的项目仍是 v2。
+>
+> 实测现状：`go 1.25.4`、**kratos 仍 v2.9.2**；结构为 `api/ app/ pkg/ script/ app.mk Makefile tag.sh`。
 
 | 项 | 改动 |
 |---|---|
-| `go.mod` | kratos → `/v3`；`kratos-bootstrap/*` → `*/v3`；`go-crud >= v0.0.55`；删除 `kratos-authn`（被阻塞）或降为可选 |
+| `go.mod` | 实测仍 `kratos v2.9.2` → 升 `/v3`；`kratos-bootstrap/*` → `*/v3`；`go-crud >= v0.0.55`；删除 `kratos-authn`（被阻塞）或降为可选 |
 | `api/buf.gen.yaml` / `buf.admin.*.gen.yaml` | 插件路径升 `/v3`（`protoc-gen-go-http/v3`、`protoc-gen-go-errors/v3`）；`Merrors/errors.proto` 映射到 `kratos/v3/errors` |
 | `Makefile` 的 `plugin`/`cli` 目标 | `protoc-gen-go-http/v3`、`protoc-gen-go-errors/v3`；`protoc-gen-go-http` 版本与 kratos v3 对齐 |
 | `api/gen/go/**/*_http.pb.go` | 全部**重新生成**（`SupportPackageIsVersion1` → `SupportPackageIsVersion3`） |
 | `api/gen/go/**/*_errors.pb.go` | 无需重生成（`errors` 仍是 `SupportPackageIsVersion1`） |
 | `app.mk` | `wire` 目标不变；新增 `v3` 模式下的 `build → verify` 步骤 |
-| 业务代码 | `log.Helper` → `*slog.Logger`；`ctx.NewLoggerHelper(x).Infof(...)` → `.Info(...)` |
+| 业务代码 | `log.Helper` → **项目 `logger.Logger`**；`ctx.NewLoggerHelper(x).Infof(...)` → `ctx.Logger(x).Info(...)`（§4.3） |
 | `main.go` | 删除对 `registry` 等未用 import；**不需要**显式注册 codec（见 §1） |
 | 端口/配置 | `server.yaml` 的 admin 与业务服务端口不冲突；`rest.middleware` 段齐全 |
 
@@ -807,24 +915,26 @@ go list -m all | Select-String "kratos/v2"     # 期望：无输出
 
 | 阶段 | 内容 | 产出 | 工时 |
 |---|---|---|---|
-| **0** | 决策冻结：`/v3` 谱系 vs 单谱系；**Go 统一 1.25.0**（`transport/*` 冻结已定，见 §4.6，本阶段不占用决策时间）。**同时敲定本地联调约定**：三个仓同级布局 + `go.work` gitignore 策略 + `replace` 相对路径约定（§4.8.3 / §4.8.4） | 决策记录 + 分支 + 约定文档 | 0.5d |
+| **0** | 决策冻结：`/v3` 谱系 vs 单谱系；**Go 抬升 11 个低于 1.25.0 的模块**（§4.1；其余 45 个已达标，无需下压）。**同时敲定本地联调约定**：三个仓同级布局 + `go.work` gitignore 策略 + `replace` 相对路径约定（§4.8.3 / §4.8.4） | 决策记录 + 分支 + 约定文档 | 0.5d |
 | **1** | `kratos-bootstrap` 骨架：**先把每个子模块 `go.mod` 的 `module` 行改到 `/v3` 终态路径**（这是所有本地联调方案的先决条件，见 §4.8.1），再切 `kratos/v3@v3.0.0` + Go 1.25.0，只做「import 机械替换」，不碰 logger。**产出即验证**：在 `your-project` 里 `go work use` 一次，确认能离线解析本地模块 | 可编译的空壳（logger 暂用临时 std）+ 可联调的 workspace | 1.5d |
-| **2** | `logger` 族 + `bootstrap.Context`：`FactoryFunc → (*slog.Logger, error)`；6 后端 `slog.Handler`；`zap` 走 `zapslog`；`Logger(module)` | `logger/v3` 全绿 + 单测 | 3.5d |
+| **2** | `logger` 桥接 + `bootstrap.Context`：`adapter.go` 换**单个 `slog.Handler` 桥**（项目 `Logger` → `*slog.Logger`）；`logger.go` 去 `log.With`/`DefaultTimestamp`/`DefaultCaller`；6 后端**无需改**（§4.2.0）；`Context` 用 `logger.Logger` + `Logger(module)` | `logger/v3` 全绿 + 单测 | **0.5d** |
 | **3** | `rpc`：去 aegis、`oteltracing`、`slog`；`config`/`registry`/`cache`/`database`/`oss`：import + `slog` | 全部子模块 `go build ./...` 通过 | 2.5d |
-| **4** | `gow`：模板 v3 化（12 文件）+ 修 `skill.md` 10 项 + `--kratos-version` + 生成后自动 wire/build | `gow add service` 端到端通过 | 3.0d |
+| **4** | `gow`：模板 v3 化（12 文件，**直接 v3、无兼容分支**，见 §5.0）+ 修 `skill.md` 10 项 + 生成后自动 wire/build | `gow add service` 端到端通过 | 2.5d |
 | **5** | 模板仓 `go-wind-admin-template`：buf/Makefile/`*_http.pb.go` 重生成/业务 `slog` | `gow new` 出来的项目 `go build ./...` 通过 | 2.0d |
 | **6** | `gow doctor` + 文档 + 迁移脚本（`kratos-bootstrap` v2→v3 的 sed 规则表） | 交付文档 | 1.0d |
 | **7** | 回归：`bear-admin` 作为真实样本走一遍迁移 | 迁移报告 | 1.0d |
-| | | **合计** | **≈ 15d** |
+| | | **合计** | **≈ 11.5d** |
 
 > 若阶段 1 采用「单谱系破坏式升级」，可省 0.5d，但会失去 v2 并存能力，且 `transport/*` 需另设分支——不推荐。
 
 ### 强烈建议的执行顺序理由
 
-先做 **阶段 1 + 2**（logger）。因为：
-- logger 是全仓的**类型源头**（`Context.GetLogger()` 被所有模块调用），logger 不定，其他模块改了也要返工；
-- logger 是**唯一无法机械替换**的模块（需要重写 6 个 handler）；
-- 阶段 1 的「import 机械替换」可以让 v3 骨架**先编译起来**（logger 暂时返回一个临时 std `*slog.Logger`），使后续每一步都有可编译基线。
+先做 **阶段 1 + 2**。因为：
+- `logger` 仍是全仓的**类型源头**（`Context.GetLogger()` 被所有模块调用），桥一换，其余模块才好动；
+- 但 logger 的改造量**已从 3.5d 降到 0.5d**（§4.2.0：只需换 `adapter.go` 一个 `slog` 桥 + 清理 `logger.go`）——**它已不再是风险点**；
+- 阶段 1 的「import 机械替换」可让 v3 骨架**先编译起来**，使后续每一步都有可编译基线。
+
+> ⚠️ **修订**：原文「logger 是唯一无法机械替换的模块（需重写 6 个 handler）」**已不成立**。当前真正的风险点已转移到 **阶段 4（`gow` 生成物治本）**——`skill.md` 的 10 项中**多数尚未修复**（§5.1 实测补充），且 `gow` 还需覆盖新出现的**手写装配链路**（`wiring.tpl`）与 **25 个 transport case**。
 
 ---
 
@@ -848,7 +958,7 @@ go vet ./...
 
 ```bash
 # 空目录
-gow new demo --kratos-version=3
+gow new demo
 cd demo
 gow add service user -s rest -s grpc -d ent -d redis
 go build ./...
@@ -859,7 +969,8 @@ go test ./...
 - ✅ 生成物中不存在 `kratos/authn`、`pkg/middleware/auth`（除非显式 `--with-auth`）
 - ✅ `cmd/server/assets/openapi.yaml` 存在
 - ✅ `gow doctor` 全 PASS
-- ✅ `gow add service x -s kafka` 在 v3 模式下**报错退出**并说明原因（不静默降级）
+- ✅ `gow add service x -s kafka` **报错退出**并说明原因（v3 谱系无该传输；**无 v2 回退**，不静默降级）
+- ✅ `gow` 全仓 `grep -rn "kratos-version\|KratosVersion\|kratos/v2"` 为 **0 命中**（无兼容分支残留）
 
 ### 8.3 与 `bear-admin` 的一致性
 
@@ -873,7 +984,7 @@ go test ./...
 
 | 风险 | 影响 | 缓解 |
 |---|---|---|
-| `go-crud < v0.0.55` 把 kratos v2 拉回依赖图 | 编译期出现 v2/v3 双份 kratos，或 `log.Helper` 类型不匹配 | 模板与文档**强制 pin `>= v0.0.55`**；CI 加 `go mod graph \| grep kratos/v2` 断言 |
+| `go-crud < v0.0.55` 把 kratos v2 拉回依赖图（**实测当前为 `v0.0.53`，仍不达标**） | 编译期出现 v2/v3 双份 kratos，或 logger 类型不匹配 | 模板与文档**强制 pin `>= v0.0.55`**；CI 加 `go mod graph \| grep kratos/v2` 断言 |
 | `tx7do/kratos-transport` 长期不支持 v3 | 无法用 kafka/sse/mqtt/mcp | **已按方案 C 接受该缺口**（§4.6）：`bear-admin` 零使用，无回退；`gow` 中**显式失败**，不做静默降级；上游支持后按 §4.6.3 解锁 |
 | `/v3` 谱系双份维护 | 每条 bug 修两次 | 只对 v3 做**功能演进**，v2 谱系**仅接受安全修复**，并设定 EOL 日期 |
 | 本地 `replace` 漏项 → 静默从 proxy 拉 v2，`kratos/v2` 与 `kratos/v3` 同图 | 类型不匹配、难以定位 | `gow deps` / `gow doctor` 做「replace 覆盖率」检查；CI 断言 `go list -m all \| grep kratos/v2` 为空（§4.8.6 / §5.5） |
@@ -881,6 +992,7 @@ go test ./...
 | 日志格式变化导致既有日志采集/告警失配 | 运维侧告警规则失效 | 迁移前后各采一份样本对比；`slog` 的 key 命名与 v2 对齐（`ts`→保留 `time`，`trace_id`/`span_id` 不变） |
 | `log.SetDefault` 全局单例 | 多实例/测试互相污染 | 只在 `NewLoggerProvider` 调用；各组件仍以**注入的 `*slog.Logger`** 为准；测试用 `slog.New(slog.NewTextHandler(io.Discard))` |
 | `gow` 生成后自动 `go build` 引入网络/模块代理依赖 | CI 不稳定 | 校验步骤可 `--verify=false` 关闭；失败**回滚**生成文件 |
+| `gow` 只产 v3，存量用户若仍需生成 v2 工程 | 新版 `gow` 无 v2 回退 | **已定，接受**（§5.0）：需要 v2 工程者使用旧版 `gow`；`kratos-bootstrap` v2 谱系仍可服务 `bear-admin` 等存量项目，但 `gow` 不再为它生成代码 |
 
 **回滚**：v3 谱系是**新增模块路径**，v2 谱系完全不受影响 → 回滚 = 项目 `go.mod` 把 `*/v3` 换回原路径即可，无需 revert 代码。
 
@@ -962,7 +1074,8 @@ go doc go.uber.org/zap/exp/zapslog
 
 ## 11. 附录 B：待拍板事项
 
-1. **模块谱系**：确认走 `/v3` 后缀新谱系（推荐），还是单谱系在 `v0.x` 上破坏式升级？（§4.1）
+1. **模块谱系**（**仅关乎 `kratos-bootstrap`**）：确认走 `/v3` 后缀新谱系（推荐），还是单谱系在 `v0.x` 上破坏式升级？（§4.1）
+   > 注：`gow` 侧已定「直接 v3、不做 v2 兼容」（§5.0），与本问**解耦**——无论本问如何选，`gow` 都只输出 v3。
 2. ~~**`transport/*`**：确认本次冻结（推荐方案 C），还是投入 1d 做 fork 方案 B？~~ → **已定：方案 C，本次不迁移**，依据见 §4.6.1（`bear-admin` 零使用，无功能回退）。
 3. **v2 谱系 EOL**：明确 v2 只收安全修复的截止日期。
 4. **日志字段契约**：v3 下 `time`/`level`/`msg`/`source` 这套 slog 默认 key 是否需要改名以兼容既有采集（如 `ts`）？（§9）
@@ -972,6 +1085,9 @@ go doc go.uber.org/zap/exp/zapslog
    现状 `bear-admin` 的 `replace` 是 `../../../go/wind/kratos-bootstrap/...`（深层路径 + 另一个 checkout），
    建议本次一并收敛，否则 `gow` 自动生成的 `replace` 无法通用。
 8. **`go.work` 是否纳入 CI**：默认不提交（各人布局不同）；若要 CI 也联调，则改为**提交方案 B 的 `replace`**（§4.8.4）。
+9. **logger 契约（2026-09 新增）**：确认按 §4.2.0 **保持项目 `Logger` 接口不变**（推荐，只换 `slog` 桥），还是借本次 v3 迁移把契约统一收敛为 `*slog.Logger`？
+10. **`go-wind` / `go-wind-plugins` 定位（2026-09 新增）**：二者作为 `database/ent` 的 indirect 依赖新出现，是否纳入 v3 谱系的正式依赖与版本策略？与 `go-crud` 的职责边界如何划分？
+11. **`gow` 新命令面的 v3 化范围（2026-09 新增）**：`api`（buf）/`build`/`migrate`/`generate`/`extract` 的产物是否也需要 v3 化核对（§5.3 第 7 条）？还是本次只覆盖 `add service` + `new` 主链路？
 
 ---
 
@@ -982,4 +1098,5 @@ go doc go.uber.org/zap/exp/zapslog
 | `v2ToV3.md` | kratos 官方差异摘要 | **采纳**，但按 §1 修正 6 处 |
 | `wind迁移v3.md` | 早前的迁移方案（含工时） | **继承**其 logger/`slog.Handler` 模板思路与分阶段结构；修正 §1、补依赖实测（§2）、补 `gow` 治本（§5） |
 | `skill.md` | 「生成物有问题时的手工修复流程」 | **升级为生成器内置能力**（§5.1），目标是把这份 skill 变成**不必要** |
-| `kratos-admin` | v3 参考实现 | **借鉴**其 `runtimeAccessFilter` 的 `slog.Handler` 写法（§4.2.3）；**反用**其架构（§3），避免重、耦合、不可自定义 |
+| `kratos-admin` | v3 参考实现 | **借鉴**其 `runtimeAccessFilter` 的 `slog.Handler` 写法（§4.2.0 的 `slog` 桥）；**反用**其架构（§3），避免重、耦合、不可自定义 |
+| **本次实拉取（2026-09）** | `kratos-bootstrap` / `kratos-transport` / `go-wind-admin-template` / `go-wind-toolkit` 四仓真值 | **覆盖** §2 / §4.1 / §4.2 / §4.7 / §5.1–§5.5 / §6 中与实测冲突的「现状」描述；以顶部基线表为准 |
