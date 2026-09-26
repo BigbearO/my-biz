@@ -1,0 +1,15 @@
+
+
+services:
+  higress:
+    image: higress-registry.cn-hangzhou.cr.aliyuncs.com/higress/all-in-one:2.1.11
+    container_name: higress
+    restart: no
+    ports:
+      - "8001:8001"   # Higress控制台
+      - "8080:8080"   # HTTP网关入口
+      - "8443:8443"   # HTTPS网关入口
+    volumes:
+      - ./higress/data:/data  # 持久化网关配置，容器重启不丢失
+    environment:
+      - TZ=Asia/Shanghai
