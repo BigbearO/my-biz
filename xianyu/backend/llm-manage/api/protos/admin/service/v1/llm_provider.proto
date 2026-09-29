@@ -1,0 +1,115 @@
+syntax = "proto3";
+
+package admin.service.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+
+// LlmProvider 供应商服务
+service LlmProvider {
+  // 供应商列表（分页）
+  rpc List (ListLlmProviderRequest) returns (ListLlmProviderReply) {
+    option (google.api.http) = {
+      get: "/llm/provider/list"
+    };
+  }
+  // 供应商详情
+  rpc Get (GetLlmProviderRequest) returns (LlmProviderInfo) {
+    option (google.api.http) = {
+      get: "/llm/provider/{id}"
+    };
+  }
+  // 新增供应商
+  rpc Create (CreateLlmProviderRequest) returns (LlmProviderInfo) {
+    option (google.api.http) = {
+      post: "/llm/provider"
+      body: "*"
+    };
+  }
+  // 更新供应商
+  rpc Update (UpdateLlmProviderRequest) returns (LlmProviderInfo) {
+    option (google.api.http) = {
+      put: "/llm/provider"
+      body: "*"
+    };
+  }
+  // 删除供应商
+  rpc Delete (DeleteLlmProviderRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/llm/provider/{id}"
+    };
+  }
+  // 测试连接
+  rpc TestConnection (TestConnectionRequest) returns (TestConnectionReply) {
+    option (google.api.http) = {
+      post: "/llm/provider/test"
+      body: "*"
+    };
+  }
+}
+
+// LlmProviderInfo 供应商信息
+message LlmProviderInfo {
+  int64 id = 1;
+  string name = 2;
+  string base_url = 3;
+  string api_key = 4;  // 返回时脱敏
+  int32 status = 5;
+  string created_at = 6;
+  string updated_at = 7;
+}
+
+// ListLlmProviderRequest 列表请求
+message ListLlmProviderRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string name = 3;  // 模糊搜索
+  int32 status = 4;
+}
+
+// ListLlmProviderReply 列表回复
+message ListLlmProviderReply {
+  repeated LlmProviderInfo list = 1;
+  int64 total = 2;
+}
+
+// GetLlmProviderRequest 详情请求
+message GetLlmProviderRequest {
+  int64 id = 1;
+}
+
+// CreateLlmProviderRequest 新增请求
+message CreateLlmProviderRequest {
+  string name = 1;
+  string base_url = 2;
+  string api_key = 3;
+  int32 status = 4;
+}
+
+// UpdateLlmProviderRequest 更新请求
+message UpdateLlmProviderRequest {
+  int64 id = 1;
+  string name = 2;
+  string base_url = 3;
+  string api_key = 4;  // 为空则不更新
+  int32 status = 5;
+}
+
+// DeleteLlmProviderRequest 删除请求
+message DeleteLlmProviderRequest {
+  int64 id = 1;
+}
+
+// TestConnectionRequest 测试连接请求
+message TestConnectionRequest {
+  int64 id = 1;  // 传 id 则用已保存的配置
+  string base_url = 2;  // 不传 id 则用传入的配置
+  string api_key = 3;
+}
+
+// TestConnectionReply 测试连接回复
+message TestConnectionReply {
+  bool success = 1;
+  string message = 2;
+  int64 latency_ms = 3;  // 响应耗时
+}
