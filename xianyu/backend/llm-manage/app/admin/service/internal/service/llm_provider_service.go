@@ -14,24 +14,23 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 
 	adminV1 "llm-manage/api/gen/go/admin/service/v1"
-	"llm-manage/app/admin/service/internal/data"
+	"llm-manage/app/admin/service/internal/constants"
 	"llm-manage/app/admin/service/internal/data/models"
+	"llm-manage/app/admin/service/internal/manager"
 )
 
-// LlmProviderService 供应商服务
+// LlmProviderService 供应商服务（业务编排层）
 type LlmProviderService struct {
 	adminV1.UnimplementedLlmProviderServer
-	log       *log.Helper
-	repo      *data.LlmProviderRepo
-	encryptor *Encryptor
+	log     *log.Helper
+	manager *manager.LlmProviderManager
 }
 
 // NewLlmProviderService 创建供应商服务
-func NewLlmProviderService(ctx *bootstrap.Context, repo *data.LlmProviderRepo, encryptor *Encryptor) *LlmProviderService {
+func NewLlmProviderService(ctx *bootstrap.Context, mgr *manager.LlmProviderManager) *LlmProviderService {
 	return &LlmProviderService{
-		log:       ctx.NewLoggerHelper("llm_provider/service/admin-service"),
-		repo:      repo,
-		encryptor: encryptor,
+		log:     ctx.NewLoggerHelper(constants.LoggerNameLlmProviderService),
+		manager: mgr,
 	}
 }
 
@@ -39,14 +38,14 @@ func NewLlmProviderService(ctx *bootstrap.Context, repo *data.LlmProviderRepo, e
 func (s *LlmProviderService) List(ctx context.Context, req *adminV1.ListLlmProviderRequest) (*adminV1.ListLlmProviderReply, error) {
 	page := req.GetPage()
 	if page <= 0 {
-		page = 1
+		page = constants.DefaultPage
 	}
 	pageSize := req.GetPageSize()
 	if pageSize <= 0 {
-		pageSize = 10
+		pageSize = constants.DefaultPageSize
 	}
 
-	list, total, err := s.repo.List(ctx, page, pageSize, req.GetName(), req.GetStatus())
+	list, total, err := s.manager.ListWithPage(ctx, page, pageSize, req.GetName(), req.GetStatus())
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +56,7 @@ func (s *LlmProviderService) List(ctx context.Context, req *adminV1.ListLlmProvi
 	}
 
 	for _, item := range list {
-		reply.List = append(reply.List, s.toProviderInfo(item, true))
+		reply.List = append(reply.List, s.toProviderInfo(item))
 	}
 
 	return reply, nil
@@ -65,96 +64,74 @@ func (s *LlmProviderService) List(ctx context.Context, req *adminV1.ListLlmProvi
 
 // Get 供应商详情
 func (s *LlmProviderService) Get(ctx context.Context, req *adminV1.GetLlmProviderRequest) (*adminV1.LlmProviderInfo, error) {
-	provider, err := s.repo.Get(ctx, req.GetId())
+	provider, err := s.manager.GetByID(ctx, req.GetId())
 	if err != nil {
 		return nil, err
 	}
 	if provider == nil {
-		return nil, fmt.Errorf("供应商不存在")
+		return nil, constants.ErrProviderNotFound
 	}
 
-	return s.toProviderInfo(provider, true), nil
+	return s.toProviderInfo(provider), nil
 }
 
 // Create 新增供应商
 func (s *LlmProviderService) Create(ctx context.Context, req *adminV1.CreateLlmProviderRequest) (*adminV1.LlmProviderInfo, error) {
+	// 参数校验
 	if req.GetName() == "" {
-		return nil, fmt.Errorf("供应商名称不能为空")
+		return nil, constants.ErrProviderNameEmpty
 	}
 	if req.GetBaseUrl() == "" {
-		return nil, fmt.Errorf("接口地址不能为空")
+		return nil, constants.ErrBaseURLEmpty
 	}
 	if req.GetApiKey() == "" {
-		return nil, fmt.Errorf("API Key 不能为空")
+		return nil, constants.ErrAPIKeyEmpty
 	}
 
-	// 加密 API Key
-	encryptedKey, err := s.encryptor.Encrypt(req.GetApiKey())
+	status := req.GetStatus()
+	if status == constants.StatusDisabled {
+		status = constants.StatusEnabled
+	}
+
+	// 调用 manager 原子操作：加密后存库
+	provider, err := s.manager.CreateWithEncryptedKey(ctx, req.GetName(), req.GetBaseUrl(), req.GetApiKey(), status)
 	if err != nil {
-		s.log.Errorf("encrypt api key failed: %v", err)
-		return nil, fmt.Errorf("加密 API Key 失败")
-	}
-
-	provider := &models.LlmProvider{
-		Name:    req.GetName(),
-		BaseURL: req.GetBaseUrl(),
-		APIKey:  encryptedKey,
-		Status:  req.GetStatus(),
-	}
-	if provider.Status == 0 {
-		provider.Status = 1
-	}
-
-	if err := s.repo.Create(ctx, provider); err != nil {
 		return nil, err
 	}
 
-	return s.toProviderInfo(provider, true), nil
+	return s.toProviderInfo(provider), nil
 }
 
 // Update 更新供应商
 func (s *LlmProviderService) Update(ctx context.Context, req *adminV1.UpdateLlmProviderRequest) (*adminV1.LlmProviderInfo, error) {
-	provider, err := s.repo.Get(ctx, req.GetId())
+	// 调用 manager 原子操作：更新（API Key 为空则不更新）
+	provider, err := s.manager.UpdateWithOptionalKey(
+		ctx,
+		req.GetId(),
+		req.GetName(),
+		req.GetBaseUrl(),
+		req.GetApiKey(),
+		req.GetStatus(),
+	)
 	if err != nil {
 		return nil, err
 	}
-	if provider == nil {
-		return nil, fmt.Errorf("供应商不存在")
-	}
 
-	provider.Name = req.GetName()
-	provider.BaseURL = req.GetBaseUrl()
-	provider.Status = req.GetStatus()
-
-	// API Key 不为空才更新
-	if req.GetApiKey() != "" {
-		encryptedKey, err := s.encryptor.Encrypt(req.GetApiKey())
-		if err != nil {
-			s.log.Errorf("encrypt api key failed: %v", err)
-			return nil, fmt.Errorf("加密 API Key 失败")
-		}
-		provider.APIKey = encryptedKey
-	}
-
-	if err := s.repo.Update(ctx, provider); err != nil {
-		return nil, err
-	}
-
-	return s.toProviderInfo(provider, true), nil
+	return s.toProviderInfo(provider), nil
 }
 
 // Delete 删除供应商
 func (s *LlmProviderService) Delete(ctx context.Context, req *adminV1.DeleteLlmProviderRequest) (*emptypb.Empty, error) {
-	// 检查是否有关联模型
-	count, err := s.repo.CountModelsByProviderID(ctx, req.GetId())
+	// 业务规则：有关联模型时禁止删除
+	count, err := s.manager.CountModels(ctx, req.GetId())
 	if err != nil {
 		return nil, err
 	}
 	if count > 0 {
-		return nil, fmt.Errorf("该供应商下存在 %d 个模型，无法删除", count)
+		return nil, fmt.Errorf(constants.MsgProviderHasModelsCount, count)
 	}
 
-	if err := s.repo.Delete(ctx, req.GetId()); err != nil {
+	if err := s.manager.DeleteByID(ctx, req.GetId()); err != nil {
 		return nil, err
 	}
 
@@ -166,27 +143,18 @@ func (s *LlmProviderService) TestConnection(ctx context.Context, req *adminV1.Te
 	var baseURL, apiKey string
 
 	if req.GetId() > 0 {
-		// 用已保存的配置
-		provider, err := s.repo.Get(ctx, req.GetId())
+		// 用已保存的配置（manager 负责查询和解密）
+		provider, decryptedKey, err := s.manager.GetWithDecryptedKey(ctx, req.GetId())
 		if err != nil {
+			if err == constants.ErrProviderNotFound {
+				return &adminV1.TestConnectionReply{
+					Success: false,
+					Message: constants.ErrProviderNotFound.Error(),
+				}, nil
+			}
 			return nil, err
 		}
-		if provider == nil {
-			return &adminV1.TestConnectionReply{
-				Success: false,
-				Message: "供应商不存在",
-			}, nil
-		}
 		baseURL = provider.BaseURL
-		// 解密 API Key
-		decryptedKey, err := s.encryptor.Decrypt(provider.APIKey)
-		if err != nil {
-			s.log.Errorf("decrypt api key failed: %v", err)
-			return &adminV1.TestConnectionReply{
-				Success: false,
-				Message: "解密 API Key 失败",
-			}, nil
-		}
 		apiKey = decryptedKey
 	} else {
 		// 用传入的配置
@@ -197,7 +165,7 @@ func (s *LlmProviderService) TestConnection(ctx context.Context, req *adminV1.Te
 	if baseURL == "" || apiKey == "" {
 		return &adminV1.TestConnectionReply{
 			Success: false,
-			Message: "接口地址和 API Key 不能为空",
+			Message: constants.MsgTestConnectionConfigEmpty,
 		}, nil
 	}
 
@@ -205,16 +173,16 @@ func (s *LlmProviderService) TestConnection(ctx context.Context, req *adminV1.Te
 	start := time.Now()
 	url := strings.TrimRight(baseURL, "/") + "/v1/models"
 
-	httpReq, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return &adminV1.TestConnectionReply{
 			Success: false,
-			Message: fmt.Sprintf("创建请求失败: %v", err),
+			Message: fmt.Sprintf("%s: %v", constants.MsgTestConnectionCreateRequestFailed, err),
 		}, nil
 	}
 	httpReq.Header.Set("Authorization", "Bearer "+apiKey)
 
-	client := &http.Client{Timeout: 10 * time.Second}
+	client := &http.Client{Timeout: constants.HTTPTimeoutSeconds * time.Second}
 	resp, err := client.Do(httpReq)
 	latency := time.Since(start).Milliseconds()
 
@@ -242,7 +210,7 @@ func (s *LlmProviderService) TestConnection(ctx context.Context, req *adminV1.Te
 	if err := json.Unmarshal(body, &result); err != nil {
 		return &adminV1.TestConnectionReply{
 			Success:   true,
-			Message:   "连接成功（响应格式非标准）",
+			Message:   constants.MsgTestConnectionSuccessNonStandard,
 			LatencyMs: latency,
 		}, nil
 	}
@@ -250,36 +218,25 @@ func (s *LlmProviderService) TestConnection(ctx context.Context, req *adminV1.Te
 	if _, ok := result["data"]; ok {
 		return &adminV1.TestConnectionReply{
 			Success:   true,
-			Message:   "连接成功",
+			Message:   constants.MsgTestConnectionSuccess,
 			LatencyMs: latency,
 		}, nil
 	}
 
 	return &adminV1.TestConnectionReply{
 		Success:   true,
-		Message:   "连接成功（响应格式非标准）",
+		Message:   constants.MsgTestConnectionSuccessNonStandard,
 		LatencyMs: latency,
 	}, nil
 }
 
-// toProviderInfo 转换为 proto 结构
-func (s *LlmProviderService) toProviderInfo(provider *models.LlmProvider, mask bool) *adminV1.LlmProviderInfo {
-	apiKey := provider.APIKey
-	if mask {
-		// 先解密再脱敏
-		decryptedKey, err := s.encryptor.Decrypt(provider.APIKey)
-		if err == nil {
-			apiKey = MaskAPIKey(decryptedKey)
-		} else {
-			apiKey = "****"
-		}
-	}
-
+// toProviderInfo 转换为 proto 结构（脱敏 API Key）
+func (s *LlmProviderService) toProviderInfo(provider *models.LlmProvider) *adminV1.LlmProviderInfo {
 	return &adminV1.LlmProviderInfo{
 		Id:        provider.ID,
 		Name:      provider.Name,
 		BaseUrl:   provider.BaseURL,
-		ApiKey:    apiKey,
+		ApiKey:    s.manager.MaskAPIKey(provider.APIKey),
 		Status:    provider.Status,
 		CreatedAt: provider.CreatedAt.Format("2006-01-02 15:04:05"),
 		UpdatedAt: provider.UpdatedAt.Format("2006-01-02 15:04:05"),

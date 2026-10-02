@@ -8,8 +8,10 @@ import (
 
 	"llm-manage/app/admin/service/internal/data"
 	"llm-manage/app/admin/service/internal/data/client"
+	"llm-manage/app/admin/service/internal/manager"
 	"llm-manage/app/admin/service/internal/server"
 	"llm-manage/app/admin/service/internal/service"
+	"llm-manage/app/admin/service/internal/utils"
 )
 
 // initApp 手写装配整个应用,是本服务的依赖注入点。
@@ -57,7 +59,7 @@ func initApp(ctx *bootstrap.Context) (*kratos.App, func(), error) {
 	if encryptKey == "" {
 		encryptKey = "llm-manage-default-encrypt-key-32!" // 32 字节
 	}
-	encryptor, err := service.NewEncryptor(encryptKey)
+	encryptor, err := utils.NewEncryptor(encryptKey)
 	if err != nil {
 		rollback()
 		return nil, func() {}, err
@@ -74,17 +76,25 @@ func initApp(ctx *bootstrap.Context) (*kratos.App, func(), error) {
 
 	// ── register:repo ── 新模块仓储在此行后注册(make register 工具锚点,勿删)
 
-	// ═══════════════════════ 三、服务层(internal/service) ═══════════════════════
+	// ═══════════════════════ 三、Manager 层(internal/manager) ═══════════════════════
+
+	// LLM 模块 manager（原子操作/基础设施）
+	llmProviderManager := manager.NewLlmProviderManager(ctx, llmProviderRepo, llmModelRepo, encryptor)
+	llmModelManager := manager.NewLlmModelManager(ctx, llmModelRepo, llmProviderRepo)
+
+	// ── register:manager ── 新模块 manager 在此行后注册
+
+	// ═══════════════════════ 四、服务层(internal/service) ═══════════════════════
 
 	greeterService := service.NewGreeterService(ctx, greeterRepo)
 
-	// LLM 模块服务
-	llmProviderService := service.NewLlmProviderService(ctx, llmProviderRepo, encryptor)
-	llmModelService := service.NewLlmModelService(ctx, llmModelRepo, llmProviderRepo)
+	// LLM 模块服务（业务编排，依赖 manager）
+	llmProviderService := service.NewLlmProviderService(ctx, llmProviderManager)
+	llmModelService := service.NewLlmModelService(ctx, llmModelManager)
 
 	// ── register:service ── 新模块服务在此行后注册(make register 工具锚点,勿删)
 
-	// ═══════════════════════ 四、传输层(internal/server) ═══════════════════════
+	// ═══════════════════════ 五、传输层(internal/server) ═══════════════════════
 
 	restMiddlewares := server.NewRestMiddleware(ctx)
 

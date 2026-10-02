@@ -8,6 +8,7 @@ import (
 	"github.com/tx7do/kratos-bootstrap/bootstrap"
 	"gorm.io/gorm"
 
+	"llm-manage/app/admin/service/internal/constants"
 	"llm-manage/app/admin/service/internal/data/models"
 )
 
@@ -20,7 +21,7 @@ type LlmProviderRepo struct {
 // NewLlmProviderRepo 创建供应商仓储
 func NewLlmProviderRepo(ctx *bootstrap.Context, db *gorm.DB) *LlmProviderRepo {
 	return &LlmProviderRepo{
-		log: ctx.NewLoggerHelper("llm_provider/repo/admin-service"),
+		log: ctx.NewLoggerHelper(constants.LoggerNameLlmProviderRepo),
 		db:  db,
 	}
 }

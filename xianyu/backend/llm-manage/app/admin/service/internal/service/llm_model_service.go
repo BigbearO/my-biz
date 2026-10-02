@@ -2,31 +2,29 @@ package service
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/tx7do/kratos-bootstrap/bootstrap"
 	"google.golang.org/protobuf/types/known/emptypb"
 
 	adminV1 "llm-manage/api/gen/go/admin/service/v1"
-	"llm-manage/app/admin/service/internal/data"
+	"llm-manage/app/admin/service/internal/constants"
 	"llm-manage/app/admin/service/internal/data/models"
+	"llm-manage/app/admin/service/internal/manager"
 )
 
-// LlmModelService 模型服务
+// LlmModelService 模型服务（业务编排层）
 type LlmModelService struct {
 	adminV1.UnimplementedLlmModelServer
-	log            *log.Helper
-	repo           *data.LlmModelRepo
-	providerRepo   *data.LlmProviderRepo
+	log     *log.Helper
+	manager *manager.LlmModelManager
 }
 
 // NewLlmModelService 创建模型服务
-func NewLlmModelService(ctx *bootstrap.Context, repo *data.LlmModelRepo, providerRepo *data.LlmProviderRepo) *LlmModelService {
+func NewLlmModelService(ctx *bootstrap.Context, mgr *manager.LlmModelManager) *LlmModelService {
 	return &LlmModelService{
-		log:          ctx.NewLoggerHelper("llm_model/service/admin-service"),
-		repo:         repo,
-		providerRepo: providerRepo,
+		log:     ctx.NewLoggerHelper(constants.LoggerNameLlmModelService),
+		manager: mgr,
 	}
 }
 
@@ -34,14 +32,17 @@ func NewLlmModelService(ctx *bootstrap.Context, repo *data.LlmModelRepo, provide
 func (s *LlmModelService) List(ctx context.Context, req *adminV1.ListLlmModelRequest) (*adminV1.ListLlmModelReply, error) {
 	page := req.GetPage()
 	if page <= 0 {
-		page = 1
+		page = constants.DefaultPage
 	}
 	pageSize := req.GetPageSize()
 	if pageSize <= 0 {
-		pageSize = 10
+		pageSize = constants.DefaultPageSize
 	}
 
-	list, total, err := s.repo.List(ctx, page, pageSize, req.GetProviderId(), req.GetDisplayName(), req.GetStatus())
+	// 调用 manager 原子操作：分页查询并关联供应商名称
+	list, providerNameMap, total, err := s.manager.ListWithProvider(
+		ctx, page, pageSize, req.GetProviderId(), req.GetDisplayName(), req.GetStatus(),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -52,11 +53,7 @@ func (s *LlmModelService) List(ctx context.Context, req *adminV1.ListLlmModelReq
 	}
 
 	for _, item := range list {
-		info, err := s.toModelInfo(ctx, item)
-		if err != nil {
-			return nil, err
-		}
-		reply.List = append(reply.List, info)
+		reply.List = append(reply.List, s.toModelInfo(item, providerNameMap[item.ProviderID]))
 	}
 
 	return reply, nil
@@ -64,110 +61,93 @@ func (s *LlmModelService) List(ctx context.Context, req *adminV1.ListLlmModelReq
 
 // Get 模型详情
 func (s *LlmModelService) Get(ctx context.Context, req *adminV1.GetLlmModelRequest) (*adminV1.LlmModelInfo, error) {
-	model, err := s.repo.Get(ctx, req.GetId())
+	// 调用 manager 原子操作：查询并关联供应商名称
+	model, providerName, err := s.manager.GetWithProvider(ctx, req.GetId())
 	if err != nil {
 		return nil, err
 	}
-	if model == nil {
-		return nil, fmt.Errorf("模型不存在")
-	}
 
-	return s.toModelInfo(ctx, model)
+	return s.toModelInfo(model, providerName), nil
 }
 
 // Create 新增模型
 func (s *LlmModelService) Create(ctx context.Context, req *adminV1.CreateLlmModelRequest) (*adminV1.LlmModelInfo, error) {
+	// 参数校验
 	if req.GetProviderId() <= 0 {
-		return nil, fmt.Errorf("请选择供应商")
+		return nil, constants.ErrProviderIDRequired
 	}
 	if req.GetDisplayName() == "" {
-		return nil, fmt.Errorf("模型显示名称不能为空")
+		return nil, constants.ErrModelDisplayNameEmpty
 	}
 	if req.GetModelName() == "" {
-		return nil, fmt.Errorf("实际模型名不能为空")
+		return nil, constants.ErrModelNameEmpty
 	}
 
-	// 校验供应商存在
-	provider, err := s.providerRepo.Get(ctx, req.GetProviderId())
+	// 调用 manager 原子操作：校验供应商存在后存库
+	model, err := s.manager.CreateWithProviderCheck(
+		ctx,
+		req.GetProviderId(),
+		req.GetDisplayName(),
+		req.GetModelName(),
+		float64(req.GetTemperature()),
+		req.GetMaxTokens(),
+		req.GetStatus(),
+	)
 	if err != nil {
 		return nil, err
 	}
-	if provider == nil {
-		return nil, fmt.Errorf("供应商不存在")
-	}
 
-	model := &models.LlmModel{
-		ProviderID:  req.GetProviderId(),
-		DisplayName: req.GetDisplayName(),
-		ModelName:   req.GetModelName(),
-		Temperature: float64(req.GetTemperature()),
-		MaxTokens:   req.GetMaxTokens(),
-		Status:      req.GetStatus(),
-	}
-	if model.Temperature == 0 {
-		model.Temperature = 0.7
-	}
-	if model.MaxTokens == 0 {
-		model.MaxTokens = 2048
-	}
-
-	if err := s.repo.Create(ctx, model); err != nil {
+	// 查询供应商名称用于返回
+	_, providerName, err := s.manager.GetWithProvider(ctx, model.ID)
+	if err != nil {
 		return nil, err
 	}
 
-	return s.toModelInfo(ctx, model)
+	return s.toModelInfo(model, providerName), nil
 }
 
 // Update 更新模型
 func (s *LlmModelService) Update(ctx context.Context, req *adminV1.UpdateLlmModelRequest) (*adminV1.LlmModelInfo, error) {
-	model, err := s.repo.Get(ctx, req.GetId())
+	// 调用 manager 原子操作：校验供应商存在后更新
+	model, err := s.manager.UpdateWithProviderCheck(
+		ctx,
+		req.GetId(),
+		req.GetProviderId(),
+		req.GetDisplayName(),
+		req.GetModelName(),
+		float64(req.GetTemperature()),
+		req.GetMaxTokens(),
+		req.GetStatus(),
+	)
 	if err != nil {
 		return nil, err
 	}
-	if model == nil {
-		return nil, fmt.Errorf("模型不存在")
-	}
 
-	// 校验供应商存在
-	if req.GetProviderId() > 0 {
-		provider, err := s.providerRepo.Get(ctx, req.GetProviderId())
-		if err != nil {
-			return nil, err
-		}
-		if provider == nil {
-			return nil, fmt.Errorf("供应商不存在")
-		}
-		model.ProviderID = req.GetProviderId()
-	}
-
-	model.DisplayName = req.GetDisplayName()
-	model.ModelName = req.GetModelName()
-	model.Temperature = float64(req.GetTemperature())
-	model.MaxTokens = req.GetMaxTokens()
-	model.Status = req.GetStatus()
-
-	if err := s.repo.Update(ctx, model); err != nil {
+	// 查询供应商名称用于返回
+	_, providerName, err := s.manager.GetWithProvider(ctx, model.ID)
+	if err != nil {
 		return nil, err
 	}
 
-	return s.toModelInfo(ctx, model)
+	return s.toModelInfo(model, providerName), nil
 }
 
 // Delete 删除模型
 func (s *LlmModelService) Delete(ctx context.Context, req *adminV1.DeleteLlmModelRequest) (*emptypb.Empty, error) {
-	model, err := s.repo.Get(ctx, req.GetId())
+	// 业务规则：启用中的模型禁止删除
+	model, err := s.manager.GetByID(ctx, req.GetId())
 	if err != nil {
 		return nil, err
 	}
 	if model == nil {
-		return nil, fmt.Errorf("模型不存在")
+		return nil, constants.ErrModelNotFound
 	}
 
-	if model.Status == 1 {
-		return nil, fmt.Errorf("启用中的模型无法删除，请先停用")
+	if model.Status == constants.StatusEnabled {
+		return nil, constants.ErrModelEnabled
 	}
 
-	if err := s.repo.Delete(ctx, req.GetId()); err != nil {
+	if err := s.manager.DeleteByID(ctx, req.GetId()); err != nil {
 		return nil, err
 	}
 
@@ -176,28 +156,27 @@ func (s *LlmModelService) Delete(ctx context.Context, req *adminV1.DeleteLlmMode
 
 // Enable 启用模型
 func (s *LlmModelService) Enable(ctx context.Context, req *adminV1.EnableLlmModelRequest) (*adminV1.LlmModelInfo, error) {
-	model, err := s.repo.Get(ctx, req.GetId())
+	// 调用 manager 原子操作：事务内启用
+	enabledModel, err := s.manager.EnableWithTransaction(ctx, req.GetId())
 	if err != nil {
 		return nil, err
 	}
-	if model == nil {
-		return nil, fmt.Errorf("模型不存在")
-	}
 
-	enabledModel, err := s.repo.Enable(ctx, req.GetId())
+	// 查询供应商名称用于返回
+	_, providerName, err := s.manager.GetWithProvider(ctx, enabledModel.ID)
 	if err != nil {
-		s.log.Errorf("enable model failed: %v", err)
-		return nil, fmt.Errorf("启用模型失败")
+		return nil, err
 	}
 
-	return s.toModelInfo(ctx, enabledModel)
+	return s.toModelInfo(enabledModel, providerName), nil
 }
 
 // toModelInfo 转换为 proto 结构
-func (s *LlmModelService) toModelInfo(ctx context.Context, model *models.LlmModel) (*adminV1.LlmModelInfo, error) {
-	info := &adminV1.LlmModelInfo{
+func (s *LlmModelService) toModelInfo(model *models.LlmModel, providerName string) *adminV1.LlmModelInfo {
+	return &adminV1.LlmModelInfo{
 		Id:          model.ID,
 		ProviderId:  model.ProviderID,
+		ProviderName: providerName,
 		DisplayName: model.DisplayName,
 		ModelName:   model.ModelName,
 		Temperature: float32(model.Temperature),
@@ -206,15 +185,4 @@ func (s *LlmModelService) toModelInfo(ctx context.Context, model *models.LlmMode
 		CreatedAt:   model.CreatedAt.Format("2006-01-02 15:04:05"),
 		UpdatedAt:   model.UpdatedAt.Format("2006-01-02 15:04:05"),
 	}
-
-	// 关联查询供应商名称
-	provider, err := s.providerRepo.Get(ctx, model.ProviderID)
-	if err != nil {
-		return nil, err
-	}
-	if provider != nil {
-		info.ProviderName = provider.Name
-	}
-
-	return info, nil
 }

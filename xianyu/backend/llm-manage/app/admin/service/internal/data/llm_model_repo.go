@@ -8,6 +8,7 @@ import (
 	"github.com/tx7do/kratos-bootstrap/bootstrap"
 	"gorm.io/gorm"
 
+	"llm-manage/app/admin/service/internal/constants"
 	"llm-manage/app/admin/service/internal/data/models"
 )
 
@@ -20,7 +21,7 @@ type LlmModelRepo struct {
 // NewLlmModelRepo 创建模型仓储
 func NewLlmModelRepo(ctx *bootstrap.Context, db *gorm.DB) *LlmModelRepo {
 	return &LlmModelRepo{
-		log: ctx.NewLoggerHelper("llm_model/repo/admin-service"),
+		log: ctx.NewLoggerHelper(constants.LoggerNameLlmModelRepo),
 		db:  db,
 	}
 }
@@ -102,13 +103,13 @@ func (r *LlmModelRepo) Enable(ctx context.Context, id int64) (*models.LlmModel, 
 
 	err := r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		// 先把所有模型设为停用
-		if err := tx.Model(&models.LlmModel{}).Where("status = ?", 1).Update("status", 0).Error; err != nil {
+		if err := tx.Model(&models.LlmModel{}).Where("status = ?", constants.StatusEnabled).Update("status", constants.StatusDisabled).Error; err != nil {
 			r.log.Errorf("disable all models failed: %v", err)
 			return err
 		}
 
 		// 再把当前模型设为启用
-		if err := tx.Model(&models.LlmModel{}).Where("id = ?", id).Update("status", 1).Error; err != nil {
+		if err := tx.Model(&models.LlmModel{}).Where("id = ?", id).Update("status", constants.StatusEnabled).Error; err != nil {
 			r.log.Errorf("enable model failed: %v", err)
 			return err
 		}
@@ -132,7 +133,7 @@ func (r *LlmModelRepo) Enable(ctx context.Context, id int64) (*models.LlmModel, 
 // GetEnabled 获取启用中的模型
 func (r *LlmModelRepo) GetEnabled(ctx context.Context) (*models.LlmModel, error) {
 	var model models.LlmModel
-	if err := r.db.WithContext(ctx).Where("status = ?", 1).First(&model).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("status = ?", constants.StatusEnabled).First(&model).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
