@@ -24,7 +24,7 @@ AI 回复生成是本服务的核心业务流程，采用**三段式**执行链�
                ▼
 ┌─── ② 组装提示词（本地）────┐
 │  取/建对话 → 取历史 → 意图识别(仅记日志) → 变量替换 + 三段场景全嵌入
-│  → messages = [system, ...history, 当前消息(含图片)]
+│  → messages = [system(含买家提问回填), ...history, (可选)user(仅图片)]
 └──────────────┬──────────────┘
                ▼
 ┌─── ③ 发送对话 ────────────┐
@@ -66,7 +66,7 @@ AI 回复生成是本服务的核心业务流程，采用**三段式**执行链�
 ```
 1. 客户端 POST /api/ai/reply（REST，经网关路由到本服务实例）
        ↓
-2. 参数校验（request_id、goodfish_item_id、buyer_id、messages 非空）
+2. 参数校验（request_id、goodfish_item_id、buyer_id、message 非空）
    缺失 → 40001
        ↓
 3. 幂等检查（Redis：ai:idem:{request_id}）
@@ -81,7 +81,7 @@ AI 回复生成是本服务的核心业务流程，采用**三段式**执行链�
             - 商品：title / description / price / stock_status / image_url
             - 提示词：system_prompt / price_prompt / tech_prompt / default_prompt
             - 参数：max_reply_length / temperature / max_tokens
-      （本服务无缓存，每次直接 RPC；商品服务提供方缓存：编辑时删除 + TTL 60s 兜底，见 §2.3）
+      （本服务无缓存，每次直接 RPC；商品服务提供方 Redis 缓存：编辑/同步时删除 + TTL 60s 兜底，见 §2.3）
    ├ NOT_FOUND          → 返回 40401（客户端不回复）
    ├ system_prompt 为空  → 返回 40402（商品未配置提示词，不调大模型，客户端不回复）
    ├ DEADLINE_EXCEEDED  → 重试 1 次 → 仍失败返回 50301
@@ -89,40 +89,41 @@ AI 回复生成是本服务的核心业务流程，采用**三段式**执行链�
        ↓
 ───────── ② 组装提示词 ─────────
 5. 【本地】获取或创建对话（conversation_id = item_id + buyer_id）
-6. 【本地】获取对话历史（最近 N 条，默认 10）——上下文全部由本服务维护，客户端不传历史
+6. 【本地】获取对话历史（最近 N 条，默认 20）——上下文全部由本服务维护，客户端不传历史
 7. 【本地】意图识别（关键词词表，仅用于日志统计，不参与提示词拼接）
    命中 price / tech / chitchat 关键词 → 记 intent；否则 default
    词表放配置中心（intent.keywords.*），可热更新
 8. 【本地】渲染统一系统提示词（三段场景提示词全部嵌入，不做三选一）
    变量替换：{{item_title}} {{item_desc}} {{item_price}} {{max_reply_length}}
+   买家提问回填：{{question}} → 本批买家消息，模板末尾以
+     「基于上述 回复买家：问题如下{{question}}」形式回填（见 §2.7.3）
    场景提示词 {{price_prompt}} / {{tech_prompt}} / {{default_prompt}} 三段全部嵌入模板，
    由模型按「场景处理指南」自行对号入座；闲聊引导规则见 §2.7
        ↓
 ───────── ③ 发送对话 ─────────
 9. 【本地】图片校验（图片已由客户端预先上传至本服务本地磁盘，此处只做校验）
-   遍历本批消息中的图片项（{"type":"image","url":"<本服务图片URL>"}）：
+   对请求中的 image_url（多图时为数组）逐项：
    a. 解析 URL 中的文件名 → 检查 image.storage_dir 下文件存在且未过期
    b. 文件缺失 / 已被清理 → 该图降级为占位文本 "[图片]"，记 WARN，不阻断流程
    （图片的下载与上传均在客户端完成：闲鱼图片 → 客户端转 PNG → POST /api/ai/image → 本地磁盘 → URL）
-10.【gRPC】LlmService.GetEnabledModel（每次直接 RPC；模型服务提供方缓存：启用/编辑时删除 + TTL 5min 兜底，见 §2.6）
+10.【gRPC】LlmService.GetEnabledModel（每次直接 RPC；模型服务提供方 Redis 缓存：启用/编辑时删除 + TTL 5min 兜底，见 §2.6）
     响应：base_url / model_name / api_key(明文) / temperature / max_tokens
     ├ NOT_FOUND（无启用模型）→ 返回 50002（不调大模型，客户端不回复、不重试）
     └ 超时 / UNAVAILABLE → 50301
 11.【本地】用商品提示词的 temperature / max_tokens 覆盖模型默认值（商品配置优先）
 12.【本地】构建 messages（OpenAI 多模态格式）：
     messages = [
-      {"role":"system","content":"<渲染后的统一系统提示词>"},
-      ...history（历史图片消息用已转存的 URL，同一 URL 复用不再转存）,
-      {"role":"user","content":[
-          {"type":"text","text":"<本批文本>"},
-          {"type":"image_url","image_url":{"url":"<转存后URL>"}}
-      ]}
+      {"role":"system","content":"<渲染后的统一系统提示词，末尾含『基于上述 回复买家：问题如下<本批买家消息>』>"},
+      ...history（历史轮次；历史图片消息用已转存的 URL，同一 URL 复用不再转存）
     ]
+    ★ 买家提问已回填进 system 提示词，不再单列一条 user 文本消息；
+      若本批含图片：追加一条 user 消息只承载图片（文本已在 system 中）
+      {"role":"user","content":[{"type":"image_url","image_url":{"url":"<转存后URL>"}}, ...]}
 13. 调用大模型（HTTP，OpenAI 兼容 /v1/chat/completions）
     单次超时 30s；按剩余预算决定是否重试，总预算 ≤ 65s；超预算 → 50001
        ↓
 14. 落库（同一事务）
-    - ai_conversation_message：本条 user 消息（图片项存本服务图片 URL，不存 base64）+ assistant 回复（含 Token / latency）
+    - ai_conversation_message：本条 buyer 消息（文本 / 图片存本服务图片 URL，不存 base64）+ assistant 回复（含 Token / latency）
     - ai_conversation：更新 last_message_at
     - ai_reply_log：渲染后系统提示词 + intent + 模型 + 回复 + 耗时（排障用）
        ↓
@@ -154,7 +155,7 @@ AI 回复生成是本服务的核心业务流程，采用**三段式**执行链�
 ### 2.3 第①段：查询商品信息（gRPC）
 
 - 调用 `ItemService.GetItemRuntimeConfig`（请求 `{account_id, item_id}`），一次拿全商品信息、四段提示词与生成参数（见 §2.2 第 4 步）。
-- **缓存策略**：本服务**不缓存**（无 L1/L2，无失效订阅），每次对话直接 gRPC 获取；缓存由商品服务在**提供方侧**承担——**编辑/同步变更时主动删除 + TTL 60s 兜底**（多实例时变更实例立即删除本地缓存，其他实例由 TTL 收敛）。**不使用 Nacos 版本键**。
+- **缓存策略**：本服务**不缓存**（无 L1/L2，无失效订阅），每次对话直接 gRPC 获取；缓存由商品服务在**提供方侧**承担，**介质为 Redis（共享缓存）**——**编辑/同步变更时主动删除 + TTL 60s 兜底**（多实例共用同一 Redis，删除即全局生效，TTL 仅兜底）。**不使用 Nacos 版本键**。
 - **分支**：`NOT_FOUND` → 40401（客户端不回复）；`system_prompt` 为空 → 40402（商品未配置提示词，**不调用大模型**，客户端不回复）；`DEADLINE_EXCEEDED` → 重试 1 次仍失败返回 50301；`UNAVAILABLE` → 50301。
 
 ### 2.4 第②段：组装提示词（本地）
@@ -162,14 +163,14 @@ AI 回复生成是本服务的核心业务流程，采用**三段式**执行链�
 按顺序完成四件事（见 §2.2 第 5-8 步）：
 
 1. **获取或创建对话**：`conversation_id = goodfish_item_id + buyer_id`（口径详见 [技术方案-云端-对话服务-存储设计](技术方案-云端-对话服务-存储设计.md)）。
-2. **获取对话历史**：最近 `conversation.max_history_messages`（默认 10）条；上下文全部由本服务维护，客户端不传历史。
+2. **获取对话历史**：最近 `conversation.max_history_messages`（默认 **20**）条；上下文全部由本服务维护，客户端不传历史。
 3. **意图识别**：关键词词表（`intent.keywords.price/tech/chitchat`）命中则记 intent，否则 `default`；**仅记日志统计（落 `ai_reply_log.intent`），不参与提示词拼接**；词表放配置中心，可热更新。
-4. **渲染统一系统提示词**：变量替换 + 三段场景提示词全部嵌入模板（详见 §2.7）。
+4. **渲染统一系统提示词**：变量替换（含 **`{{question}}` 回填本批买家消息**）+ 三段场景提示词全部嵌入模板（详见 §2.7）。
 
 ### 2.5 图片处理（第 9 步）
 
 - 图片已由客户端预先下载并上传至本服务本地磁盘（下载 → 转 PNG → `POST /api/ai/image` → 本地磁盘 → URL，链路详见 [技术方案-云端-对话服务-接口与幂等](技术方案-云端-对话服务-接口与幂等.md)）。
-- 本流程**只做校验**：遍历本批消息中的图片项（`{"type":"image","url":"<本服务图片URL>"}`），解析 URL 中的文件名 → 检查 `image.storage_dir` 下文件存在且未过期。
+- 本流程**只做校验**：对请求中的 `image_url`（多图时为数组）逐项解析 URL 中的文件名 → 检查 `image.storage_dir` 下文件存在且未过期。
 - 文件缺失 / 已被清理 → 该图降级为占位文本 `"[图片]"`，记 WARN，**不阻断流程**。
 - 构建 messages 时（第 12 步）：历史图片消息用已转存的 URL，**同一 URL 复用不再转存**；对大模型以 OpenAI 多模态格式 `{"type":"image_url","image_url":{"url":...}}` 传递。
 
@@ -186,7 +187,7 @@ AI 回复生成是本服务的核心业务流程，采用**三段式**执行链�
 
 **三个要点**：
 
-1. **本服务不缓存，每次对话直接调用**——缓存由模型服务在**提供方侧**承担：**启用/编辑时主动删除 + TTL 5min 兜底**。**不使用 Nacos 版本键**；契约已无 `known_version` / `config_version` 参数（`config_version` 仅保留在 `llm_model` 表作排障快照）。
+1. **本服务不缓存，每次对话直接调用**——缓存由模型服务在**提供方侧**承担，**介质为 Redis（共享缓存）**：**启用/编辑时主动删除 + TTL 5min 兜底**（删除即全局生效）。**不使用 Nacos 版本键**；契约已无 `known_version` / `config_version` 参数（`config_version` 仅保留在 `llm_model` 表作排障快照）。
 2. **明文 API Key 仅在内网 gRPC 通道传输**；`api_key` 一律**不进日志、不进异常栈**。
 3. **契约定义**见 [技术方案-云端-gRPC契约](技术方案-云端-gRPC契约.md)。模型服务由 `backend/llm-manage`（Go/Kratos，原生支持 gRPC）承载，需放开其 **gRPC 端口的注册**。
 
@@ -213,6 +214,8 @@ AI 回复生成是本服务的核心业务流程，采用**三段式**执行链�
 
 该结构落地为**商品服务的 `goodfish_item_prompt` 表**（与 `goodfish_item` 一对一），字段定义见 [《云端技术方案.md》](../云端技术方案.md)§7.2；存储/渲染/失效职责划分见 §1.2。
 
+> **本期范围**：商品编辑页只填**系统提示词 + 高级设置**（最大回复字数 / 温度 / 最大输出 token）；议价 / 技术 / 默认三个场景提示词字段**留空**，页面不提供输入（后续迭代补齐，见《需求-云端-商品管理》第六节）。渲染时留空字段按空串处理，不影响主链路。
+
 #### 2.7.2 提示词变量（构建时动态替换）
 
 只保留**有真实数据来源**的变量：`{{buyer_nickname}}`（请求体不含、本服务无买家资料表）、`{{bargain_count}}`（议价功能本期不做）、`{{history}}`（历史经 messages 数组注入，不内联到 system 提示词）均已删除。
@@ -223,6 +226,7 @@ AI 回复生成是本服务的核心业务流程，采用**三段式**执行链�
 | `{{item_desc}}` | 商品描述 |
 | `{{item_price}}` | 商品价格 |
 | `{{max_reply_length}}` | 最大回复字数 |
+| `{{question}}` | **本批买家消息**（回填进提示词末尾，见 §2.7.3） |
 
 #### 2.7.3 统一系统提示词模板
 
@@ -263,8 +267,14 @@ AI 回复生成是本服务的核心业务流程，采用**三段式**执行链�
 - 用户咨询售后≠用户要退款，正常解答即可
 - 如果用户的问题超过你的回答范围，比如发图片，可以说"等等，这个问题我需要看看"
 
+## 买家问题
+基于上述，回复买家。问题如下：
+{{question}}
+
 请直接输出回复内容，不要输出分析过程。
 ```
+
+> **买家提问回填**：`{{question}}` 由对话服务渲染为本批买家消息，位于 system 提示词末尾（「基于上述 回复买家：问题如下 {{question}}」）；因此**不再单列一条 user 文本消息**（见 §2.2 第 8/12 步）。历史轮次仍按 role 组装进 `messages`。
 
 #### 2.7.4 提示词复制功能
 

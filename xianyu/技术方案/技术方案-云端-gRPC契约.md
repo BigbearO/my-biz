@@ -151,15 +151,13 @@ message UpsertAccountRequest {
   string goodfish_id       = 1;
   string goodfish_nickname = 2;
   string remark            = 3;
-  bool   is_valid          = 4;
 }
 message AccountInfo {
   int64  id = 1;
   string goodfish_id = 2;
   string goodfish_nickname = 3;
   string remark = 4;
-  bool   is_valid = 5;
-  string last_active_at = 6;
+  string last_active_at = 5;
 }
 message GetAccountRequest { int64 id = 1; }
 message GetAccountByGoodfishIdRequest { string goodfish_id = 1; }
@@ -212,6 +210,7 @@ message GetConversationStatsResponse { int64 conversation_count = 1; int64 messa
 | `UNAUTHENTICATED` | 40101 | **删 token + 跳登录页**（A27，见[技术方案-云端-鉴权与授权](技术方案-云端-鉴权与授权.md)） |
 | `PERMISSION_DENIED` | 40301 | **停止监听 + 冻结应用**（A42，见[技术方案-云端-鉴权与授权](技术方案-云端-鉴权与授权.md)） |
 | `NOT_FOUND`（商品服务） | 40401 | 不回复（A30） |
+| `NOT_FOUND`（客户端元数据服务，账号不存在） | 40403 | 商品同步整批拒绝、事务回滚，客户端提示账号未上报（见 [技术方案-云端-商品服务](技术方案-云端-商品服务.md) §4.2） |
 | `NOT_FOUND`（模型服务，无启用模型）★ | 50002 | 不回复、不重试，记日志（云端配置错误，管理端需启用模型） |
 | `INVALID_ARGUMENT` | 40001 | 不回复，记日志（属客户端 Bug） |
 | `DEADLINE_EXCEEDED` | 50301 | 重试 3 次，仍失败进入"仅监听不回复"（A21） |
