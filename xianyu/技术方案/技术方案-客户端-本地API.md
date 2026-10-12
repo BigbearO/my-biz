@@ -7,7 +7,7 @@
 
 ### 1.1 功能定位
 
-Python 本地服务对 Electron 渲染层暴露的**本地 HTTP API**（FastAPI 路由，`api/` 目录）。渲染层的账号管理页、日志页、设置页全部经这组接口读写本地服务。
+Python 本地服务对 Electron 渲染层暴露的**本地 HTTP API**（FastAPI 路由，`api/` 目录）。渲染层的账号管理页、设置页全部经这组接口读写本地服务（★日志页已取消，无对应接口）。
 
 **状态获取一律轮询**：渲染层按需轮询 `/api/system/status`（监听数 / 版本号 / 云端连通状态 / 登录态）、`/api/sync/status/{account_id}`（同步进度与结果）、`/api/account/list`（账号状态）、`/api/logs/list`（日志）。**不设 SSE/推送通道**（原 `/api/events` 事件流与 `/api/system/health` 健康检查已裁定移除）。
 
@@ -17,7 +17,7 @@ Python 本地服务对 Electron 渲染层暴露的**本地 HTTP API**（FastAPI 
 |---|---|
 | 本地 HTTP 路由（账号/同步/系统/日志四组）与参数校验 | 业务逻辑实现（由 `services/` 层完成，见同目录各功能点文档） |
 | 请求鉴权（所有接口校验 `X-Local-Token`） | 云端 API（云端调用走 cloud_client，见 [技术方案-客户端-云端调用与容错](技术方案-客户端-云端调用与容错.md)） |
-| 登录态 token 的落库（config 表）与读取 | 云端管理后台的接口（WebView 内嵌，不属于本地 API） |
+| 登录态 token 的落库（config 表）与读取——**Python 是 token 的唯一持有者**（Electron 登录成功后经 `/api/system/login` 交给 Python 保存，之后统一经 Python 取） | 云端管理后台的接口（WebView 内嵌，不属于本地 API）；Electron 侧的登录页与登录请求（登录实现参考 plus-ui，见 [需求-客户端-应用框架与启动登录](../需求/需求-客户端-应用框架与启动登录.md)） |
 | 云端连通状态 / 登录态的状态汇聚（供 `/api/system/status` 返回） | 端口协商与进程守护（见 [技术方案-客户端-总体架构](技术方案-客户端-总体架构.md)、[技术方案-客户端-本地服务进程管理](技术方案-客户端-本地服务进程管理.md)） |
 
 ### 1.3 与其他模块的关系
@@ -27,7 +27,7 @@ Python 本地服务对 Electron 渲染层暴露的**本地 HTTP API**（FastAPI 
 | Electron 渲染层 | 上游 | HTTP fetch 轮询（无推送通道） |
 | Electron 主进程 | 上游 | 启动握手获知端口 + 进程句柄/TCP 探活；退出前 `/api/account/stop-all` |
 | 账号服务 / 监听调度 / 商品同步 / 日志 | 下游 | 路由层转调对应 service |
-| 云端客户端 | 下游 | 添加账号时同步上报云端；`/api/system/login` 获取管理后台 token |
+| 云端客户端 | 下游 | 添加账号时同步上报云端；**统一从 config 表读 token 调云端**（token 由 Electron 登录后经 `/api/system/login` 交入） |
 
 ## 二、逻辑实现（分）
 
@@ -48,7 +48,7 @@ Python 本地服务对 Electron 渲染层暴露的**本地 HTTP API**（FastAPI 
 | 云端连通状态、登录态（401 过期） | `GET /api/system/status` | 页面驻留期间定时轮询（如 5s） |
 | 账号列表 / 监听状态 | `GET /api/account/list` | 进入账号管理页与操作后刷新 |
 | 同步进度与结果 | `GET /api/sync/status/{account_id}` | 同步触发后轮询至完成 |
-| 日志 | `GET /api/logs/list` | 进入日志页定时刷新 |
+（★日志无页面、无轮询接口——日志只落本地文件，见 [需求-客户端-日志](../../需求/需求-客户端-日志.md)）
 
 ## 四、接口设计
 
@@ -78,17 +78,14 @@ Python 本地服务对 Electron 渲染层暴露的**本地 HTTP API**（FastAPI 
 | 接口 | 方法 | 说明 |
 |------|------|------|
 | /api/system/status | GET | 监听数、版本号、**云端连通状态**、登录态（401 过期标记） |
-| /api/system/login | POST | 登录后台（token 落 config 表） |
-| /api/system/logout | POST | 退出登录 |
+| /api/system/login | POST | **接收 Electron 传来的登录 token 与 clientid 并写入 config 表**（Electron 登录成功后调用；Python 是二者唯一持有者） |
+| /api/system/token | GET | **返回当前登录 token 与 clientid**（供 Electron 使用，如安装包下载请求头；本地 `X-Local-Token` 保护） |
+| /api/system/logout | POST | 退出登录（清空 config 表 token） |
 | /api/system/check-update | GET | 检查更新 |
 
-**日志**
+~~**日志**~~ ★已取消
 
-| 接口 | 方法 | 说明 |
-|------|------|------|
-| /api/logs/list | GET | 日志列表（分页、按级别筛选） |
-| /api/logs/clear | POST | 清空日志 |
-| /api/logs/export | GET | 导出日志 |
+> 日志**只落本地文件、不提供管理页面**（见 [需求-客户端-日志](../../需求/需求-客户端-日志.md)），因此**不再提供 `/api/logs/list` / `clear` / `export` 三个接口**；需要排查时直接打开 `%APPDATA%/goodfish/logs/` 下的日志文件。
 
 > **已裁定移除**：`/api/system/health`（免 token 健康检查）与 `/api/events`（SSE 事件流）不再提供——探活改用启动端口握手 + 进程句柄/TCP 探测，状态/进度/登录态一律由渲染层轮询获取。
 
@@ -108,6 +105,7 @@ Python 本地服务对 Electron 渲染层暴露的**本地 HTTP API**（FastAPI 
 
 | 配置键 | 默认值 | 说明 |
 |---|---|---|
-| auth_token | 空 | 管理后台登录 token，`/api/system/login` 成功后落 config 表 |
+| auth_token | 空 | 管理后台登录 token：Electron 登录成功后经 `/api/system/login` 写入；**Python 为唯一持有者**，其他方（含 Electron）经 `/api/system/token` 获取 |
+| clientid | 空 | 客户端 ID：与 token 同源经 `/api/system/login` 写入；★必须与 token **一起带出**——网关会校验 `clientid` 请求头与 token 是否匹配，缺失或不匹配将被拒绝 |
 | cloud_backend_url | 打包写死 | 云端后台地址（`/api/system/status` 据此报云端连通状态） |
 | X-Local-Token | 随机生成 | 本地 API 鉴权 token，Electron 启动时生成、经环境变量传给 Python（不入配置表） |

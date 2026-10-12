@@ -81,8 +81,7 @@ message PromptConfig {
   string tech_prompt      = 3;   // 技术场景
   string default_prompt   = 4;   // 默认场景
   int32  max_reply_length = 5;   // 默认 50
-  double temperature      = 6;   // 默认 0.7
-  int32  max_tokens       = 7;   // 默认 2048
+  // 注：temperature / max_tokens 属模型配置，取自 LlmService.GetEnabledModel，不在此
 }
 
 message BatchGetItemRuntimeConfigRequest {
