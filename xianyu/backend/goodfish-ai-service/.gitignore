@@ -1,0 +1,8 @@
+.env
+.env.*
+!.env.example
+.nacos/
+.venv/
+__pycache__/
+.pytest_cache/
+config/application.yaml
