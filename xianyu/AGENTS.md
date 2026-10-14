@@ -7,14 +7,11 @@
 
 
 这是最高指令
-1 所有后端服务代码，客户端代码，都在当前目录中实现，backend和client目录，
-
-2管理页面ui在E:\project\ruoyi\plus-ui这儿实现
-
-3 本项目基于E:\project\ruoyi\RuoYi-Cloud-Plus 这个作为登录注册和权限管理
-4 你做决策之前先做解释，再递交审核
-
-
+1. 所有后端服务代码，客户端代码，都在当前目录中实现，backend和client目录，
+2. 管理页面ui在E:\project\ruoyi\plus-ui这儿实现
+3. 本项目基于E:\project\ruoyi\RuoYi-Cloud-Plus 这个作为登录注册和权限管理
+4. 你做决策之前先做解释，再递交审核
+5. 排查问题时，先解释，再给方案别一上来就改
 
 
 

@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "xxs-nacos-grpc"
+version = "0.1.0"
+description = "Nacos-backed gRPC client channel management for Python services"
+requires-python = ">=3.10"
+dependencies = [
+    "grpcio>=1.63,<2.0",
+    "pydantic>=2.9,<3.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8,<9",
+    "pytest-asyncio>=0.26,<1",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+xxs_nacos_grpc = ["py.typed"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"

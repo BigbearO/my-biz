@@ -1,5 +1,6 @@
 import asyncio
 import ipaddress
+import inspect
 import logging
 import socket
 from typing import Any, Awaitable, Callable, Protocol
@@ -9,9 +10,11 @@ from v2.nacos import (
     ConfigParam,
     DeregisterInstanceParam,
     GRPCConfig,
+    ListInstanceParam,
     NacosConfigService,
     NacosNamingService,
     RegisterInstanceParam,
+    SubscribeServiceParam,
 )
 
 from ..bootstrap import BootstrapSettings
@@ -33,6 +36,7 @@ from ..errors import ConfigNotFoundError, NacosConnectionError, RegisterIpError
 logger = logging.getLogger(__name__)
 
 ConfigListener = Callable[[str, str, str, str], Awaitable[None]]
+InstanceListener = Callable[[list[Any]], Awaitable[None] | Any]
 
 
 class ClientFactory(Protocol):
@@ -130,6 +134,44 @@ class NacosManager:
             self._bootstrap.nacos_data_id,
             self._bootstrap.nacos_group,
             safe_listener,
+        )
+
+    async def subscribe_instances(
+        self,
+        service_name: str,
+        listener: InstanceListener,
+    ) -> None:
+        if self._naming_client is None:
+            raise RuntimeError("Nacos naming client is not started")
+
+        async def safe_listener(instances: list[Any]) -> None:
+            try:
+                result = listener(instances)
+                if inspect.isawaitable(result):
+                    await result
+            except Exception:
+                logger.exception(
+                    "Nacos instance update was rejected: service=%s",
+                    service_name,
+                )
+
+        await self._naming_client.subscribe(
+            request=SubscribeServiceParam(
+                service_name=service_name,
+                group_name=self._bootstrap.nacos_group,
+                subscribe_callback=safe_listener,
+            )
+        )
+
+    async def list_healthy_instances(self, service_name: str) -> list[Any]:
+        if self._naming_client is None:
+            raise RuntimeError("Nacos naming client is not started")
+        return await self._naming_client.list_instances(
+            request=ListInstanceParam(
+                service_name=service_name,
+                group_name=self._bootstrap.nacos_group,
+                healthy_only=True,
+            )
         )
 
     async def register_http_instance(self) -> None:

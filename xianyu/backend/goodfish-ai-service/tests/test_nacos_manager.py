@@ -23,6 +23,8 @@ class FakeNamingClient:
     def __init__(self) -> None:
         self.registered: list[Any] = []
         self.deregistered: list[Any] = []
+        self.subscriptions: list[Any] = []
+        self.instance_queries: list[Any] = []
         self.shutdown_count = 0
 
     async def register_instance(self, request: Any) -> None:
@@ -32,6 +34,13 @@ class FakeNamingClient:
         if request.port == 0:
             raise RuntimeError("deregister failed")
         self.deregistered.append(request)
+
+    async def subscribe(self, request: Any) -> None:
+        self.subscriptions.append(request)
+
+    async def list_instances(self, request: Any) -> list[Any]:
+        self.instance_queries.append(request)
+        return [SimpleNamespace(ip="10.0.0.1", port=9000, enabled=True, healthy=True, weight=1)]
 
     async def shutdown(self) -> None:
         self.shutdown_count += 1
@@ -104,6 +113,35 @@ async def test_manager_loads_config_watches_and_registers() -> None:
     await manager.shutdown()
     assert naming_client.shutdown_count == 1
     assert config_client.shutdown_count == 1
+
+
+@pytest.mark.asyncio
+async def test_manager_subscribes_and_lists_healthy_grpc_instances() -> None:
+    settings = create_settings(nacos_data_id="")
+    naming_client = FakeNamingClient()
+
+    async def client_factory(client_config: Any, include_config: bool) -> tuple[Any, Any | None]:
+        return naming_client, None
+
+    manager = NacosManager(settings, service_ip="192.168.1.10", client_factory=client_factory)
+    await manager.start()
+    listeners: list[list[Any]] = []
+
+    await manager.subscribe_instances(
+        "goodfish-llm-service-grpc",
+        lambda instances: listeners.append(list(instances)),
+    )
+    instances = await manager.list_healthy_instances("goodfish-llm-service-grpc")
+
+    subscription = naming_client.subscriptions[0]
+    query = naming_client.instance_queries[0]
+    assert subscription.service_name == "goodfish-llm-service-grpc"
+    assert subscription.group_name == settings.nacos_group
+    await subscription.subscribe_callback(instances)
+    assert len(listeners[0]) == 1
+    assert query.service_name == "goodfish-llm-service-grpc"
+    assert query.group_name == settings.nacos_group
+    assert query.healthy_only is True
 
 
 @pytest.mark.asyncio

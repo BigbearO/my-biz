@@ -1,4 +1,5 @@
 from pathlib import Path
+from collections.abc import Callable
 from typing import Any
 
 import yaml
@@ -46,9 +47,16 @@ class RuntimeConfigStore:
     def config(self) -> dict[str, Any]:
         return dict(self._config)
 
-    def apply_remote(self, content: str, config_format: str) -> dict[str, Any]:
+    def apply_remote(
+        self,
+        content: str,
+        config_format: str,
+        validate: Callable[[dict[str, Any]], None] | None = None,
+    ) -> dict[str, Any]:
         remote_config = expand_placeholders(parse_config(content, config_format))
         next_config = deep_merge(self._local_config, remote_config)
+        if validate is not None:
+            validate(next_config)
         self._config = next_config
         return self.config
 

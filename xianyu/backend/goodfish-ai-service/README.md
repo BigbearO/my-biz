@@ -38,6 +38,40 @@ Health check:
 Invoke-RestMethod http://127.0.0.1:8000/health
 ```
 
+## gRPC client discovery
+
+For the full installation, discovery configuration, proto generation, and startup guide, see [docs/grpc-nacos.md](docs/grpc-nacos.md).
+
+The service uses the reusable `xxs-nacos-grpc` package for downstream gRPC discovery. Configure each downstream by alias and Nacos service name:
+
+```yaml
+grpc:
+  discovery:
+    services:
+      llm-model: goodfish-llm-service-grpc
+```
+
+The provider must register its gRPC port under exactly that Nacos service name in the same namespace and group. This Python service registers only its HTTP instance; it does not register a `-grpc` service in this phase.
+
+Incoming `X-User-Id`, `X-User-Info`, and `Authorization` headers are propagated to unary gRPC calls. `X-Client-Id` is set from `grpc.client.client_id`.
+
+Generate Python stubs from the existing LLM model proto manually:
+
+```powershell
+.\scripts\generate-llm-model-grpc.ps1
+```
+
+The script creates `admin\service\v1\llm_model_pb2.py` and `admin\service\v1\llm_model_pb2_grpc.py`. After generation, obtain the client stub with:
+
+```python
+from admin.service.v1 import llm_model_pb2_grpc
+
+stub = request.app.state.grpc_registry.stub(
+    "llm-model",
+    llm_model_pb2_grpc.LlmModelStub,
+)
+```
+
 ## Tests
 
 Unit tests use fake Nacos clients and do not access the remote environment:

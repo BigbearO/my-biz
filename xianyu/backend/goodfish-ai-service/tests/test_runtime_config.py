@@ -57,6 +57,26 @@ def test_store_keeps_previous_config_when_remote_content_is_invalid() -> None:
     assert store.config == {"service": {"name": "local"}}
 
 
+def test_store_keeps_previous_config_when_validation_fails() -> None:
+    store = RuntimeConfigStore({"service": {"name": "local"}})
+
+    def reject_config(config: dict) -> None:
+        raise ValueError(config["grpc"]["channel"]["lb_policy"])
+
+    with pytest.raises(ValueError):
+        store.apply_remote(
+            """
+grpc:
+  channel:
+    lb_policy: random
+""",
+            "yaml",
+            validate=reject_config,
+        )
+
+    assert store.config == {"service": {"name": "local"}}
+
+
 def test_properties_parser_builds_nested_mapping() -> None:
     config = parse_config(
         """

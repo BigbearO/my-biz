@@ -1,2 +1,19 @@
 service:
   greeting: goodfish ai service
+
+grpc:
+  discovery:
+    services:
+      llm-model: goodfish-llm-service-grpc
+    debounce_ms: 1500
+    close_grace_seconds: 30
+    reconcile_interval_seconds: 60
+  channel:
+    lb_policy: round_robin
+    keepalive_time_ms: 30000
+    keepalive_timeout_ms: 10000
+    keepalive_permit_without_calls: 1
+    max_message_mb: 16
+  client:
+    client_id: goodfish-ai-service
+    default_timeout_ms: 3000

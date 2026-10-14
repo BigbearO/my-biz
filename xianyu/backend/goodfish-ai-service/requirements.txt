@@ -3,3 +3,6 @@ uvicorn[standard]>=0.34,<1.0
 nacos-sdk-python==3.2.0
 pydantic-settings>=2.9,<3.0
 PyYAML>=6.0.2,<7
+-e ../python/xxs-nacos-grpc
+grpcio>=1.63,<2.0
+googleapis-common-protos>=1.63,<2.0
