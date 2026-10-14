@@ -57,7 +57,7 @@ func initApp(ctx *bootstrap.Context) (*kratos.App, func(), error) {
 	// 加密器（从环境变量读取密钥，默认用 32 字节密钥）
 	encryptKey := os.Getenv("LLM_ENCRYPT_KEY")
 	if encryptKey == "" {
-		encryptKey = "llm-manage-default-encrypt-key-32!" // 32 字节
+		encryptKey = "llllmmmm-llllmmmm-llllmmmm-mmmm-" // 32 字节
 	}
 	encryptor, err := utils.NewEncryptor(encryptKey)
 	if err != nil {

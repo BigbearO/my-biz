@@ -11,8 +11,14 @@ from xxs_nacos_grpc import (
 )
 
 from .api.health import health
+from .api.llm_models import get_llm_model, list_llm_models
 from .bootstrap import BootstrapSettings
-from .constants import SERVICE_VERSION, UVICORN_WORKERS_SINGLE
+from .constants import (
+    API_LLM_MODEL_DETAIL_ROUTE,
+    API_LLM_MODELS_ROUTE,
+    SERVICE_VERSION,
+    UVICORN_WORKERS_SINGLE,
+)
 from .errors import ConfigEmptyError
 from .nacos.manager import NacosManager, resolve_register_ip
 from .runtime_config import RuntimeConfigStore, load_local_config
@@ -93,6 +99,8 @@ def create_app(bootstrap: BootstrapSettings | None = None) -> FastAPI:
     app = FastAPI(lifespan=lifespan)
     app.add_middleware(UserContextMiddleware)
     app.add_api_route("/health", health, methods=["GET"])
+    app.add_api_route(API_LLM_MODELS_ROUTE, list_llm_models, methods=["GET"])
+    app.add_api_route(API_LLM_MODEL_DETAIL_ROUTE, get_llm_model, methods=["GET"])
     return app
 
 
