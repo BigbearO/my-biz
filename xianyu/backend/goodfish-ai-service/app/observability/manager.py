@@ -119,7 +119,7 @@ class TelemetryManager:
             BatchSpanProcessor(
                 self._create_span_exporter(),
                 schedule_delay_millis=self._settings.traces.schedule_delay_millis,
-                max_export_timeout_millis=self._settings.traces.export_timeout_millis,
+                export_timeout_millis=self._settings.traces.export_timeout_millis,
             )
         )
         trace.set_tracer_provider(provider)
@@ -131,7 +131,7 @@ class TelemetryManager:
             BatchLogRecordProcessor(
                 self._create_log_exporter(),
                 schedule_delay_millis=self._settings.logs.schedule_delay_millis,
-                max_export_timeout_millis=self._settings.logs.export_timeout_millis,
+                export_timeout_millis=self._settings.logs.export_timeout_millis,
             )
         )
         set_logger_provider(provider)
