@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/tx7do/kratos-bootstrap/bootstrap"
+	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -24,6 +25,8 @@ func NewDatabaseClient(ctx *bootstrap.Context) (*gorm.DB, func(), error) {
 	switch dbCfg.Driver {
 	case "postgres", "postgresql":
 		dialector = postgres.Open(dbCfg.Source)
+	case "mysql":
+		dialector = mysql.Open(dbCfg.Source)
 	default:
 		return nil, func() {}, fmt.Errorf("unsupported database driver: %s", dbCfg.Driver)
 	}
