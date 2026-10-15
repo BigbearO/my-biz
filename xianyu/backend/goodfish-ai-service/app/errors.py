@@ -16,3 +16,7 @@ class NacosConnectionError(RuntimeError):
 
 class RegisterIpError(ValueError):
     """Raised when a usable service registration IP cannot be resolved."""
+
+
+class OpenTelemetryConfigError(ValueError):
+    """Raised when OpenTelemetry configuration is invalid."""

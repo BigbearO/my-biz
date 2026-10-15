@@ -10,6 +10,7 @@ os.environ.setdefault("NACOS_DATA_ID", "")
 
 from app.constants import SERVICE_VERSION
 from app.main import create_app
+from app.observability import OpenTelemetrySettings
 
 
 class FakeLifespanManager:
@@ -44,6 +45,23 @@ class FakeLifespanManager:
 
     async def shutdown(self) -> None:
         self.events.append("shutdown")
+
+
+class FakeTelemetryManager:
+    def __init__(self) -> None:
+        self.events: list[str] = []
+        self.settings = OpenTelemetrySettings.from_mapping({})
+        self.environment = ""
+        self.default_service_name = ""
+
+    def start(self) -> None:
+        self.events.append("telemetry-start")
+
+    def grpc_client_interceptors(self) -> list[object]:
+        return [object()]
+
+    async def close(self) -> None:
+        self.events.append("telemetry-close")
 
 
 @pytest.mark.asyncio
@@ -104,3 +122,59 @@ async def test_lifespan_initializes_grpc_before_http_registration(
             "register",
         ]
         assert app.state.grpc_registry.snapshot() == {"llm-model": ()}
+
+
+@pytest.mark.asyncio
+async def test_lifespan_instruments_fastapi_and_closes_telemetry_last(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    fake_manager = FakeLifespanManager()
+    fake_telemetry = FakeTelemetryManager()
+    instrumented_apps: list[object] = []
+
+    def create_manager(bootstrap: Any, service_ip: str) -> FakeLifespanManager:
+        return fake_manager
+
+    def create_telemetry(
+        settings: Any,
+        environment: str,
+        default_service_name: str,
+    ) -> FakeTelemetryManager:
+        fake_telemetry.environment = environment
+        fake_telemetry.default_service_name = default_service_name
+        return fake_telemetry
+
+    def instrument_app(app: Any) -> None:
+        instrumented_apps.append(app)
+
+    monkeypatch.setattr(
+        "app.main.load_local_config",
+        lambda path: {
+            "grpc": {
+                "discovery": {
+                    "services": {"llm-model": "goodfish-llm-service-grpc"},
+                    "reconcile_interval_seconds": 0,
+                }
+            }
+        },
+    )
+    monkeypatch.setattr("app.main.NacosManager", create_manager)
+    monkeypatch.setattr("app.main.resolve_register_ip", lambda override: "192.168.1.10")
+    monkeypatch.setattr("app.main.TelemetryManager", create_telemetry)
+    monkeypatch.setattr("app.main.FastAPIInstrumentor.instrument_app", instrument_app)
+
+    app = create_app()
+
+    async with app.router.lifespan_context(app):
+        assert instrumented_apps == [app]
+        assert app.state.telemetry_manager is fake_telemetry
+        assert fake_telemetry.events == ["telemetry-start"]
+        assert len(app.state.grpc_registry._interceptors) == 2
+        assert fake_manager.events == [
+            "start",
+            "subscribe:goodfish-llm-service-grpc",
+            "register",
+        ]
+
+    assert fake_telemetry.events == ["telemetry-start", "telemetry-close"]
+    assert fake_manager.events[-1] == "shutdown"

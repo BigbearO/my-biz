@@ -1,8 +1,9 @@
 import logging
 from contextlib import asynccontextmanager
-from typing import AsyncIterator
+from typing import Any, AsyncIterator
 
 from fastapi import FastAPI
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from xxs_nacos_grpc import (
     GrpcChannelRegistry,
     GrpcSettings,
@@ -21,6 +22,7 @@ from .constants import (
 )
 from .errors import ConfigEmptyError
 from .nacos.manager import NacosManager, resolve_register_ip
+from .observability import OpenTelemetrySettings, TelemetryManager
 from .runtime_config import RuntimeConfigStore, load_local_config
 
 logger = logging.getLogger(__name__)
@@ -28,6 +30,11 @@ logger = logging.getLogger(__name__)
 
 def load_bootstrap() -> BootstrapSettings:
     return BootstrapSettings()
+
+
+def validate_runtime_config(config: dict[str, Any]) -> None:
+    GrpcSettings.from_mapping(config)
+    OpenTelemetrySettings.from_mapping(config)
 
 
 def create_app(bootstrap: BootstrapSettings | None = None) -> FastAPI:
@@ -38,7 +45,9 @@ def create_app(bootstrap: BootstrapSettings | None = None) -> FastAPI:
         local_config = load_local_config(effective_bootstrap.local_config_path)
         config_store = RuntimeConfigStore(local_config)
         grpc_settings = GrpcSettings.from_mapping(config_store.config)
+        telemetry_settings = OpenTelemetrySettings.from_mapping(config_store.config)
         grpc_registry: GrpcChannelRegistry | None = None
+        telemetry: TelemetryManager | None = None
         nacos = NacosManager(
             effective_bootstrap,
             service_ip=resolve_register_ip(effective_bootstrap.nacos_register_ip),
@@ -49,7 +58,7 @@ def create_app(bootstrap: BootstrapSettings | None = None) -> FastAPI:
                 config_store.apply_remote(
                     await nacos.get_config(),
                     effective_bootstrap.nacos_config_format,
-                    validate=GrpcSettings.from_mapping,
+                    validate=validate_runtime_config,
                 )
 
                 async def on_config_changed(
@@ -61,29 +70,48 @@ def create_app(bootstrap: BootstrapSettings | None = None) -> FastAPI:
                     next_config = config_store.apply_remote(
                         content,
                         effective_bootstrap.nacos_config_format,
-                        validate=GrpcSettings.from_mapping,
+                        validate=validate_runtime_config,
                     )
                     next_grpc_settings = GrpcSettings.from_mapping(next_config)
+                    next_telemetry_settings = OpenTelemetrySettings.from_mapping(
+                        next_config
+                    )
+                    if next_telemetry_settings != telemetry_settings:
+                        logger.warning(
+                            "OpenTelemetry configuration changed; restart the service to apply it"
+                        )
                     await grpc_registry.reload(next_grpc_settings)
 
                 grpc_settings = GrpcSettings.from_mapping(config_store.config)
+                telemetry_settings = OpenTelemetrySettings.from_mapping(
+                    config_store.config
+                )
             elif not config_store.config:
                 raise ConfigEmptyError(
                     "No effective configuration: local config is empty and NACOS_DATA_ID is empty"
                 )
 
+            telemetry = TelemetryManager(
+                telemetry_settings,
+                environment=effective_bootstrap.app_env,
+                default_service_name=effective_bootstrap.nacos_service_name,
+            )
+            telemetry.start()
+            grpc_interceptors = telemetry.grpc_client_interceptors()
+            grpc_interceptors.append(
+                UserContextClientInterceptor(grpc_settings.client.client_id),
+            )
             grpc_registry = GrpcChannelRegistry(
                 grpc_settings,
                 nacos,
-                interceptors=[
-                    UserContextClientInterceptor(grpc_settings.client.client_id),
-                ],
+                interceptors=grpc_interceptors,
             )
             await grpc_registry.start()
             await nacos.register_http_instance()
             app.state.bootstrap = effective_bootstrap
             app.state.runtime_config_store = config_store
             app.state.grpc_registry = grpc_registry
+            app.state.telemetry_manager = telemetry
             app.state.service_version = SERVICE_VERSION
             if nacos.config_enabled:
                 await nacos.watch_config(on_config_changed)
@@ -94,10 +122,13 @@ def create_app(bootstrap: BootstrapSettings | None = None) -> FastAPI:
             if grpc_registry is not None:
                 await grpc_registry.close()
             await nacos.shutdown()
+            if telemetry is not None:
+                await telemetry.close()
             logger.info("Service shutdown completed")
 
     app = FastAPI(lifespan=lifespan)
     app.add_middleware(UserContextMiddleware)
+    FastAPIInstrumentor.instrument_app(app)
     app.add_api_route("/health", health, methods=["GET"])
     app.add_api_route(API_LLM_MODELS_ROUTE, list_llm_models, methods=["GET"])
     app.add_api_route(API_LLM_MODEL_DETAIL_ROUTE, get_llm_model, methods=["GET"])

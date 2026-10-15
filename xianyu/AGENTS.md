@@ -12,6 +12,7 @@
 3. 本项目基于E:\project\ruoyi\RuoYi-Cloud-Plus 这个作为登录注册和权限管理
 4. 你做决策之前先做解释，再递交审核
 5. 排查问题时，先解释，再给方案别一上来就改
+6. github相关搜索加上前缀https://v6.gh-proxy.org/
 
 
 
