@@ -1,0 +1,32 @@
+// proto/llm/v1/llm.proto
+syntax = "proto3";
+package llm.v1;
+
+service LlmService {
+  // 获取当前启用的模型完整配置（含解密后 API Key，仅内网）
+  // 无启用模型时返回 NOT_FOUND → 对话服务映射为 50002（客户端不回复）
+  rpc GetEnabledModel(GetEnabledModelRequest) returns (EnabledModel);
+  // Token 用量回传（可选，用于成本核算）
+  rpc ReportUsage(ReportUsageRequest) returns (ReportUsageResponse);
+}
+
+message GetEnabledModelRequest {}
+
+message EnabledModel {
+  int64  id            = 1;
+  string provider_name = 2;
+  string base_url      = 3;
+  string api_key       = 4;   // 明文，仅内网传输，不入日志
+  string model_name    = 5;   // 如 gpt-4o / qwen-max
+  double temperature   = 6;
+  int32  max_tokens    = 7;
+}
+
+message ReportUsageRequest {
+  string item_id = 1;
+  string model_name = 2;
+  int32 prompt_tokens = 3;
+  int32 completion_tokens = 4;
+}
+
+message ReportUsageResponse { bool success = 1; }

@@ -1,6 +1,11 @@
 package constants
 
-import "errors"
+import (
+	"errors"
+	"time"
+
+	kratosErrors "github.com/go-kratos/kratos/v2/errors"
+)
 
 // ==================== 状态常量 ====================
 
@@ -44,6 +49,10 @@ var (
 	LoggerNameLlmProviderManager = "llm_provider/manager/admin-service"
 	// LoggerNameLlmModelManager 模型 manager 日志名
 	LoggerNameLlmModelManager = "llm_model/manager/admin-service"
+	// LoggerNameEnabledModelCacheManager 启用模型缓存 manager 日志名
+	LoggerNameEnabledModelCacheManager = "llm_enabled_model_cache/manager/admin-service"
+	// LoggerNameLlmService 模型服务间服务日志名（服务间契约，区别于 admin 侧）
+	LoggerNameLlmService = "llm_model/service/grpc-service"
 )
 
 // ==================== 错误变量 ====================
@@ -75,6 +84,17 @@ var (
 	ErrModelEnabled = errors.New("启用中的模型无法删除，请先停用")
 	// ErrEnableModel 启用模型失败
 	ErrEnableModel = errors.New("启用模型失败")
+	// ErrNoEnabledModel 暂无启用的模型（gRPC NOT_FOUND，对话服务映射 50002）
+	ErrNoEnabledModel = kratosErrors.NotFound("NO_ENABLED_MODEL", "暂无启用的模型")
+)
+
+// ==================== 启用模型缓存（Redis 提供方缓存） ====================
+
+const (
+	// EnabledModelCacheKey 启用模型缓存 key（全局唯一启用模型，单 key）
+	EnabledModelCacheKey = "goodfish:llm:enabled_model"
+	// EnabledModelCacheTTL 启用模型缓存 TTL（5min 兜底，变更时主动删除）
+	EnabledModelCacheTTL = 5 * time.Minute
 )
 
 // ==================== 错误消息模板（需要格式化的） ====================

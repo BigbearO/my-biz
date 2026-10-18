@@ -178,7 +178,7 @@ AI 回复生成是本服务的核心业务流程，采用**三段式**执行链�
 
 获取启用模型后调用大模型（第 10-13 步）；`temperature` / `max_tokens` **全部取自启用模型（模型表）**，商品提示词不参与模型参数设定。
 
-**与模型服务的 gRPC 交互**：调用地址由 Nacos 服务发现给出——订阅 `goodfish-llm-service-grpc` 的健康实例，装配为 `ipv4:` 多地址 target，由 gRPC 内置 `round_robin` 完成负载均衡（见 [技术方案-云端-gRPC发现库xxs-nacos-grpc](技术方案-云端-gRPC发现库xxs-nacos-grpc.md)）。
+**与模型服务的 gRPC 交互**：调用地址由 Nacos 服务发现给出——订阅 `goodfish-llm-service-grpc` 的健康实例，装配为 `ipv4:` 多地址 target，由 gRPC 内置 `round_robin` 完成负载均衡（见 [技术方案-云端-gRPC发现库xxs-nacos-grpc-已实现](技术方案-云端-gRPC发现库xxs-nacos-grpc-已实现.md)）。
 
 | 调用场景 | gRPC 方法 | 说明 |
 |---|---|---|
@@ -189,7 +189,7 @@ AI 回复生成是本服务的核心业务流程，采用**三段式**执行链�
 
 1. **本服务不缓存，每次对话直接调用**——缓存由模型服务在**提供方侧**承担，**介质为 Redis（共享缓存）**：**启用/编辑时主动删除 + TTL 5min 兜底**（删除即全局生效）。**不使用 Nacos 版本键**；契约已无 `known_version` / `config_version` 参数（`config_version` 仅保留在 `llm_model` 表作排障快照）。
 2. **明文 API Key 仅在内网 gRPC 通道传输**；`api_key` 一律**不进日志、不进异常栈**。
-3. **契约定义**见 [技术方案-云端-gRPC契约](技术方案-云端-gRPC契约.md)。模型服务由 `backend/llm-manage`（Go/Kratos，原生支持 gRPC）承载，需放开其 **gRPC 端口的注册**。
+3. **契约定义**见 [技术方案-云端-gRPC契约-已实现](技术方案-云端-gRPC契约-已实现.md)。模型服务由 `backend/llm-manage`（Go/Kratos，原生支持 gRPC）承载，需放开其 **gRPC 端口的注册**。
 
 > 服务间获取启用模型**不提供 HTTP 内部接口**，统一走 gRPC。商品服务与模型服务共用同一套发现实现 `GrpcChannelRegistry`：按 `downstream.<alias>.service_name` 分别为两个 `-grpc` 服务名装配 channel，**不按 `metadata.protocol` 过滤**。
 

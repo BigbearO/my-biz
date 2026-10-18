@@ -1,0 +1,14 @@
+node_modules/
+dist/
+python/.venv/
+python/build/
+python/dist/
+.npm-cache/
+.electron-cache/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.log
+.env
+.env.*
+

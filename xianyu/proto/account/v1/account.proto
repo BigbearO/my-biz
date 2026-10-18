@@ -1,0 +1,37 @@
+// proto/account/v1/account.proto
+syntax = "proto3";
+package account.v1;
+
+service AccountService {
+  rpc UpsertAccount(UpsertAccountRequest) returns (AccountInfo);
+  rpc GetAccount(GetAccountRequest) returns (AccountInfo);
+  // 按闲鱼 ID 查账号（v3.3：商品同步落库时解析 account_id 用，消除跨库映射空白）
+  rpc GetAccountByGoodfishId(GetAccountByGoodfishIdRequest) returns (AccountInfo);
+  rpc ListAccounts(ListAccountsRequest) returns (ListAccountsResponse);
+  // 停用/启用账号（admin BFF 转调；★账号只停用、不删除，停用不级联删商品）
+  rpc UpdateAccountStatus(UpdateAccountStatusRequest) returns (AccountInfo);
+}
+
+message UpsertAccountRequest {
+  string goodfish_id       = 1;
+  string goodfish_nickname = 2;
+  string remark            = 3;
+}
+message AccountInfo {
+  int64  id = 1;
+  string goodfish_id = 2;
+  string goodfish_nickname = 3;
+  string remark = 4;
+  string last_active_at = 5;
+  // 账号状态：normal / disabled。商品同步据此校验停用（40404）；
+  // 注意：停用账号本方法仍正常返回（已同步商品与 AI 回复链路不受影响）
+  string status = 6;
+}
+message GetAccountRequest { int64 id = 1; }
+message GetAccountByGoodfishIdRequest { string goodfish_id = 1; }
+message ListAccountsRequest { int32 page = 1; int32 page_size = 2; }
+message ListAccountsResponse { repeated AccountInfo list = 1; int64 total = 2; }
+message UpdateAccountStatusRequest {
+  int64  id = 1;
+  string status = 2;   // normal（启用）/ disabled（停用）
+}

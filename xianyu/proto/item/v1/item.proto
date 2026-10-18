@@ -1,0 +1,67 @@
+// proto/item/v1/item.proto
+syntax = "proto3";
+package item.v1;
+
+service ItemService {
+  // 单商品运行时配置（对话服务主用）
+  rpc GetItemRuntimeConfig(GetItemRuntimeConfigRequest) returns (ItemRuntimeConfig);
+  // 批量（预留：后台批量测试 / 预热）
+  rpc BatchGetItemRuntimeConfig(BatchGetItemRuntimeConfigRequest)
+      returns (BatchGetItemRuntimeConfigResponse);
+  // 商品列表（admin BFF 商品列表页聚合账号名用；后台单域 CRUD 仍走 REST）
+  rpc ListItems(ListItemsRequest) returns (ListItemsResponse);
+}
+
+message GetItemRuntimeConfigRequest {
+  string account_id = 1;   // 闲鱼账号 ID（商品按账号隔离）
+  string item_id    = 2;   // 闲鱼商品 ID
+}
+
+message ItemRuntimeConfig {
+  string item_id      = 1;
+  string title        = 2;
+  string description  = 3;
+  string price        = 4;   // 用 string 避免浮点精度问题（如 199.90）
+  string stock_status = 5;
+  string image_url    = 6;
+  PromptConfig prompt = 7;
+}
+
+message PromptConfig {
+  string system_prompt    = 1;   // 系统提示词（人设 + 核心原则）
+  string price_prompt     = 2;   // 议价场景
+  string tech_prompt      = 3;   // 技术场景
+  string default_prompt   = 4;   // 默认场景
+  int32  max_reply_length = 5;   // 默认 50
+  // 注：temperature / max_tokens 属模型配置，取自 LlmService.GetEnabledModel，不在此
+}
+
+message BatchGetItemRuntimeConfigRequest {
+  string account_id = 1;
+  repeated string item_ids = 2;
+}
+
+message BatchGetItemRuntimeConfigResponse {
+  repeated ItemRuntimeConfig configs = 1;
+}
+
+// 商品列表（admin BFF 用，字段与后台列表页一致）
+message ListItemsRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  string goodfish_account_id = 3;  // 按账号筛选（可空）
+  string title = 4;                // 标题模糊匹配（可空）
+}
+message ItemSummary {
+  int64  id = 1;
+  string goodfish_account_id = 2;  // 闲鱼账号 ID（BFF 据此聚合账号名/昵称）
+  string goodfish_item_id = 3;
+  string title = 4;
+  string price = 5;                // 用 string 避免浮点精度问题
+  string stock_status = 6;
+  string last_sync_at = 7;         // 最后同步时间
+}
+message ListItemsResponse {
+  repeated ItemSummary list = 1;
+  int64 total = 2;
+}

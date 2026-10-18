@@ -14,10 +14,11 @@ import (
 
 // LlmProviderManager 供应商 manager（基础设施层，原子方法）
 type LlmProviderManager struct {
-	log         *log.Helper
+	log          *log.Helper
 	providerRepo *data.LlmProviderRepo
 	modelRepo    *data.LlmModelRepo
 	encryptor    *utils.Encryptor
+	cacheManager *EnabledModelCacheManager
 }
 
 // NewLlmProviderManager 创建供应商 manager
@@ -26,12 +27,14 @@ func NewLlmProviderManager(
 	providerRepo *data.LlmProviderRepo,
 	modelRepo *data.LlmModelRepo,
 	encryptor *utils.Encryptor,
+	cacheManager *EnabledModelCacheManager,
 ) *LlmProviderManager {
 	return &LlmProviderManager{
 		log:          ctx.NewLoggerHelper(constants.LoggerNameLlmProviderManager),
 		providerRepo: providerRepo,
 		modelRepo:    modelRepo,
 		encryptor:    encryptor,
+		cacheManager: cacheManager,
 	}
 }
 
@@ -57,6 +60,35 @@ func (m *LlmProviderManager) GetWithDecryptedKey(ctx context.Context, id int64) 
 	}
 
 	return provider, decryptedKey, nil
+}
+
+// GetEnabledWithDecryptedKey 获取启用中的模型及其供应商信息（含解密后的 API Key）
+//
+// 服务间契约 LlmService.GetEnabledModel 的数据来源；暂无启用模型返回 ErrNoEnabledModel（NOT_FOUND）。
+func (m *LlmProviderManager) GetEnabledWithDecryptedKey(ctx context.Context) (*models.LlmModel, *models.LlmProvider, string, error) {
+	model, err := m.modelRepo.GetEnabled(ctx)
+	if err != nil {
+		return nil, nil, "", err
+	}
+	if model == nil {
+		return nil, nil, "", constants.ErrNoEnabledModel
+	}
+
+	provider, err := m.providerRepo.Get(ctx, model.ProviderID)
+	if err != nil {
+		return nil, nil, "", err
+	}
+	if provider == nil {
+		return nil, nil, "", constants.ErrProviderNotFound
+	}
+
+	decryptedKey, err := m.encryptor.Decrypt(provider.APIKey)
+	if err != nil {
+		m.log.Errorf("decrypt api key failed: %v", err)
+		return nil, nil, "", constants.ErrDecryptAPIKey
+	}
+
+	return model, provider, decryptedKey, nil
 }
 
 // CreateWithEncryptedKey 加密 API Key 后创建供应商
@@ -120,12 +152,22 @@ func (m *LlmProviderManager) UpdateWithOptionalKey(
 		return nil, err
 	}
 
+	// 供应商信息（名称/接口地址/API Key）变更 → 主动失效启用模型缓存
+	m.cacheManager.Delete(ctx)
+
 	return provider, nil
 }
 
 // DeleteByID 根据 ID 删除供应商
 func (m *LlmProviderManager) DeleteByID(ctx context.Context, id int64) error {
-	return m.providerRepo.Delete(ctx, id)
+	if err := m.providerRepo.Delete(ctx, id); err != nil {
+		return err
+	}
+
+	// 供应商删除 → 主动失效启用模型缓存
+	m.cacheManager.Delete(ctx)
+
+	return nil
 }
 
 // CountModels 统计供应商下的模型数量

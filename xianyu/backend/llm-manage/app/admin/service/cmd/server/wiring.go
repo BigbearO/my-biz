@@ -54,6 +54,14 @@ func initApp(ctx *bootstrap.Context) (*kratos.App, func(), error) {
 	}
 	cleanups = append(cleanups, dbCleanup)
 
+	// Redis 客户端（启用模型提供方缓存；配置缺失时降级为无缓存直连数据库）
+	redisCli, redisCleanup, err := client.NewRedisClient(ctx)
+	if err != nil {
+		rollback()
+		return nil, func() {}, err
+	}
+	cleanups = append(cleanups, redisCleanup)
+
 	// 加密器（从环境变量读取密钥，默认用 32 字节密钥）
 	encryptKey := os.Getenv("LLM_ENCRYPT_KEY")
 	if encryptKey == "" {
@@ -79,8 +87,9 @@ func initApp(ctx *bootstrap.Context) (*kratos.App, func(), error) {
 	// ═══════════════════════ 三、Manager 层(internal/manager) ═══════════════════════
 
 	// LLM 模块 manager（原子操作/基础设施）
-	llmProviderManager := manager.NewLlmProviderManager(ctx, llmProviderRepo, llmModelRepo, encryptor)
-	llmModelManager := manager.NewLlmModelManager(ctx, llmModelRepo, llmProviderRepo)
+	enabledModelCacheManager := manager.NewEnabledModelCacheManager(ctx, redisCli)
+	llmProviderManager := manager.NewLlmProviderManager(ctx, llmProviderRepo, llmModelRepo, encryptor, enabledModelCacheManager)
+	llmModelManager := manager.NewLlmModelManager(ctx, llmModelRepo, llmProviderRepo, enabledModelCacheManager)
 
 	// ── register:manager ── 新模块 manager 在此行后注册
 
@@ -91,6 +100,9 @@ func initApp(ctx *bootstrap.Context) (*kratos.App, func(), error) {
 	// LLM 模块服务（业务编排，依赖 manager）
 	llmProviderService := service.NewLlmProviderService(ctx, llmProviderManager)
 	llmModelService := service.NewLlmModelService(ctx, llmModelManager)
+
+	// 模型服务间契约服务（对话服务取启用模型/回传用量，仅 gRPC 暴露）
+	llmService := service.NewLlmService(ctx, llmProviderManager, enabledModelCacheManager)
 
 	// ── register:service ── 新模块服务在此行后注册(make register 工具锚点,勿删)
 
@@ -111,6 +123,7 @@ func initApp(ctx *bootstrap.Context) (*kratos.App, func(), error) {
 		greeterService,
 		llmProviderService,
 		llmModelService,
+		llmService,
 		// register:grpc-arg ── 新模块服务实参在此行后追加(make register 工具锚点,勿删)
 	)
 

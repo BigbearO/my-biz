@@ -12,6 +12,7 @@ import (
 
 	adminV1 "llm-manage/api/gen/go/admin/service/v1"
 	helloworldV1 "llm-manage/api/gen/go/helloworld/service/v1"
+	llmV1 "llm-manage/api/gen/go/llm/service/v1"
 )
 
 type GrpcMiddlewares []middleware.Middleware
@@ -31,6 +32,7 @@ func NewGrpcServer(
 	greeterService *service.GreeterService,
 	llmProviderService *service.LlmProviderService,
 	llmModelService *service.LlmModelService,
+	llmService *service.LlmService,
 	// register:param ── 新模块服务形参在此行后注册(make register 工具锚点,勿删)
 ) *grpc.Server {
 	cfg := ctx.GetConfig()
@@ -47,6 +49,8 @@ func NewGrpcServer(
 	helloworldV1.RegisterGreeterServer(srv, greeterService)
 	adminV1.RegisterLlmProviderServer(srv, llmProviderService)
 	adminV1.RegisterLlmModelServer(srv, llmModelService)
+	// 服务间契约（对话服务取启用模型/回传用量），仅 gRPC 端口暴露
+	llmV1.RegisterLlmServiceServer(srv, llmService)
 
 	// register:route ── 新模块路由在此行后注册(make register 工具锚点,勿删)
 

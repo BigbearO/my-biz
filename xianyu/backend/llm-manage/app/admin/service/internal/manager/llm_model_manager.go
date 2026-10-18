@@ -16,6 +16,7 @@ type LlmModelManager struct {
 	log          *log.Helper
 	modelRepo    *data.LlmModelRepo
 	providerRepo *data.LlmProviderRepo
+	cacheManager *EnabledModelCacheManager
 }
 
 // NewLlmModelManager 创建模型 manager
@@ -23,11 +24,13 @@ func NewLlmModelManager(
 	ctx *bootstrap.Context,
 	modelRepo *data.LlmModelRepo,
 	providerRepo *data.LlmProviderRepo,
+	cacheManager *EnabledModelCacheManager,
 ) *LlmModelManager {
 	return &LlmModelManager{
 		log:          ctx.NewLoggerHelper(constants.LoggerNameLlmModelManager),
 		modelRepo:    modelRepo,
 		providerRepo: providerRepo,
+		cacheManager: cacheManager,
 	}
 }
 
@@ -146,12 +149,22 @@ func (m *LlmModelManager) UpdateWithProviderCheck(
 		return nil, err
 	}
 
+	// 模型信息（参数/供应商/状态）变更 → 主动失效启用模型缓存
+	m.cacheManager.Delete(ctx)
+
 	return model, nil
 }
 
 // DeleteByID 根据 ID 删除模型
 func (m *LlmModelManager) DeleteByID(ctx context.Context, id int64) error {
-	return m.modelRepo.Delete(ctx, id)
+	if err := m.modelRepo.Delete(ctx, id); err != nil {
+		return err
+	}
+
+	// 模型删除 → 主动失效启用模型缓存
+	m.cacheManager.Delete(ctx)
+
+	return nil
 }
 
 // EnableWithTransaction 事务内启用模型（先全量停用，再启用当前）
@@ -169,6 +182,9 @@ func (m *LlmModelManager) EnableWithTransaction(ctx context.Context, id int64) (
 		m.log.Errorf("enable model failed: %v", err)
 		return nil, constants.ErrEnableModel
 	}
+
+	// 启用模型变更 → 主动失效启用模型缓存
+	m.cacheManager.Delete(ctx)
 
 	return enabledModel, nil
 }

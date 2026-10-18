@@ -1,0 +1,25 @@
+"""FastAPI dependency wiring and local request authentication."""
+
+import secrets
+
+from fastapi import HTTPException, Request, status
+
+from xianyu_client.core.constants import LOCAL_TOKEN_ERROR, LOCAL_TOKEN_HEADER
+
+
+def get_system_service(request: Request):
+    """Return the system service attached to the current application."""
+    return request.app.state.system_service
+
+
+def validate_local_token(request: Request) -> None:
+    """Reject requests unless they carry the process-local random token.
+
+    Raises:
+        HTTPException: When the token header is absent or does not match.
+    """
+    expected_token = request.app.state.settings.local_token
+    actual_token = request.headers.get(LOCAL_TOKEN_HEADER, "")
+    if not expected_token or not secrets.compare_digest(actual_token, expected_token):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=LOCAL_TOKEN_ERROR)
+

@@ -1,0 +1,104 @@
+"""Constants shared by the local desktop service."""
+
+from pathlib import Path
+
+APP_NAME = "goodfish"
+DATA_DIRECTORY_NAME = "data"
+LOG_DIRECTORY_NAME = "logs"
+LOCAL_LOG_FILE_NAME = "local-service.log"
+DATABASE_FILE_NAME = "goodfish.db"
+RUNTIME_FILE_NAME = "runtime.json"
+MASTER_KEY_FILE_NAME = "master.key"
+
+ENV_DATA_DIR = "GOODFISH_DATA_DIR"
+ENV_LOCAL_TOKEN = "GOODFISH_LOCAL_TOKEN"
+ENV_LOG_LEVEL = "GOODFISH_LOG_LEVEL"
+ENV_RUNTIME_ENV = "GOODFISH_ENV"
+
+DEFAULT_LOG_LEVEL = "INFO"
+DEVELOPMENT_ENV = "development"
+PRODUCTION_ENV = "production"
+DEFAULT_RUNTIME_ENV = DEVELOPMENT_ENV
+
+LOCAL_TOKEN_HEADER = "X-Local-Token"
+LOCAL_TOKEN_ERROR = "Local service authentication failed"
+LOCAL_TOKEN_BYTE_LENGTH = 32
+
+SERVICE_STATE_READY = "ready"
+CLOUD_STATE_NOT_CONFIGURED = "not_configured"
+AUTH_STATE_NOT_LOGGED_IN = "not_logged_in"
+AUTH_STATE_LOGGED_IN = "logged_in"
+CREDENTIAL_STATE_READY = "ready"
+CREDENTIAL_STATE_UNDECRYPTABLE = "undecryptable"
+INITIAL_LISTEN_COUNT = 0
+
+CONFIG_MAX_LISTEN_COUNT = "max_listen_count"
+CONFIG_LOG_LEVEL = "log_level"
+CONFIG_AUTH_TOKEN = "auth_token"
+CONFIG_CLIENT_ID = "clientid"
+CONFIG_MAX_LISTEN_COUNT_DEFAULT = "3"
+CONFIG_LOG_LEVEL_DEFAULT = DEFAULT_LOG_LEVEL
+CONFIG_EMPTY_VALUE = ""
+CONFIG_MAX_LISTEN_COUNT_DESCRIPTION = "Maximum number of concurrently monitored accounts"
+CONFIG_LOG_LEVEL_DESCRIPTION = "Local service log level"
+CONFIG_AUTH_TOKEN_DESCRIPTION = "Cloud management login token"
+CONFIG_CLIENT_ID_DESCRIPTION = "Cloud client instance identifier"
+CONFIG_TABLE_NAME = "config"
+CONFIG_KEY_INDEX_NAME = "ix_config_key"
+CONFIG_KEY_MAX_LENGTH = 64
+CONFIG_DESCRIPTION_MAX_LENGTH = 256
+
+DATABASE_TIMEOUT_SECONDS = 30.0
+
+ACCOUNT_GOODFISH_ID_MAX_LENGTH = 64
+ACCOUNT_TABLE_NAME = "goodfish_account"
+ACCOUNT_GOODFISH_ID_INDEX_NAME = "uq_goodfish_account_goodfish_id"
+ACCOUNT_GOODFISH_NICKNAME_MAX_LENGTH = 128
+ACCOUNT_REMARK_MAX_LENGTH = 256
+ACCOUNT_LISTEN_STATE_MAX_LENGTH = 16
+ACCOUNT_LISTEN_STATE_IDLE = "idle"
+ACCOUNT_INITIAL_REMARK = ""
+ACCOUNT_INITIAL_IS_VALID = False
+ACCOUNT_INITIAL_IS_VALID_SQL = "0"
+
+MASTER_KEY_LENGTH_BYTES = 32
+MASTER_KEY_FILE_MODE = 0o600
+DPAPI_UI_FORBIDDEN_FLAG = 0x01
+WINDOWS_PLATFORM_NAME = "win32"
+
+COOKIE_NONCE_LENGTH_BYTES = 12
+COOKIE_ASSOCIATED_DATA = b"goodfish_account.cookie.v1"
+COOKIE_EMPTY_VALUE = ""
+
+MASTER_KEY_LENGTH_ERROR_MESSAGE = "Master key must contain exactly 32 bytes"
+COOKIE_EMPTY_ENCRYPTION_ERROR_MESSAGE = "Cookie must not be empty"
+COOKIE_ENCRYPTION_ERROR_MESSAGE = "Cookie encryption failed"
+COOKIE_EMPTY_DECRYPTION_ERROR_MESSAGE = "Encrypted cookie must not be empty"
+COOKIE_DECODE_ERROR_MESSAGE = "Encrypted cookie format is invalid"
+COOKIE_TRUNCATED_ERROR_MESSAGE = "Encrypted cookie payload is truncated"
+COOKIE_AUTHENTICATION_ERROR_MESSAGE = "Encrypted cookie authentication failed"
+COOKIE_DECRYPTION_ERROR_MESSAGE = "Cookie decryption failed"
+DPAPI_UNSUPPORTED_PLATFORM_MESSAGE = "DPAPI master key protection is only supported on Windows"
+DPAPI_PROTECT_ERROR_MESSAGE = "CryptProtectData failed with Windows error {}"
+DPAPI_UNPROTECT_ERROR_MESSAGE = "CryptUnprotectData failed with Windows error {}"
+MASTER_KEY_DECRYPTION_ERROR_MESSAGE = "Master key cannot be decrypted"
+MASTER_KEY_INITIALIZATION_ERROR_MESSAGE = "Master key cannot be created"
+MASTER_KEY_UNDECRYPTABLE_LOG_MESSAGE = "Master key cannot be decrypted; existing cookies need re-entry"
+COOKIE_UNDECRYPTABLE_LOG_MESSAGE = "Some stored cookies cannot be decrypted account_ids={}"
+LOG_ROTATION_DAYS = 1
+LOG_RETENTION_DAYS = 14
+LOG_ENCODING = "utf-8"
+
+HANDSHAKE_BEGIN = "#GOODFISH_PORT#"
+HANDSHAKE_END = "#END#"
+SERVER_HOST = "127.0.0.1"
+RANDOM_PORT = 0
+SERVER_STARTED_TIMEOUT_SECONDS = 15.0
+SERVER_STARTED_POLL_INTERVAL_SECONDS = 0.05
+SERVER_SHUTDOWN_TIMEOUT_SECONDS = 5.0
+
+VITE_DEV_ORIGIN = "http://127.0.0.1:5173"
+FILE_ORIGIN = "null"
+
+DEFAULT_APP_DATA_DIR = Path.home() / "AppData" / "Roaming" / APP_NAME
+
