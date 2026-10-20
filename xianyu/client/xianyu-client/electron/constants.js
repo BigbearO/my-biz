@@ -1,6 +1,7 @@
 /** Shared constants for the Electron main process. */
 
 const APP_NAME = "goodfish";
+const ELECTRON_DATA_DIR_NAME = "electron";
 const APP_VERSION = "0.1.0";
 const HANDSHAKE_BEGIN = "#GOODFISH_PORT#";
 const HANDSHAKE_END = "#END#";
@@ -16,6 +17,7 @@ const LOCAL_SERVICE_NOT_READY_ERROR_MESSAGE = "Local service is not ready";
 
 module.exports = {
   APP_NAME,
+  ELECTRON_DATA_DIR_NAME,
   APP_VERSION,
   HANDSHAKE_BEGIN,
   HANDSHAKE_END,

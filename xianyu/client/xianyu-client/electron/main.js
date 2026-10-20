@@ -4,6 +4,7 @@ const path = require("node:path");
 
 const {
   APP_NAME,
+  ELECTRON_DATA_DIR_NAME,
   LOCAL_API_ERROR_MESSAGE,
   LOCAL_API_JSON_CONTENT_TYPE,
   LOCAL_SERVICE_NOT_READY_ERROR_MESSAGE,
@@ -67,6 +68,15 @@ async function createLocalApiError(response) {
  */
 function resolveDataDir() {
   return path.join(app.getPath("appData"), APP_NAME);
+}
+
+/**
+ * Resolve an Electron-only directory so its cache does not compete with local service files.
+ *
+ * @returns {string} Absolute Electron user data directory.
+ */
+function resolveElectronDataDir() {
+  return path.join(resolveDataDir(), ELECTRON_DATA_DIR_NAME);
 }
 
 /**
@@ -134,6 +144,7 @@ async function handleAppReady() {
 }
 
 app.setName(APP_NAME);
+app.setPath("userData", resolveElectronDataDir());
 app.whenReady().then(handleAppReady);
 
 app.on("window-all-closed", () => {
