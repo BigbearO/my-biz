@@ -2,12 +2,17 @@
 
 import asyncio
 import os
+import sys
+import threading
 
 import uvicorn
 
 from xianyu_client import APP_VERSION
 from xianyu_client.app import create_app
 from xianyu_client.core.constants import (
+    ENV_PARENT_PIPE,
+    PARENT_PIPE_ENABLED_VALUE,
+    PARENT_PIPE_MONITOR_THREAD_NAME,
     RANDOM_PORT,
     SERVER_HOST,
     SERVER_SHUTDOWN_TIMEOUT_SECONDS,
@@ -39,6 +44,28 @@ def get_server_port(server: uvicorn.Server) -> int:
     return int(sockets[0].getsockname()[1])
 
 
+def monitor_parent_pipe(server: uvicorn.Server) -> None:
+    """Stop Uvicorn when Electron closes the parent-owned stdin pipe."""
+    try:
+        stdin_buffer = sys.stdin.buffer
+        stdin_buffer.read(1)
+    except (AttributeError, OSError, ValueError):
+        pass
+    server.should_exit = True
+
+
+def start_parent_pipe_monitor(server: uvicorn.Server) -> None:
+    """Start parent-pipe monitoring only when Electron explicitly enables it."""
+    if os.environ.get(ENV_PARENT_PIPE) != PARENT_PIPE_ENABLED_VALUE:
+        return
+    threading.Thread(
+        target=monitor_parent_pipe,
+        args=(server,),
+        name=PARENT_PIPE_MONITOR_THREAD_NAME,
+        daemon=True,
+    ).start()
+
+
 async def run_service() -> None:
     """Start FastAPI on a random localhost port and emit the handshake line."""
     settings = load_settings()
@@ -52,6 +79,7 @@ async def run_service() -> None:
         access_log=False,
     )
     server = uvicorn.Server(server_config)
+    start_parent_pipe_monitor(server)
     server_task = asyncio.create_task(server.serve())
     try:
         await wait_for_server_startup(server)
@@ -60,16 +88,19 @@ async def run_service() -> None:
         print(create_handshake_line(payload), flush=True)
         await server_task
     finally:
-        if server.started and not server.should_exit:
-            server.should_exit = True
+        server.should_exit = True
+        if not server_task.done():
             try:
                 await asyncio.wait_for(server_task, timeout=SERVER_SHUTDOWN_TIMEOUT_SECONDS)
             except asyncio.TimeoutError:
                 server_task.cancel()
+                await asyncio.gather(server_task, return_exceptions=True)
+        else:
+            await asyncio.gather(server_task, return_exceptions=True)
 
 
 def main() -> None:
-    """Run the local service until the desktop shell terminates it."""
+    """Run the local service until Electron disconnects or terminates it."""
     asyncio.run(run_service())
 
 

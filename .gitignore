@@ -89,6 +89,8 @@ celerybeat-schedule
 venv/
 ENV/
 
+**/kitGen
+
 # Spyder project settings
 .spyderproject
 .spyproject
