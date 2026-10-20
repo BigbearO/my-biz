@@ -18,6 +18,7 @@ from xianyu_client.core.constants import (
     ACCOUNT_LISTEN_STATE_MAX_LENGTH,
     ACCOUNT_REMARK_MAX_LENGTH,
 )
+from xianyu_client.core.errors import AccountStateConflictError
 
 
 def utc_now() -> datetime:
@@ -96,6 +97,34 @@ class GoodfishAccountModel(Base):
         nullable=False,
     )
 
+    @classmethod
+    def create_local(
+        cls,
+        goodfish_id: str,
+        goodfish_nickname: str,
+        encrypted_cookie: str,
+        remark: str = ACCOUNT_INITIAL_REMARK,
+    ) -> "GoodfishAccountModel":
+        """Create an unsaved local account with safe initial states.
+
+        Args:
+            goodfish_id: User-visible Goodfish account identifier.
+            goodfish_nickname: Display nickname for local management.
+            encrypted_cookie: AES-GCM ciphertext for the account cookie.
+            remark: Optional operator note; defaults to an empty string.
+
+        Returns:
+            An unsaved account entity waiting for persistence.
+        """
+        return cls(
+            goodfish_id=goodfish_id,
+            goodfish_nickname=goodfish_nickname,
+            cookie=encrypted_cookie,
+            remark=remark,
+            is_valid=ACCOUNT_INITIAL_IS_VALID,
+            listen_state=ACCOUNT_LISTEN_STATE_IDLE,
+        )
+
     def is_listening_candidate(self) -> bool:
         """Return whether this account is currently allowed to enter listening.
 
@@ -113,4 +142,60 @@ class GoodfishAccountModel(Base):
         """
         self.is_valid = valid
         self.last_check_at = checked_at if checked_at is not None else utc_now()
+
+    def update_profile(self, goodfish_nickname: str, remark: str) -> None:
+        """Update only operator-editable profile fields.
+
+        Args:
+            goodfish_nickname: New display nickname.
+            remark: New operator note.
+        """
+        self.goodfish_nickname = goodfish_nickname
+        self.remark = remark
+
+    def ensure_cookie_change_allowed(self) -> None:
+        """Reject cookie replacement while the account is being managed by a listener.
+
+        Raises:
+            AccountStateConflictError: When the account is not in the idle state.
+        """
+        if self.listen_state != ACCOUNT_LISTEN_STATE_IDLE:
+            raise AccountStateConflictError()
+
+    def replace_cookie(self, encrypted_cookie: str) -> None:
+        """Replace encrypted cookie material and reset its validation state.
+
+        Args:
+            encrypted_cookie: Newly encrypted AES-GCM cookie ciphertext.
+
+        Raises:
+            AccountStateConflictError: When the account is not idle.
+        """
+        self.ensure_cookie_change_allowed()
+        self.cookie = encrypted_cookie
+        self.mark_cookie_validation(False)
+
+    def replace_verified_cookie(self, encrypted_cookie: str, nickname: str) -> None:
+        """Replace a verified cookie and refresh its protocol-derived profile.
+
+        Args:
+            encrypted_cookie: Newly encrypted AES-GCM cookie ciphertext.
+            nickname: Nickname returned by the successful protocol verification.
+
+        Raises:
+            AccountStateConflictError: When the account is not idle.
+        """
+        self.ensure_cookie_change_allowed()
+        self.cookie = encrypted_cookie
+        self.goodfish_nickname = nickname
+        self.mark_cookie_validation(True)
+
+    def ensure_deletable(self) -> None:
+        """Reject deletion while the account is attached to active listening.
+
+        Raises:
+            AccountStateConflictError: When the account is not in the idle state.
+        """
+        if self.listen_state != ACCOUNT_LISTEN_STATE_IDLE:
+            raise AccountStateConflictError()
 

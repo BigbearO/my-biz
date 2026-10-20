@@ -33,6 +33,7 @@ async def test_system_status_requires_local_token(tmp_path):
         "cloudState": "not_configured",
         "authState": "not_logged_in",
         "credentialState": "ready",
+        "cookieWritable": True,
     }
     assert (tmp_path / MASTER_KEY_FILE_NAME).is_file()
     connection = sqlite3.connect(settings.database_path)

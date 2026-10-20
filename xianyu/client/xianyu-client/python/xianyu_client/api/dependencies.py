@@ -12,6 +12,18 @@ def get_system_service(request: Request):
     return request.app.state.system_service
 
 
+def get_account_service(request: Request):
+    """Return the account service attached to the current application.
+
+    Args:
+        request: Active FastAPI request carrying application state.
+
+    Returns:
+        The account service used by account routes.
+    """
+    return request.app.state.account_service
+
+
 def validate_local_token(request: Request) -> None:
     """Reject requests unless they carry the process-local random token.
 

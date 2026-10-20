@@ -9,6 +9,7 @@ from xianyu_client.core.constants import (
     MASTER_KEY_UNDECRYPTABLE_LOG_MESSAGE,
 )
 from xianyu_client.core.crypto import CookieCryptoError
+from xianyu_client.core.errors import CredentialUnavailableError
 from xianyu_client.managers.account_manager import AccountManager
 from xianyu_client.managers.cookie_credential_manager import CookieCredentialManager
 from xianyu_client.managers.master_key_manager import (
@@ -31,6 +32,7 @@ class CredentialService:
         self._account_manager = account_manager
         self._state = CREDENTIAL_STATE_READY
         self._failed_account_ids: tuple[int, ...] = ()
+        self._cookie_writable = False
 
     @property
     def state(self) -> str:
@@ -42,6 +44,11 @@ class CredentialService:
         """Return account IDs whose stored cookie could not be decrypted."""
         return self._failed_account_ids
 
+    @property
+    def cookie_writable(self) -> bool:
+        """Return whether the master key can currently encrypt cookies."""
+        return self._cookie_writable
+
     async def initialize(self) -> str:
         """Initialize the master key and verify every stored cookie ciphertext.
 
@@ -50,9 +57,11 @@ class CredentialService:
         """
         try:
             await self._credential_manager.load_master_key()
+            self._cookie_writable = True
         except (MasterKeyDecryptionError, MasterKeyInitializationError):
             self._state = CREDENTIAL_STATE_UNDECRYPTABLE
             self._failed_account_ids = ()
+            self._cookie_writable = False
             logger.warning(MASTER_KEY_UNDECRYPTABLE_LOG_MESSAGE)
             return self._state
 
@@ -69,3 +78,16 @@ class CredentialService:
         if failed_ids:
             logger.warning(COOKIE_UNDECRYPTABLE_LOG_MESSAGE, failed_ids)
         return self._state
+
+    async def ensure_cookie_writable(self) -> None:
+        """Verify master-key availability before accepting new cookie plaintext.
+
+        Raises:
+            CredentialUnavailableError: When the master key cannot be loaded or created.
+        """
+        try:
+            await self._credential_manager.load_master_key()
+        except (MasterKeyDecryptionError, MasterKeyInitializationError) as error:
+            self._cookie_writable = False
+            raise CredentialUnavailableError() from error
+        self._cookie_writable = True

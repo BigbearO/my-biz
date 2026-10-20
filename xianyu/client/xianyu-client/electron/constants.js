@@ -10,6 +10,9 @@ const WINDOW_WIDTH = 1120;
 const WINDOW_HEIGHT = 720;
 const DEV_RENDERER_URL = "http://127.0.0.1:5173";
 const LOCAL_REQUEST_CHANNEL = "goodfish:local-request";
+const LOCAL_API_ERROR_MESSAGE = "Local API request failed";
+const LOCAL_API_JSON_CONTENT_TYPE = "application/json";
+const LOCAL_SERVICE_NOT_READY_ERROR_MESSAGE = "Local service is not ready";
 
 module.exports = {
   APP_NAME,
@@ -21,6 +24,9 @@ module.exports = {
   WINDOW_WIDTH,
   WINDOW_HEIGHT,
   DEV_RENDERER_URL,
-  LOCAL_REQUEST_CHANNEL
+  LOCAL_REQUEST_CHANNEL,
+  LOCAL_API_ERROR_MESSAGE,
+  LOCAL_API_JSON_CONTENT_TYPE,
+  LOCAL_SERVICE_NOT_READY_ERROR_MESSAGE
 };
 

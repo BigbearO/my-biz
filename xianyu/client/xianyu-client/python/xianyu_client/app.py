@@ -5,9 +5,19 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 
+from xianyu_client.api.account_api import router as account_router
 from xianyu_client.api.system_api import router as system_router
-from xianyu_client.core.constants import FILE_ORIGIN, VITE_DEV_ORIGIN
+from xianyu.http_protocol import HttpXianyuProtocol
+from xianyu_client.core.constants import (
+    ACCOUNT_REQUEST_VALIDATION_ERROR_MESSAGE,
+    FILE_ORIGIN,
+    LOCAL_API_ALLOWED_METHODS,
+    LOCAL_TOKEN_HEADER,
+    VITE_DEV_ORIGIN,
+)
 from xianyu_client.core.settings import RuntimeSettings
 from xianyu_client.core.constants import MASTER_KEY_FILE_NAME
 from xianyu_client.db.migrations import run_migrations
@@ -18,14 +28,16 @@ from xianyu_client.managers.cookie_credential_manager import CookieCredentialMan
 from xianyu_client.managers.master_key_manager import MasterKeyManager
 from xianyu_client.services.credential_service import CredentialService
 from xianyu_client.services.system_service import SystemService
+from xianyu_client.services.account_service import AccountService
 
 
-def create_app(settings: RuntimeSettings, master_key_protector=None) -> FastAPI:
+def create_app(settings: RuntimeSettings, master_key_protector=None, xianyu_protocol=None) -> FastAPI:
     """Create the configured local API application.
 
     Args:
         settings: Runtime settings supplied by the Electron process.
         master_key_protector: Optional key protector injection point used by tests.
+        xianyu_protocol: Optional protocol implementation injection point used by tests.
 
     Returns:
         A FastAPI application with database lifecycle management attached.
@@ -38,6 +50,8 @@ def create_app(settings: RuntimeSettings, master_key_protector=None) -> FastAPI:
         MasterKeyManager(settings.data_dir / MASTER_KEY_FILE_NAME, master_key_protector)
     )
     credential_service = CredentialService(credential_manager, account_manager)
+    protocol = xianyu_protocol or HttpXianyuProtocol()
+    account_service = AccountService(account_manager, credential_manager, credential_service, protocol)
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -54,16 +68,38 @@ def create_app(settings: RuntimeSettings, master_key_protector=None) -> FastAPI:
     app.state.config_manager = config_manager
     app.state.cookie_credential_manager = credential_manager
     app.state.credential_service = credential_service
+    app.state.account_service = account_service
     app.state.system_service = SystemService(config_manager, credential_service)
+    app.include_router(account_router)
     app.include_router(system_router)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=[VITE_DEV_ORIGIN, FILE_ORIGIN],
         allow_credentials=False,
-        allow_methods=["GET"],
-        allow_headers=["Content-Type", "X-Local-Token"],
+        allow_methods=LOCAL_API_ALLOWED_METHODS,
+        allow_headers=["Content-Type", LOCAL_TOKEN_HEADER],
     )
+    app.add_exception_handler(RequestValidationError, sanitize_request_validation_error)
     return app
+
+
+async def sanitize_request_validation_error(
+    _request,
+    exception: RequestValidationError,
+) -> JSONResponse:
+    """Return a generic account validation error without echoing request input.
+
+    Args:
+        _request: Unused request whose body failed schema validation.
+        exception: FastAPI validation error that may contain submitted values.
+
+    Returns:
+        A JSON response containing only a stable non-secret message.
+    """
+    return JSONResponse(
+        status_code=400,
+        content={"detail": ACCOUNT_REQUEST_VALIDATION_ERROR_MESSAGE},
+    )
 
 
 async def run_database_lifecycle(database_path: Path) -> None:

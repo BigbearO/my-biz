@@ -7,5 +7,6 @@ export interface SystemStatus {
   cloudState: string;
   authState: string;
   credentialState: CredentialState;
+  cookieWritable: boolean;
 }
 

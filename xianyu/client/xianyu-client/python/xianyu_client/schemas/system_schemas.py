@@ -12,4 +12,5 @@ class SystemStatusResponse(BaseModel):
     cloudState: str
     authState: str
     credentialState: str
+    cookieWritable: bool
 

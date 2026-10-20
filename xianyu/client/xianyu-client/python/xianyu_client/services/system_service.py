@@ -43,5 +43,6 @@ class SystemService:
             cloudState=CLOUD_STATE_NOT_CONFIGURED,
             authState=AUTH_STATE_NOT_LOGGED_IN if auth_token == CONFIG_EMPTY_VALUE else AUTH_STATE_LOGGED_IN,
             credentialState=self._credential_service.state or CREDENTIAL_STATE_READY,
+            cookieWritable=self._credential_service.cookie_writable,
         )
 

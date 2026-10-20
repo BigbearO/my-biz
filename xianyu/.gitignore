@@ -48,6 +48,7 @@ var/
 
 
 **/tmp
+.tmp-upstream/
 **/.codebuddy
 
 # PyInstaller
