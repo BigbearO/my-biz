@@ -1,0 +1,66 @@
+# Tomcat
+server:
+  port: 9303
+
+# Spring
+spring:
+  application:
+    # 应用名称（Nacos 注册名；网关路由 lb://ruoyi-goodfish-admin）
+    name: ruoyi-goodfish-admin
+  profiles:
+    # 环境配置
+    active: @profiles.active@
+  # gRPC 客户端（BFF 不提供 gRPC 服务，只作为客户端经 nacos:// 发现各基础服务）
+  grpc:
+    client:
+      channel:
+        # 商品服务
+        item:
+          target: nacos://goodfish-item-service-grpc
+        # 客户端元数据服务（账号域）
+        account:
+          target: nacos://goodfish-client-meta-service-grpc
+        # 模型服务：llm-manage 实际注册名（kratos-bootstrap 约定 {project}-{service}.grpc）
+        llm:
+          target: nacos://good-fish-llm-service.grpc
+
+# Sa-Token：与网关共用同一 jwt-secret-key，保证 token 可校验
+sa-token:
+  token-name: Authorization
+  check-same-token: true
+  is-concurrent: true
+  is-share: false
+  jwt-secret-key: abcdefghijklmnopqrstuvwxyz
+
+# gRPC 与 Nacos 的集成（xxs-spring-grpc-nacos）：nacos:// 发现（BFF 无 gRPC 服务端，不注册 gRPC 端口）
+grpc:
+  nacos:
+    enabled: true
+    server-addr: @nacos.server@
+    namespace: @nacos.ns@
+    username: @nacos.username@
+    password: @nacos.password@
+    server-registration: false
+
+--- # nacos 配置（与 goodfish Python/Go 服务同一 Nacos、同一 namespace，保证跨语言互发现）
+spring:
+  cloud:
+    nacos:
+      # nacos 服务地址
+      server-addr: @nacos.server@
+      username: @nacos.username@
+      password: @nacos.password@
+      discovery:
+        # 注册组
+        group: DEFAULT_GROUP
+        # 注册命名空间（goodfish 项目统一 namespace）
+        namespace: @nacos.ns@
+      config:
+        # 配置组
+        group: DEFAULT_GROUP
+        namespace: @nacos.ns@
+  config:
+    import:
+      - optional:nacos:application-common.yml
+      - optional:nacos:datasource.yml
+      - optional:nacos:${spring.application.name}.yml

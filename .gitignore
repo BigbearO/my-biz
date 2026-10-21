@@ -90,6 +90,7 @@ venv/
 ENV/
 
 **/kitGen
+**/.codegraph
 
 # Spyder project settings
 .spyderproject

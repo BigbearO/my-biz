@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.dromara.goodfish.item.mapper.GoodfishItemMapper">
+
+    <!-- 批量 upsert：单条 CTE 语句完成插入/更新/复活并分类计数（xmax = 0 判定插入） -->
+    <select id="upsertBatch" resultType="org.dromara.goodfish.item.domain.vo.GoodfishItemSyncCountVo">
+        with ins as (
+            insert into goodfish_item (account_id, goodfish_account_id, goodfish_item_id, title,
+                                       description, price, stock_status, image_url, sync_time, del_flag)
+            values
+            <foreach collection="entities" item="it" separator=",">
+                (#{it.accountId}, #{it.goodfishAccountId}, #{it.goodfishItemId}, #{it.title},
+                 #{it.description}, #{it.price}, #{it.stockStatus}, #{it.imageUrl}, #{it.syncTime}, '0')
+            </foreach>
+            on conflict (goodfish_account_id, goodfish_item_id) do update set
+                title        = excluded.title,
+                description  = excluded.description,
+                price        = excluded.price,
+                stock_status = excluded.stock_status,
+                image_url    = excluded.image_url,
+                sync_time    = excluded.sync_time,
+                del_flag     = '0',
+                update_time  = now()
+            returning (xmax = 0) as inserted
+        )
+        select count(*) filter (where inserted)     as "insertedCount",
+               count(*) filter (where not inserted) as "updatedCount"
+        from ins
+    </select>
+
+    <!-- 商品详情（联表提示词，一对一；提示词未建时字段为 null） -->
+    <select id="selectVoWithPromptById" resultType="org.dromara.goodfish.item.domain.vo.GoodfishItemVo">
+        select i.*,
+               p.system_prompt, p.price_prompt, p.tech_prompt, p.default_prompt, p.max_reply_length
+        from goodfish_item i
+        left join goodfish_item_prompt p on p.item_id = i.id
+        where i.id = #{id} and i.del_flag = '0'
+    </select>
+
+    <!-- 运行时配置（联表提示词；对话链路按闲鱼账号 ID + 闲鱼商品 ID 直查） -->
+    <select id="selectRuntimeByGoodfishIds" resultType="org.dromara.goodfish.item.domain.vo.GoodfishItemVo">
+        select i.goodfish_item_id, i.title, i.description, i.price, i.stock_status, i.image_url,
+               p.system_prompt, p.price_prompt, p.tech_prompt, p.default_prompt, p.max_reply_length
+        from goodfish_item i
+        left join goodfish_item_prompt p on p.item_id = i.id
+        where i.goodfish_account_id = #{goodfishAccountId}
+          and i.goodfish_item_id = #{goodfishItemId}
+          and i.del_flag = '0'
+    </select>
+
+</mapper>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.dromara.goodfish.item.mapper.GoodfishItemPromptMapper">
+
+    <!-- 按 item_id upsert：不存在插入，存在整组覆盖（复制提示词 / 编辑提示词共用） -->
+    <insert id="upsertByItemId" useGeneratedKeys="true" keyProperty="id">
+        insert into goodfish_item_prompt (item_id, system_prompt, price_prompt, tech_prompt,
+                                          default_prompt, max_reply_length)
+        values (#{itemId}, #{systemPrompt}, #{pricePrompt}, #{techPrompt},
+                #{defaultPrompt}, #{maxReplyLength})
+        on conflict (item_id) do update set
+            system_prompt    = excluded.system_prompt,
+            price_prompt     = excluded.price_prompt,
+            tech_prompt      = excluded.tech_prompt,
+            default_prompt   = excluded.default_prompt,
+            max_reply_length = excluded.max_reply_length,
+            update_time      = now()
+    </insert>
+
+</mapper>
