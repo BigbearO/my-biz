@@ -20,9 +20,12 @@ from xianyu_client.managers.master_key_manager import (
 from xianyu_client.schemas.account_converters import AccountConvert
 from xianyu_client.schemas.account_schemas import (
     AccountCreateRequest,
+    AccountDetailResponse,
     AccountResponse,
     AccountUpdateRequest,
 )
+from xianyu_client.services.auth_service import AuthService
+from xianyu_client.services.cloud_client import CloudClient
 from xianyu_client.services.credential_service import CredentialService
 
 
@@ -35,6 +38,8 @@ class AccountService:
         cookie_credential_manager: CookieCredentialManager,
         credential_service: CredentialService,
         xianyu_protocol: XianyuProtocol,
+        auth_service: AuthService,
+        cloud_client: CloudClient,
     ) -> None:
         """Create an account service with its local collaborators.
 
@@ -43,11 +48,15 @@ class AccountService:
             cookie_credential_manager: Manager encrypting cookie plaintext.
             credential_service: Service tracking master-key and ciphertext health.
             xianyu_protocol: Protocol boundary used to verify Goodfish cookies.
+            auth_service: Service proving the caller is logged in.
+            cloud_client: Outbound client used to report account metadata.
         """
         self._account_manager = account_manager
         self._cookie_credential_manager = cookie_credential_manager
         self._credential_service = credential_service
         self._xianyu_protocol = xianyu_protocol
+        self._auth_service = auth_service
+        self._cloud_client = cloud_client
 
     async def list_accounts(self) -> list[AccountResponse]:
         """List local accounts without returning cookie material.
@@ -59,7 +68,7 @@ class AccountService:
         return [AccountConvert.to_response(account) for account in accounts]
 
     async def create_account(self, request: AccountCreateRequest) -> AccountResponse:
-        """Create one local account with an encrypted cookie.
+        """Create one local account after the cloud accepted its metadata.
 
         Args:
             request: Validated account creation payload.
@@ -74,10 +83,20 @@ class AccountService:
             XianyuNetworkError: If Goodfish cannot be reached.
             XianyuProtocolError: If Goodfish returns an unexpected response.
             XianyuRiskControlError: If Goodfish requires manual verification.
+            NotLoggedInError: If no cloud token is stored locally.
+            CloudUnauthorizedError: If the gateway rejects the token.
+            CloudForbiddenError: If the account authorization expired.
+            CloudReportError: If the cloud cannot accept the account report.
         """
+        await self._auth_service.ensure_logged_in()
         account_info = (await self._xianyu_protocol.verify_cookie(request.cookie)).bounded()
         if await self._account_manager.find_by_goodfish_id(account_info.goodfish_id) is not None:
             raise DuplicateGoodfishIdError()
+        await self._cloud_client.report_account(
+            goodfish_id=account_info.goodfish_id,
+            nickname=account_info.nickname or account_info.goodfish_id,
+            remark=request.remark or "",
+        )
         encrypted_cookie = await self._encrypt_cookie(request.cookie)
         account = GoodfishAccountModel.create_local(
             goodfish_id=account_info.goodfish_id,
@@ -89,6 +108,25 @@ class AccountService:
         created_account = await self._account_manager.create(account)
         await self._credential_service.initialize()
         return AccountConvert.to_response(created_account)
+
+    async def get_account_detail(self, account_id: int) -> AccountDetailResponse:
+        """Return one account together with its decrypted cookie.
+
+        Args:
+            account_id: Local database identifier.
+
+        Returns:
+            The account representation including the plaintext cookie.
+
+        Raises:
+            AccountNotFoundError: If the account does not exist.
+            CredentialUnavailableError: If the stored cookie cannot be decrypted.
+        """
+        account = await self._account_manager.find_by_id(account_id)
+        if account is None:
+            raise AccountNotFoundError()
+        cookie = await self._decrypt_cookie(account.cookie)
+        return AccountConvert.to_detail_response(account, cookie)
 
     async def update_account(self, account_id: int, request: AccountUpdateRequest) -> AccountResponse:
         """Edit profile fields and optionally replace the stored cookie.

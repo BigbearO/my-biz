@@ -23,9 +23,12 @@ from xianyu_client.core.constants import MASTER_KEY_FILE_NAME
 from xianyu_client.db.migrations import run_migrations
 from xianyu_client.db.session import create_database_engine, create_session_maker
 from xianyu_client.managers.account_manager import AccountManager
+from xianyu_client.managers.auth_token_manager import AuthTokenManager
 from xianyu_client.managers.config_manager import ConfigManager
 from xianyu_client.managers.cookie_credential_manager import CookieCredentialManager
 from xianyu_client.managers.master_key_manager import MasterKeyManager
+from xianyu_client.services.auth_service import AuthService
+from xianyu_client.services.cloud_client import CloudClient
 from xianyu_client.services.credential_service import CredentialService
 from xianyu_client.services.system_service import SystemService
 from xianyu_client.services.account_service import AccountService
@@ -46,21 +49,37 @@ def create_app(settings: RuntimeSettings, master_key_protector=None, xianyu_prot
     session_factory = create_session_maker(database_engine)
     config_manager = ConfigManager(session_factory)
     account_manager = AccountManager(session_factory)
-    credential_manager = CookieCredentialManager(
-        MasterKeyManager(settings.data_dir / MASTER_KEY_FILE_NAME, master_key_protector)
+    master_key_manager = MasterKeyManager(
+        settings.data_dir / MASTER_KEY_FILE_NAME, master_key_protector
     )
+    credential_manager = CookieCredentialManager(master_key_manager)
     credential_service = CredentialService(credential_manager, account_manager)
+    auth_service = AuthService(AuthTokenManager(master_key_manager, config_manager))
+    cloud_client = CloudClient(settings.cloud_base_url, auth_service.get_credentials)
+    auth_service.attach_cloud_client(cloud_client)
     protocol = xianyu_protocol or HttpXianyuProtocol()
-    account_service = AccountService(account_manager, credential_manager, credential_service, protocol)
+    account_service = AccountService(
+        account_manager,
+        credential_manager,
+        credential_service,
+        protocol,
+        auth_service,
+        cloud_client,
+    )
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
-        """Initialize schema and defaults, then dispose database resources."""
+        """Initialize schema, restore login state, then dispose resources."""
         await run_database_lifecycle(Path(settings.database_path))
         await config_manager.initialize_defaults()
         await credential_service.initialize()
-        yield
-        await database_engine.dispose()
+        await auth_service.load_persisted_state()
+        await auth_service.start_periodic_check()
+        try:
+            yield
+        finally:
+            await auth_service.stop_periodic_check()
+            await database_engine.dispose()
 
     app = FastAPI(lifespan=lifespan)
     app.state.settings = settings
@@ -68,8 +87,10 @@ def create_app(settings: RuntimeSettings, master_key_protector=None, xianyu_prot
     app.state.config_manager = config_manager
     app.state.cookie_credential_manager = credential_manager
     app.state.credential_service = credential_service
+    app.state.auth_service = auth_service
+    app.state.cloud_client = cloud_client
     app.state.account_service = account_service
-    app.state.system_service = SystemService(config_manager, credential_service)
+    app.state.system_service = SystemService(config_manager, credential_service, auth_service)
     app.include_router(account_router)
     app.include_router(system_router)
     app.add_middleware(

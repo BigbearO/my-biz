@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { Pencil, Plus, RefreshCw, ShieldCheck, Trash2 } from "lucide-vue-next";
+import { Eye, Pencil, Plus, Radio, RefreshCw, ShieldCheck, Trash2 } from "lucide-vue-next";
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from "element-plus";
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from "vue";
+import { useRouter } from "vue-router";
 
 import {
   createAccount,
   deleteAccount,
+  getAccountDetail,
   getSystemStatus,
   listAccounts,
   updateAccount,
@@ -19,11 +21,24 @@ import {
   ACCOUNT_CREDENTIAL_READY_LABEL,
   ACCOUNT_CREDENTIAL_RECOVERY_LABEL,
   ACCOUNT_CREDENTIAL_REENTRY_LABEL,
+  ACCOUNT_COOKIE_DETAIL_HINT,
   ACCOUNT_COOKIE_EDIT_HINT,
+  ACCOUNT_COOKIE_HIDE_BUTTON,
   ACCOUNT_COOKIE_LABEL,
+  ACCOUNT_COOKIE_MASK,
   ACCOUNT_COOKIE_MAX_LENGTH,
   ACCOUNT_COOKIE_REQUIRED_MESSAGE,
+  ACCOUNT_COOKIE_SHOW_BUTTON,
   ACCOUNT_CREATE_DIALOG_TITLE,
+  ACCOUNT_DETAIL_BUTTON,
+  ACCOUNT_DETAIL_CLOSE_BUTTON,
+  ACCOUNT_DETAIL_DIALOG_TITLE,
+  ACCOUNT_DETAIL_LOAD_ERROR_MESSAGE,
+  ACCOUNT_EMPTY_TEXT,
+  ACCOUNT_LISTEN_BUTTON,
+  ACCOUNT_LISTEN_UNSUPPORTED_MESSAGE,
+  ACCOUNT_SYNC_BUTTON,
+  ACCOUNT_SYNC_UNSUPPORTED_MESSAGE,
   ACCOUNT_CREATED_AT_LABEL,
   ACCOUNT_DELETE_BUTTON,
   ACCOUNT_DELETE_CONFIRM_BUTTON,
@@ -68,8 +83,16 @@ import {
   ACCOUNT_VERSION_LABEL,
   STATUS_POLL_INTERVAL_MS
 } from "@/constants/account";
-import { CREDENTIAL_STATE_READY, SERVICE_STATE_READY } from "@/constants/system";
-import type { AccountRecord } from "@/types/account";
+import { ROUTE_PATH_FROZEN, ROUTE_PATH_LOGIN } from "@/constants/layout";
+import {
+  AUTH_STATE_EXPIRED,
+  AUTH_STATE_FROZEN,
+  AUTH_STATE_LOGGED_IN,
+  AUTH_STATE_UNAVAILABLE,
+  CREDENTIAL_STATE_READY,
+  SERVICE_STATE_READY
+} from "@/constants/system";
+import type { AccountDetail, AccountRecord } from "@/types/account";
 import type { SystemStatus } from "@/types/system";
 
 interface AccountForm {
@@ -89,6 +112,11 @@ const verifyingAccountIds = ref<number[]>([]);
 const dialogVisible = ref(false);
 const editingAccountId = ref<number | null>(null);
 const accountFormRef = ref<FormInstance>();
+const detailVisible = ref(false);
+const detailLoading = ref(false);
+const detailAccount = ref<AccountDetail | null>(null);
+const cookieVisible = ref(false);
+const router = useRouter();
 let statusTimer: number | undefined;
 
 const accountForm = reactive<AccountForm>({
@@ -173,10 +201,29 @@ async function refreshStatus(): Promise<void> {
   try {
     status.value = await getSystemStatus();
     statusError.value = "";
+    await redirectByAuthState(status.value.authState);
   } catch (error) {
     statusError.value = error instanceof Error ? error.message : ACCOUNT_STATUS_ERROR_MESSAGE;
   } finally {
     loading.value = false;
+  }
+}
+
+const FROZEN_AUTH_STATES: string[] = [AUTH_STATE_FROZEN, AUTH_STATE_EXPIRED, AUTH_STATE_UNAVAILABLE];
+
+/**
+ * Redirect to the login or freeze page when the session is no longer usable.
+ *
+ * @param authState Authorization state returned by the local service.
+ * @returns Promise resolved after navigation settles.
+ */
+async function redirectByAuthState(authState: string): Promise<void> {
+  if (FROZEN_AUTH_STATES.includes(authState)) {
+    await router.replace(ROUTE_PATH_FROZEN);
+    return;
+  }
+  if (authState !== AUTH_STATE_LOGGED_IN) {
+    await router.replace(ROUTE_PATH_LOGIN);
   }
 }
 
@@ -384,6 +431,57 @@ async function removeAccount(account: AccountRecord): Promise<void> {
   }
 }
 
+/**
+ * Load one account detail and open the cookie dialog in masked state.
+ *
+ * @param account Account row selected by the operator.
+ * @returns Promise resolved after the detail request finishes.
+ */
+async function openDetailDialog(account: AccountRecord): Promise<void> {
+  detailVisible.value = true;
+  detailLoading.value = true;
+  detailAccount.value = null;
+  cookieVisible.value = false;
+  try {
+    detailAccount.value = await getAccountDetail(account.id);
+  } catch (error) {
+    ElMessage.error(error instanceof Error ? error.message : ACCOUNT_DETAIL_LOAD_ERROR_MESSAGE);
+    detailVisible.value = false;
+  } finally {
+    detailLoading.value = false;
+  }
+}
+
+/**
+ * Toggle between the masked and the full cookie value in the detail dialog.
+ */
+function toggleCookieVisibility(): void {
+  cookieVisible.value = !cookieVisible.value;
+}
+
+/**
+ * Close the detail dialog and drop the decrypted cookie from memory.
+ */
+function closeDetailDialog(): void {
+  detailVisible.value = false;
+  detailAccount.value = null;
+  cookieVisible.value = false;
+}
+
+/**
+ * Explain that listening is not part of this release.
+ */
+function handleListenUnsupported(): void {
+  ElMessage.info(ACCOUNT_LISTEN_UNSUPPORTED_MESSAGE);
+}
+
+/**
+ * Explain that item synchronisation is not part of this release.
+ */
+function handleSyncUnsupported(): void {
+  ElMessage.info(ACCOUNT_SYNC_UNSUPPORTED_MESSAGE);
+}
+
 onMounted(() => {
   void refreshAll();
   statusTimer = window.setInterval(() => {
@@ -482,6 +580,12 @@ onBeforeUnmount(() => {
         </el-table-column>
         <el-table-column :label="ACCOUNT_ACTION_LABEL" :width="ACCOUNT_ACTION_COLUMN_WIDTH" fixed="right">
           <template #default="{ row }">
+            <el-button link type="primary" :icon="Eye" @click="openDetailDialog(row)">
+              {{ ACCOUNT_DETAIL_BUTTON }}
+            </el-button>
+            <el-button link type="success" :icon="Radio" @click="handleListenUnsupported">
+              {{ ACCOUNT_LISTEN_BUTTON }}
+            </el-button>
             <el-button
               link
               type="success"
@@ -545,6 +649,49 @@ onBeforeUnmount(() => {
         </el-button>
       </template>
     </el-dialog>
+
+    <el-dialog
+      v-model="detailVisible"
+      :title="ACCOUNT_DETAIL_DIALOG_TITLE"
+      :width="ACCOUNT_DIALOG_WIDTH"
+      :close-on-click-modal="false"
+      @close="closeDetailDialog"
+    >
+      <div v-loading="detailLoading" class="detail-body">
+        <el-descriptions v-if="detailAccount" :column="1" border>
+          <el-descriptions-item :label="ACCOUNT_GOODFISH_ID_LABEL">
+            {{ detailAccount.goodfishId }}
+          </el-descriptions-item>
+          <el-descriptions-item :label="ACCOUNT_NICKNAME_LABEL">
+            {{ detailAccount.nickname }}
+          </el-descriptions-item>
+          <el-descriptions-item :label="ACCOUNT_VALIDITY_LABEL">
+            {{ detailAccount.isValid ? ACCOUNT_VALID_LABEL : ACCOUNT_INVALID_LABEL }}
+          </el-descriptions-item>
+          <el-descriptions-item :label="ACCOUNT_LISTEN_STATE_LABEL">
+            {{ listenStateLabel(detailAccount) }}
+          </el-descriptions-item>
+          <el-descriptions-item :label="ACCOUNT_REMARK_LABEL">
+            {{ detailAccount.remark || ACCOUNT_EMPTY_TEXT }}
+          </el-descriptions-item>
+          <el-descriptions-item :label="ACCOUNT_COOKIE_LABEL">
+            <div class="cookie-block">
+              {{ cookieVisible ? detailAccount.cookie : ACCOUNT_COOKIE_MASK }}
+            </div>
+            <el-button link type="primary" @click="toggleCookieVisibility">
+              {{ cookieVisible ? ACCOUNT_COOKIE_HIDE_BUTTON : ACCOUNT_COOKIE_SHOW_BUTTON }}
+            </el-button>
+            <p class="cookie-hint">{{ ACCOUNT_COOKIE_DETAIL_HINT }}</p>
+          </el-descriptions-item>
+        </el-descriptions>
+      </div>
+      <template #footer>
+        <el-button @click="handleSyncUnsupported">{{ ACCOUNT_SYNC_BUTTON }}</el-button>
+        <el-button type="primary" @click="closeDetailDialog">
+          {{ ACCOUNT_DETAIL_CLOSE_BUTTON }}
+        </el-button>
+      </template>
+    </el-dialog>
   </main>
 </template>
 
@@ -552,6 +699,30 @@ onBeforeUnmount(() => {
 .account-page {
   min-height: 100vh;
   padding: 24px 28px;
+}
+
+.detail-body {
+  min-height: 160px;
+}
+
+.cookie-block {
+  max-height: 140px;
+  padding: 8px 10px;
+  overflow: auto;
+  color: #35485c;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  word-break: break-all;
+  background: #f5f8fb;
+  border: 1px solid #e2e8ef;
+  border-radius: 4px;
+}
+
+.cookie-hint {
+  margin: 8px 0 0;
+  color: #8a99a8;
+  font-size: 12px;
 }
 
 .page-header {

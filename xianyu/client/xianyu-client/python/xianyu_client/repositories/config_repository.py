@@ -30,3 +30,21 @@ class ConfigRepository:
         ).on_conflict_do_nothing(index_elements=[ConfigModel.key])
         await self._session.execute(statement)
 
+    async def upsert_value(self, key: str, value: str, description: str) -> None:
+        """Write one config value, inserting the row when it does not exist.
+
+        Args:
+            key: Unique configuration key.
+            value: New configuration value.
+            description: Human readable description used on first insert.
+        """
+        statement = insert(ConfigModel).values(
+            key=key,
+            value=value,
+            description=description,
+        ).on_conflict_do_update(
+            index_elements=[ConfigModel.key],
+            set_={"value": value},
+        )
+        await self._session.execute(statement)
+

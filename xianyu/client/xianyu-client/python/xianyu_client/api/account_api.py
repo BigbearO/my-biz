@@ -19,9 +19,14 @@ from xianyu_client.core.constants import (
 from xianyu_client.core.errors import (
     AccountNotFoundError,
     AccountStateConflictError,
+    AuthTokenUnavailableError,
+    CloudForbiddenError,
+    CloudReportError,
+    CloudUnauthorizedError,
     CredentialUnavailableError,
     DuplicateGoodfishIdError,
     InvalidXianyuCookieError,
+    NotLoggedInError,
     XianyuCookieMismatchError,
     XianyuNetworkError,
     XianyuProtocolError,
@@ -29,6 +34,7 @@ from xianyu_client.core.errors import (
 )
 from xianyu_client.schemas.account_schemas import (
     AccountCreateRequest,
+    AccountDetailResponse,
     AccountResponse,
     AccountUpdateRequest,
 )
@@ -76,7 +82,8 @@ async def create_account(
         The persisted non-secret account representation.
 
     Raises:
-        HTTPException: When the Goodfish ID is duplicate or credentials are unavailable.
+        HTTPException: When the Goodfish ID is duplicate, credentials are unavailable,
+            the caller is not logged in, or the cloud rejects the account report.
     """
     try:
         return await account_service.create_account(request)
@@ -85,7 +92,22 @@ async def create_account(
             status_code=status.HTTP_409_CONFLICT,
             detail=ACCOUNT_DUPLICATE_ERROR_MESSAGE,
         ) from error
-    except CredentialUnavailableError as error:
+    except (NotLoggedInError, CloudUnauthorizedError) as error:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(error),
+        ) from error
+    except CloudForbiddenError as error:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=str(error),
+        ) from error
+    except CloudReportError as error:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=str(error),
+        ) from error
+    except (CredentialUnavailableError, AuthTokenUnavailableError) as error:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=CREDENTIAL_UNAVAILABLE_ERROR_MESSAGE,
@@ -132,6 +154,37 @@ async def update_account(
         ) from error
     except _PROTOCOL_ERROR_TYPES as error:
         _raise_protocol_error(error)
+
+
+@router.get("/{account_id}/detail", response_model=AccountDetailResponse, response_model_by_alias=True)
+async def get_account_detail(
+    account_id: int,
+    account_service: AccountService = Depends(get_account_service),
+) -> AccountDetailResponse:
+    """Return one account including its decrypted cookie for the detail dialog.
+
+    Args:
+        account_id: Local database identifier.
+        account_service: Service providing account orchestration.
+
+    Returns:
+        The account representation with the plaintext cookie.
+
+    Raises:
+        HTTPException: When the account is missing or the cookie cannot be decrypted.
+    """
+    try:
+        return await account_service.get_account_detail(account_id)
+    except AccountNotFoundError as error:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=ACCOUNT_NOT_FOUND_ERROR_MESSAGE,
+        ) from error
+    except CredentialUnavailableError as error:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=CREDENTIAL_UNAVAILABLE_ERROR_MESSAGE,
+        ) from error
 
 
 @router.post("/{account_id}/verify", response_model=AccountResponse, response_model_by_alias=True)

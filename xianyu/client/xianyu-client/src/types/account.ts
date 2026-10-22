@@ -20,3 +20,7 @@ export interface AccountUpdatePayload {
   remark: string;
   cookie?: string;
 }
+
+export interface AccountDetail extends AccountRecord {
+  cookie: string;
+}

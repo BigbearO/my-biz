@@ -7,6 +7,8 @@ const {
   APP_STARTUP_ERROR_MESSAGE,
   APP_STARTUP_ERROR_TITLE,
   APP_UNEXPECTED_ERROR_MESSAGE,
+  CLOUD_CAPTCHA_CHANNEL,
+  CLOUD_LOGIN_CHANNEL,
   DEFAULT_LOG_LEVEL,
   DEV_MODE_ARGUMENT,
   DEV_RENDERER_URL,
@@ -30,6 +32,7 @@ const {
   WINDOW_TITLE,
   WINDOW_WIDTH
 } = require("./constants");
+const { fetchCaptcha, login: cloudLogin } = require("./cloud-auth");
 const {
   hasProcessExited,
   registerProcess,
@@ -215,6 +218,8 @@ async function bootstrapApplication() {
 
   await startLocalService(dataDir, localToken);
   ipcMain.handle(LOCAL_REQUEST_CHANNEL, (_event, pathname, options) => requestLocalApi(pathname, options));
+  ipcMain.handle(CLOUD_LOGIN_CHANNEL, (_event, credentials) => cloudLogin(credentials));
+  ipcMain.handle(CLOUD_CAPTCHA_CHANNEL, () => fetchCaptcha());
 
   mainWindow = createMainWindow();
   if (isDevelopmentMode()) {

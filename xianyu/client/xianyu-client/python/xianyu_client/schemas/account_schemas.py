@@ -62,3 +62,9 @@ class AccountResponse(BaseModel):
     last_check_at: datetime = Field(serialization_alias="lastCheckAt")
     created_at: datetime = Field(serialization_alias="createdAt")
     updated_at: datetime = Field(serialization_alias="updatedAt")
+
+
+class AccountDetailResponse(AccountResponse):
+    """Account representation that includes the decrypted cookie for the detail dialog."""
+
+    cookie: str

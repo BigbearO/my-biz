@@ -47,3 +47,16 @@ class ConfigManager:
             config: ConfigModel | None = await repository.find_by_key(key)
             return config.value if config is not None else default
 
+    async def set_value(self, key: str, value: str, description: str) -> None:
+        """Persist one configuration value atomically.
+
+        Args:
+            key: Unique configuration key.
+            value: New configuration value.
+            description: Description used when the row does not exist yet.
+        """
+        async with self._session_factory() as session:
+            repository = ConfigRepository(session)
+            await repository.upsert_value(key, value, description)
+            await session.commit()
+

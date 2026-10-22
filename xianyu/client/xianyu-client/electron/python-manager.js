@@ -5,6 +5,8 @@ const path = require("node:path");
 const { spawn } = require("node:child_process");
 
 const {
+  CLOUD_BASE_URL_DEFAULT,
+  CLOUD_BASE_URL_ENV_NAME,
   DEVELOPMENT_RUNTIME_ENV,
   HANDSHAKE_BEGIN,
   HANDSHAKE_END,
@@ -163,7 +165,8 @@ async function startPythonService({ dataDir, localToken, logLevel, isPackaged })
       [LOCAL_TOKEN_ENV_NAME]: localToken,
       [LOG_LEVEL_ENV_NAME]: logLevel,
       [RUNTIME_ENV_NAME]: isPackaged ? PRODUCTION_RUNTIME_ENV : DEVELOPMENT_RUNTIME_ENV,
-      [PYTHON_PARENT_PIPE_ENV_NAME]: PYTHON_PARENT_PIPE_ENABLED_VALUE
+      [PYTHON_PARENT_PIPE_ENV_NAME]: PYTHON_PARENT_PIPE_ENABLED_VALUE,
+      [CLOUD_BASE_URL_ENV_NAME]: process.env[CLOUD_BASE_URL_ENV_NAME] || CLOUD_BASE_URL_DEFAULT
     },
     stdio: ["pipe", "pipe", "pipe"],
     windowsHide: true

@@ -4,8 +4,14 @@ from xianyu_client.core.constants import (
     ACCOUNT_DUPLICATE_ERROR_MESSAGE,
     ACCOUNT_NOT_FOUND_ERROR_MESSAGE,
     ACCOUNT_STATE_CONFLICT_ERROR_MESSAGE,
+    AUTH_TOKEN_DECRYPTION_ERROR_MESSAGE,
+    CLOUD_FORBIDDEN_ERROR_MESSAGE,
+    CLOUD_REPORT_FAILED_ERROR_MESSAGE,
+    CLOUD_UNAVAILABLE_ERROR_MESSAGE,
+    CLOUD_UNAUTHORIZED_ERROR_MESSAGE,
     CREDENTIAL_UNAVAILABLE_ERROR_MESSAGE,
     INVALID_XIANYU_COOKIE_ERROR_MESSAGE,
+    NOT_LOGGED_IN_ERROR_MESSAGE,
     XIANYU_COOKIE_MISMATCH_ERROR_MESSAGE,
     XIANYU_NETWORK_ERROR_MESSAGE,
     XIANYU_PROTOCOL_ERROR_MESSAGE,
@@ -83,3 +89,55 @@ class XianyuRiskControlError(Exception):
     def __init__(self) -> None:
         """Create the error without retaining verification links."""
         super().__init__(XIANYU_RISK_CONTROL_ERROR_MESSAGE)
+
+
+class NotLoggedInError(Exception):
+    """Raised when the local service has no usable cloud login token."""
+
+    def __init__(self) -> None:
+        """Create the error with its stable external message."""
+        super().__init__(NOT_LOGGED_IN_ERROR_MESSAGE)
+
+
+class CloudUnauthorizedError(Exception):
+    """Raised when the cloud gateway rejects the stored token with HTTP 401."""
+
+    def __init__(self) -> None:
+        """Create the error with its stable external message."""
+        super().__init__(CLOUD_UNAUTHORIZED_ERROR_MESSAGE)
+
+
+class CloudForbiddenError(Exception):
+    """Raised when the cloud reports that the account authorization expired."""
+
+    def __init__(self) -> None:
+        """Create the error with its stable external message."""
+        super().__init__(CLOUD_FORBIDDEN_ERROR_MESSAGE)
+
+
+class CloudReportError(Exception):
+    """Raised when an account cannot be reported to the cloud."""
+
+    def __init__(self) -> None:
+        """Create the error with its stable external message."""
+        super().__init__(CLOUD_REPORT_FAILED_ERROR_MESSAGE)
+
+
+class CloudUnavailableError(Exception):
+    """Raised when the cloud stays unreachable after the retry budget."""
+
+    def __init__(self) -> None:
+        """Create the error with its stable external message."""
+        super().__init__(CLOUD_UNAVAILABLE_ERROR_MESSAGE)
+
+
+class AuthTokenUnavailableError(Exception):
+    """Raised when the stored login token cannot be encrypted or decrypted."""
+
+    def __init__(self, message: str = AUTH_TOKEN_DECRYPTION_ERROR_MESSAGE) -> None:
+        """Create the error with a non-secret message.
+
+        Args:
+            message: Stable external message describing the failure.
+        """
+        super().__init__(message)
