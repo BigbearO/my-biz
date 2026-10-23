@@ -2,7 +2,9 @@ package org.dromara.goodfish.item.domain.bo;
 
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
+import org.dromara.goodfish.item.constants.GoodfishItemConstants;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -31,6 +33,7 @@ public class GoodfishItemCopyPromptBo implements Serializable {
      * 目标商品主键集合（可多选）
      */
     @NotEmpty(message = "目标商品不能为空")
+    @Size(max = GoodfishItemConstants.SYNC_MAX_ITEMS, message = "单次复制目标商品数不能超过 500")
     private List<Long> targetItemIds;
 
 }

@@ -119,11 +119,28 @@ class FakeLlmClient:
         )
 
 
+DEFAULT_SYSTEM_PROMPT = (
+    "你是一位专业的闲鱼客服AI助手。\n"
+    "## 商品信息\n"
+    "标题：{{item_title}}\n"
+    "描述：{{item_desc}}\n"
+    "价格：{{item_price}}\n"
+    "## 核心原则\n"
+    "回复不超过{{max_reply_length}}个字。\n"
+    "## 买家问题\n"
+    "{{question}}"
+)
+
+
 def make_item_runtime_config(
     *,
-    system_prompt: str = "你是一位专业的闲鱼客服AI助手。",
+    system_prompt: str = DEFAULT_SYSTEM_PROMPT,
     max_reply_length: int = 50,
+    price_prompt: str = "",
+    tech_prompt: str = "",
+    default_prompt: str = "",
 ) -> Any:
+    """Build a real item.v1.ItemRuntimeConfig; scenario prompts stay blank by default."""
     return item_pb2.ItemRuntimeConfig(
         item_id="item-1",
         title="测试商品",
@@ -133,9 +150,9 @@ def make_item_runtime_config(
         image_url="",
         prompt=item_pb2.PromptConfig(
             system_prompt=system_prompt,
-            price_prompt="可以小刀",
-            tech_prompt="支持七天无理由",
-            default_prompt="默认引导",
+            price_prompt=price_prompt,
+            tech_prompt=tech_prompt,
+            default_prompt=default_prompt,
             max_reply_length=max_reply_length,
         ),
     )

@@ -480,3 +480,120 @@ async def test_persistence_failure_rolls_back_all_tables(
     assert logs == []
     # The placeholder must be released so a retry is not blocked.
     assert await fake_redis.get(f"{IDEMPOTENCY_KEY_PREFIX}{REQUEST_ID}") is None
+
+
+@pytest.mark.asyncio
+async def test_product_system_prompt_text_is_used_verbatim(
+    session_factory: async_sessionmaker[AsyncSession],
+    settings_provider: Callable[[], BusinessSettings],
+    fake_redis: Any,
+    conversation_repository: ConversationRepository,
+    message_repository: MessageRepository,
+    reply_log_repository: ReplyLogRepository,
+) -> None:
+    item = FakeItemClient()
+    item.result = make_item_runtime_config(
+        system_prompt="你是只卖二手机的客服，只谈这台机器的成色。{{question}}",
+    )
+    llm = FakeLlmClient()
+    service = _build(
+        session_factory,
+        settings_provider,
+        fake_redis,
+        conversation_repository,
+        message_repository,
+        reply_log_repository,
+        item_client=item,
+        llm_client=llm,
+    )
+
+    await _reply(service)
+
+    content = llm.calls[0]["messages"][0]["content"]
+    # The operator's wording must survive; no built-in template may override it.
+    assert "你是只卖二手机的客服" in content
+    assert MESSAGE in content
+    assert "闲鱼客服AI助手。请根据用户消息和上下文" not in content
+
+
+@pytest.mark.asyncio
+async def test_question_section_appended_when_placeholder_missing(
+    session_factory: async_sessionmaker[AsyncSession],
+    settings_provider: Callable[[], BusinessSettings],
+    fake_redis: Any,
+    conversation_repository: ConversationRepository,
+    message_repository: MessageRepository,
+    reply_log_repository: ReplyLogRepository,
+) -> None:
+    item = FakeItemClient()
+    item.result = make_item_runtime_config(
+        system_prompt="你是一位专业的闲鱼客服AI助手，只依据商品信息回答。",
+    )
+    llm = FakeLlmClient()
+    service = _build(
+        session_factory,
+        settings_provider,
+        fake_redis,
+        conversation_repository,
+        message_repository,
+        reply_log_repository,
+        item_client=item,
+        llm_client=llm,
+    )
+
+    await _reply(service)
+
+    content = llm.calls[0]["messages"][0]["content"]
+    assert "## 买家问题" in content
+    assert MESSAGE in content
+
+
+@pytest.mark.asyncio
+async def test_scenario_sections_only_include_configured_prompts(
+    session_factory: async_sessionmaker[AsyncSession],
+    settings_provider: Callable[[], BusinessSettings],
+    fake_redis: Any,
+    conversation_repository: ConversationRepository,
+    message_repository: MessageRepository,
+    reply_log_repository: ReplyLogRepository,
+) -> None:
+    item = FakeItemClient()
+    llm = FakeLlmClient()
+    service = _build(
+        session_factory,
+        settings_provider,
+        fake_redis,
+        conversation_repository,
+        message_repository,
+        reply_log_repository,
+        item_client=item,
+        llm_client=llm,
+    )
+
+    # Default: all three scenario prompts are blank -> no scenario section.
+    await _reply(service)
+    assert "## 场景处理指南" not in llm.calls[0]["messages"][0]["content"]
+
+    # Configured: only the price scenario appears, blank ones are omitted.
+    item.result = make_item_runtime_config(
+        price_prompt="最多让 5 元，超过就礼貌拒绝。",
+        tech_prompt="",
+        default_prompt="",
+    )
+    scenario_llm = FakeLlmClient()
+    service_with_scenarios = _build(
+        session_factory,
+        settings_provider,
+        fake_redis,
+        conversation_repository,
+        message_repository,
+        reply_log_repository,
+        item_client=item,
+        llm_client=scenario_llm,
+    )
+    await _reply(service_with_scenarios, request_id="req-scenario")
+
+    content = scenario_llm.calls[0]["messages"][0]["content"]
+    assert "## 场景处理指南" in content
+    assert "最多让 5 元" in content
+    assert "### 当用户询问产品技术/功能/使用问题时" not in content

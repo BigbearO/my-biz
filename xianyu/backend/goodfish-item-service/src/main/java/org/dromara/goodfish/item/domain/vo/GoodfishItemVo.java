@@ -98,4 +98,9 @@ public class GoodfishItemVo implements Serializable {
      */
     private Integer maxReplyLength;
 
+    /**
+     * 是否已配置提示词（列表页标记；详情页为 null，按 systemPrompt 判断）
+     */
+    private Boolean promptConfigured;
+
 }

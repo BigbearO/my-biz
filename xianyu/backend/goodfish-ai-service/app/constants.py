@@ -101,6 +101,18 @@ PROMPT_VAR_TECH_PROMPT = "{{tech_prompt}}"
 PROMPT_VAR_DEFAULT_PROMPT = "{{default_prompt}}"
 DEFAULT_MAX_REPLY_LENGTH = 50
 
+# 提示词拼接（方案 A：商品 system_prompt 即最终系统提示词，以下为追加段落）
+PROMPT_SECTION_SCENARIO = "## 场景处理指南"
+PROMPT_SECTION_QUESTION = "## 买家问题"
+PROMPT_SECTION_SEPARATOR = "\n\n"
+PROMPT_SCENARIO_PRICE_TITLE = "### 当用户明确要求降价/优惠/砍价时"
+PROMPT_SCENARIO_TECH_TITLE = "### 当用户询问产品技术/功能/使用问题时"
+PROMPT_SCENARIO_DEFAULT_TITLE = "### 其他一般咨询（物流、售后、商品介绍等）"
+# 商品提示词未包含 {{question}} 时的兜底段落（保证模型一定看得到买家提问）
+PROMPT_QUESTION_FALLBACK_TEMPLATE = (
+    f"{PROMPT_SECTION_QUESTION}\n基于上述，回复买家。问题如下：\n"
+)
+
 # 图片
 IMAGE_FILE_EXTENSION = ".png"
 IMAGE_VIEW_URL_PREFIX = "/api/ai/image/view/"

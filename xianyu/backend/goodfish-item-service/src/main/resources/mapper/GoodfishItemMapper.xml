@@ -2,17 +2,24 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.dromara.goodfish.item.mapper.GoodfishItemMapper">
 
-    <!-- 批量 upsert：单条 CTE 语句完成插入/更新/复活并分类计数（xmax = 0 判定插入） -->
+    <!--
+      批量 upsert：单条 CTE 语句完成插入/更新/复活并分类计数（xmax = 0 判定插入）。
+      id 由应用侧雪花算法生成（MyBatis-Plus ASSIGN_ID），表主键不是自增列，
+      因此 values 必须显式写入 id；冲突更新时保留原 id。
+      依赖唯一索引 uk_gfid_item(goodfish_account_id, goodfish_item_id)，
+      见 sql/goodfish_item_indexes.sql。
+    -->
     <select id="upsertBatch" resultType="org.dromara.goodfish.item.domain.vo.GoodfishItemSyncCountVo">
         with ins as (
-            insert into goodfish_item (account_id, goodfish_account_id, goodfish_item_id, title,
+            insert into goodfish_item (id, account_id, goodfish_account_id, goodfish_item_id, title,
                                        description, price, stock_status, image_url, sync_time, del_flag)
             values
             <foreach collection="entities" item="it" separator=",">
-                (#{it.accountId}, #{it.goodfishAccountId}, #{it.goodfishItemId}, #{it.title},
+                (#{it.id}, #{it.accountId}, #{it.goodfishAccountId}, #{it.goodfishItemId}, #{it.title},
                  #{it.description}, #{it.price}, #{it.stockStatus}, #{it.imageUrl}, #{it.syncTime}, '0')
             </foreach>
             on conflict (goodfish_account_id, goodfish_item_id) do update set
+                account_id   = excluded.account_id,
                 title        = excluded.title,
                 description  = excluded.description,
                 price        = excluded.price,
@@ -35,6 +42,17 @@
         from goodfish_item i
         left join goodfish_item_prompt p on p.item_id = i.id
         where i.id = #{id} and i.del_flag = '0'
+    </select>
+
+    <!--
+      商品列表：用 EXISTS 子查询取"是否已配置提示词"，避免 join 造成 id 列歧义
+      （自定义分页会用 ${ew.customSqlSegment} 追加 WHERE/ORDER BY，字段名必须无歧义）。
+    -->
+    <select id="selectVoPageWithPromptFlag" resultType="org.dromara.goodfish.item.domain.vo.GoodfishItemVo">
+        select i.*,
+               exists(select 1 from goodfish_item_prompt p where p.item_id = i.id) as prompt_configured
+        from goodfish_item i
+        ${ew.customSqlSegment}
     </select>
 
     <!-- 运行时配置（联表提示词；对话链路按闲鱼账号 ID + 闲鱼商品 ID 直查） -->

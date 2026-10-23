@@ -1,7 +1,7 @@
 package org.dromara.goodfish.item.service.impl;
 
 import account.v1.Account;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.common.core.domain.PageResult;
@@ -84,7 +84,7 @@ public class GoodfishItemServiceImpl implements IGoodfishItemService {
      */
     @Override
     public PageResult<GoodfishItemVo> queryPageList(GoodfishItemQueryBo bo, PageQuery pageQuery) {
-        Page<GoodfishItemVo> page = itemManager.selectVoPage(pageQuery.build(),
+        IPage<GoodfishItemVo> page = itemManager.selectVoPage(pageQuery,
             bo.getGoodfishAccountId(), bo.getTitle());
         return PageResult.build(page.getRecords(), page.getTotal());
     }
@@ -140,10 +140,13 @@ public class GoodfishItemServiceImpl implements IGoodfishItemService {
             throw new ServiceException(GoodfishItemConstants.MSG_ITEM_NOT_FOUND,
                 GoodfishItemConstants.CODE_ITEM_NOT_FOUND);
         }
+        // 复制是覆盖语义：源未配置字数时按默认值覆盖目标（其余字段为 null 时保留目标原值）
+        Integer sourceMaxReplyLength = source.getMaxReplyLength() == null
+            ? GoodfishItemConstants.DEFAULT_MAX_REPLY_LENGTH : source.getMaxReplyLength();
         for (GoodfishItemVo target : targets) {
             promptManager.upsertByItemId(buildPrompt(target.getId(), source.getSystemPrompt(),
                 source.getPricePrompt(), source.getTechPrompt(), source.getDefaultPrompt(),
-                source.getMaxReplyLength()));
+                sourceMaxReplyLength));
             runtimeCacheManager.delete(target.getGoodfishAccountId(), target.getGoodfishItemId());
         }
         return true;
@@ -158,7 +161,11 @@ public class GoodfishItemServiceImpl implements IGoodfishItemService {
     }
 
     /**
-     * 组装提示词实体（最大回复字数空值回落默认值）.
+     * 组装提示词实体.
+     *
+     * <p>null 保持 null 传给 Mapper：SQL 侧用 COALESCE 实现「未传不改」，
+     * 仅在插入新行时回落默认最大回复字数。若在此处把 null 换成默认值，
+     * 用户只改标题时会把已有提示词字数重置为 50.</p>
      */
     private GoodfishItemPrompt buildPrompt(Long itemId, String systemPrompt, String pricePrompt,
                                            String techPrompt, String defaultPrompt, Integer maxReplyLength) {
@@ -168,8 +175,7 @@ public class GoodfishItemServiceImpl implements IGoodfishItemService {
         prompt.setPricePrompt(pricePrompt);
         prompt.setTechPrompt(techPrompt);
         prompt.setDefaultPrompt(defaultPrompt);
-        prompt.setMaxReplyLength(maxReplyLength == null
-            ? GoodfishItemConstants.DEFAULT_MAX_REPLY_LENGTH : maxReplyLength);
+        prompt.setMaxReplyLength(maxReplyLength);
         return prompt;
     }
 

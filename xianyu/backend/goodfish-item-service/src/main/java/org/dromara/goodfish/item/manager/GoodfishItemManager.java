@@ -1,10 +1,12 @@
 package org.dromara.goodfish.item.manager;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import lombok.RequiredArgsConstructor;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.utils.StringUtils;
+import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.goodfish.item.constants.GoodfishItemConstants;
 import org.dromara.goodfish.item.domain.GoodfishItem;
 import org.dromara.goodfish.item.domain.bo.GoodfishItemSyncItemBo;
@@ -33,6 +35,9 @@ public class GoodfishItemManager {
     /**
      * 批量 upsert（单条 CTE 语句；保留提示词、软删记录复活）.
      *
+     * <p>表主键是雪花 ID（MyBatis-Plus ASSIGN_ID），不是自增列；原生 CTE 语句
+     * 不经过 MyBatis-Plus 的 ID 填充，因此必须在此显式赋值，否则插入 NULL 主键.</p>
+     *
      * @param accountId         云端账号主键（gRPC 解析得到）
      * @param goodfishAccountId 闲鱼账号 ID（冗余字段）
      * @param items             全量商品上报列表
@@ -43,6 +48,7 @@ public class GoodfishItemManager {
         LocalDateTime syncTime = LocalDateTime.now();
         List<GoodfishItem> entities = items.stream().map(it -> {
             GoodfishItem entity = new GoodfishItem();
+            entity.setId(IdWorker.getId());
             entity.setAccountId(accountId);
             entity.setGoodfishAccountId(goodfishAccountId);
             entity.setGoodfishItemId(it.getGoodfishItemId());
@@ -58,14 +64,17 @@ public class GoodfishItemManager {
     }
 
     /**
-     * 分页查询商品（列表页不联提示词表）.
+     * 分页查询商品（列表加载"是否已配置提示词"标记，不加载提示词正文）.
+     *
+     * <p>自定义 XML 分页不会自动附加逻辑删除条件，需显式过滤 del_flag.</p>
      */
-    public Page<GoodfishItemVo> selectVoPage(Page<GoodfishItem> page, String goodfishAccountId, String title) {
+    public IPage<GoodfishItemVo> selectVoPage(PageQuery pageQuery, String goodfishAccountId, String title) {
         LambdaQueryWrapper<GoodfishItem> lqw = new LambdaQueryWrapper<>();
-        lqw.eq(StringUtils.isNotBlank(goodfishAccountId), GoodfishItem::getGoodfishAccountId, goodfishAccountId)
+        lqw.eq(GoodfishItem::getDelFlag, GoodfishItemConstants.DEL_FLAG_NORMAL)
+            .eq(StringUtils.isNotBlank(goodfishAccountId), GoodfishItem::getGoodfishAccountId, goodfishAccountId)
             .like(StringUtils.isNotBlank(title), GoodfishItem::getTitle, title)
             .orderByDesc(GoodfishItem::getId);
-        return itemMapper.selectVoPage(page, lqw);
+        return itemMapper.selectVoPageWithPromptFlag(pageQuery.build(), lqw);
     }
 
     /**
@@ -106,6 +115,8 @@ public class GoodfishItemManager {
 
     /**
      * 更新商品基本信息（标题 / 描述 / 价格；库存状态只读不在此更新）.
+     *
+     * <p>MyBatis-Plus 默认忽略 null 字段，未传的字段不会被清空.</p>
      */
     public boolean updateBasicById(Long id, String title, String description, String price) {
         GoodfishItem update = new GoodfishItem();
@@ -125,7 +136,7 @@ public class GoodfishItemManager {
     }
 
     /**
-     * 解析价格：空值按 null 入库，非法格式直接拒绝.
+     * 解析价格：空值按 null 入库（MyBatis-Plus 不会清空已有值），非法格式直接拒绝.
      */
     private BigDecimal parsePrice(String price) {
         if (StringUtils.isBlank(price)) {

@@ -147,6 +147,7 @@ class ReplyService:
         intent = self._intents.detect(message)
         rendered_system_prompt = self._prompts.render_system_prompt(
             PromptInputs(
+                system_prompt=prompt_config.system_prompt,
                 item_title=item.title,
                 item_desc=item.description,
                 item_price=item.price,
