@@ -11,8 +11,12 @@ NACOS_REGISTER_IP_PROBE_PORT = 80
 NACOS_REGISTER_IP_PROBE_TIMEOUT_SECONDS = 1.0
 GRPC_TIMEOUT_MS = 5000
 GRPC_SERVICE_ALIAS_LLM_MODEL = "llm-model"
+GRPC_SERVICE_ALIAS_LLM = "llm"
+GRPC_SERVICE_ALIAS_ITEM = "item"
+GRPC_ITEM_DEADLINE_RETRY_LIMIT = 1
 API_LLM_MODELS_ROUTE = "/api/llm-models"
 API_LLM_MODEL_DETAIL_ROUTE = "/api/llm-models/{model_id}"
+API_AI_REPLY_ROUTE = "/api/ai/reply"
 DEFAULT_PAGE = 1
 DEFAULT_PAGE_SIZE = 10
 GRPC_CALL_FAILED_DETAIL = "gRPC call failed"
@@ -43,3 +47,96 @@ OPENTELEMETRY_TRACES_ENDPOINT_ENV = "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"
 OPENTELEMETRY_LOGS_ENDPOINT_ENV = "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT"
 OPENTELEMETRY_HEADERS_ENV = "OTEL_EXPORTER_OTLP_HEADERS"
 OPENTELEMETRY_SECURE_SCHEME = "https://"
+
+# ---------------------------------------------------------------------------
+# 对话服务业务常量
+# ---------------------------------------------------------------------------
+
+# 业务错误码（接口与幂等方案 §4.3）
+BUSINESS_CODE_SUCCESS = 0
+BUSINESS_CODE_INVALID_ARGUMENT = 40001
+BUSINESS_CODE_UNAUTHORIZED = 40101
+BUSINESS_CODE_FORBIDDEN = 40301
+BUSINESS_CODE_ITEM_NOT_FOUND = 40401
+BUSINESS_CODE_ITEM_PROMPT_EMPTY = 40402
+BUSINESS_CODE_LLM_CALL_FAILED = 50001
+BUSINESS_CODE_NO_ENABLED_MODEL = 50002
+BUSINESS_CODE_SERVICE_UNAVAILABLE = 50301
+
+# 业务错误消息（对外文案，禁止散落字面量）
+MESSAGE_SUCCESS = "success"
+MESSAGE_INVALID_ARGUMENT = "参数非法"
+MESSAGE_ITEM_NOT_FOUND = "商品不存在"
+MESSAGE_ITEM_PROMPT_EMPTY = "商品未配置提示词"
+MESSAGE_LLM_CALL_FAILED = "大模型调用失败"
+MESSAGE_NO_ENABLED_MODEL = "无启用的模型"
+MESSAGE_SERVICE_UNAVAILABLE = "服务不可用"
+MESSAGE_IDEMPOTENCY_IN_PROGRESS = "请求处理中，请稍后重试"
+
+# 消息角色与类型（存储设计 §3.2）
+ROLE_USER = "user"
+ROLE_ASSISTANT = "assistant"
+ROLE_SYSTEM = "system"
+MESSAGE_TYPE_TEXT = "text"
+MESSAGE_TYPE_IMAGE = "image"
+
+# 会话
+CONVERSATION_ID_SEPARATOR = "_"
+
+# 意图（AI回复编排 §2.2 第 7 步，仅落库统计）
+INTENT_PRICE = "price"
+INTENT_TECH = "tech"
+INTENT_CHITCHAT = "chitchat"
+INTENT_DEFAULT = "default"
+INTENT_KEYWORD_KEYS = (INTENT_PRICE, INTENT_TECH, INTENT_CHITCHAT)
+
+# 提示词变量（AI回复编排 §2.7.2）
+PROMPT_VAR_ITEM_TITLE = "{{item_title}}"
+PROMPT_VAR_ITEM_DESC = "{{item_desc}}"
+PROMPT_VAR_ITEM_PRICE = "{{item_price}}"
+PROMPT_VAR_MAX_REPLY_LENGTH = "{{max_reply_length}}"
+PROMPT_VAR_QUESTION = "{{question}}"
+PROMPT_VAR_PRICE_PROMPT = "{{price_prompt}}"
+PROMPT_VAR_TECH_PROMPT = "{{tech_prompt}}"
+PROMPT_VAR_DEFAULT_PROMPT = "{{default_prompt}}"
+DEFAULT_MAX_REPLY_LENGTH = 50
+
+# 图片
+IMAGE_FILE_EXTENSION = ".png"
+IMAGE_VIEW_URL_PREFIX = "/api/ai/image/view/"
+IMAGE_PLACEHOLDER_TEXT = "[图片]"
+
+# 表与索引（存储设计 §3）
+TABLE_AI_CONVERSATION = "ai_conversation"
+TABLE_AI_CONVERSATION_MESSAGE = "ai_conversation_message"
+TABLE_AI_REPLY_LOG = "ai_reply_log"
+INDEX_UK_CONVERSATION_ID = "uk_conversation_id"
+INDEX_MESSAGE_CONVERSATION_ID = "idx_message_conversation_id"
+INDEX_CONVERSATION_LAST_MESSAGE_AT = "idx_conversation_last_message_at"
+INDEX_REPLY_LOG_CONVERSATION_ID = "idx_reply_log_conversation_id"
+INDEX_REPLY_LOG_CREATED_AT = "idx_reply_log_created_at"
+
+# 配置键（Nacos Data ID goodfish-ai-service.yaml 顶层段）
+CONFIG_KEY_DATABASE = "database"
+CONFIG_KEY_REDIS = "redis"
+CONFIG_KEY_CONVERSATION = "conversation"
+CONFIG_KEY_IDEMPOTENCY = "idempotency"
+CONFIG_KEY_LLM = "llm"
+CONFIG_KEY_IMAGE = "image"
+CONFIG_KEY_INTENT = "intent"
+CONFIG_KEY_ITEM = "item"
+CONFIG_KEY_QUERY = "query"
+
+# 幂等键（接口与幂等方案 §2.1/§三）
+IDEMPOTENCY_KEY_PREFIX = "ai:idem:"
+
+# OpenAI 兼容调用
+OPENAI_CHAT_COMPLETIONS_PATH = "/v1/chat/completions"
+OPENAI_ROLE_SYSTEM = "system"
+OPENAI_ROLE_USER = "user"
+OPENAI_TYPE_IMAGE_URL = "image_url"
+OPENAI_TYPE_TEXT = "text"
+
+# 下游 gRPC 默认服务名（Nacos 注册名）
+GRPC_SERVICE_NAME_ITEM_DEFAULT = "goodfish-item-service-grpc"
+GRPC_SERVICE_NAME_LLM_DEFAULT = "goodfish-llm-service-grpc"
