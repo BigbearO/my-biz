@@ -9,6 +9,7 @@ import (
 	"llm-manage/app/admin/service/internal/data"
 	"llm-manage/app/admin/service/internal/data/client"
 	"llm-manage/app/admin/service/internal/manager"
+	"llm-manage/app/admin/service/internal/pkg/idgen"
 	"llm-manage/app/admin/service/internal/server"
 	"llm-manage/app/admin/service/internal/service"
 	"llm-manage/app/admin/service/internal/utils"
@@ -45,6 +46,13 @@ func initApp(ctx *bootstrap.Context) (*kratos.App, func(), error) {
 	}
 
 	// ═══════════════════════ 一、基础设施 ═══════════════════════
+
+	// 雪花 ID 生成器（应用侧主键，关闭数据库自增后必须在使用数据库前就绪）
+	// 节点号由 SNOWFLAKE_NODE_ID 注入，缺省 32（llm 段起点）；多实例必须各不相同。
+	if _, idErr := idgen.InitFromEnv(); idErr != nil {
+		rollback()
+		return nil, func() {}, idErr
+	}
 
 	// 数据库客户端
 	db, dbCleanup, err := client.NewDatabaseClient(ctx)
