@@ -8,8 +8,10 @@ import {
   createAccount,
   deleteAccount,
   getAccountDetail,
+  getItemSyncStatus,
   getSystemStatus,
   listAccounts,
+  startItemSync,
   updateAccount,
   verifyAccount
 } from "@/api/local-client";
@@ -38,7 +40,6 @@ import {
   ACCOUNT_LISTEN_BUTTON,
   ACCOUNT_LISTEN_UNSUPPORTED_MESSAGE,
   ACCOUNT_SYNC_BUTTON,
-  ACCOUNT_SYNC_UNSUPPORTED_MESSAGE,
   ACCOUNT_CREATED_AT_LABEL,
   ACCOUNT_DELETE_BUTTON,
   ACCOUNT_DELETE_CONFIRM_BUTTON,
@@ -81,6 +82,13 @@ import {
   ACCOUNT_VERIFY_ERROR_MESSAGE,
   ACCOUNT_VERIFY_SUCCESS_MESSAGE,
   ACCOUNT_VERSION_LABEL,
+  ITEM_SYNC_POLL_INTERVAL_MS,
+  ITEM_SYNC_POLL_MAX_ATTEMPTS,
+  ITEM_SYNC_PROGRESS_MESSAGE,
+  ITEM_SYNC_START_ERROR_MESSAGE,
+  ITEM_SYNC_STATE_FAILED,
+  ITEM_SYNC_STATE_RUNNING,
+  ITEM_SYNC_TIMEOUT_MESSAGE,
   STATUS_POLL_INTERVAL_MS
 } from "@/constants/account";
 import { ROUTE_PATH_FROZEN, ROUTE_PATH_LOGIN } from "@/constants/layout";
@@ -93,6 +101,7 @@ import {
   SERVICE_STATE_READY
 } from "@/constants/system";
 import type { AccountDetail, AccountRecord } from "@/types/account";
+import type { ItemSyncStatus } from "@/types/item";
 import type { SystemStatus } from "@/types/system";
 
 interface AccountForm {
@@ -116,6 +125,7 @@ const detailVisible = ref(false);
 const detailLoading = ref(false);
 const detailAccount = ref<AccountDetail | null>(null);
 const cookieVisible = ref(false);
+const syncingAccountId = ref<number | null>(null);
 const router = useRouter();
 let statusTimer: number | undefined;
 
@@ -476,10 +486,60 @@ function handleListenUnsupported(): void {
 }
 
 /**
- * Explain that item synchronisation is not part of this release.
+ * Wait before the next synchronisation status poll.
+ *
+ * @param milliseconds Delay in milliseconds.
+ * @returns Promise resolved after the delay.
  */
-function handleSyncUnsupported(): void {
-  ElMessage.info(ACCOUNT_SYNC_UNSUPPORTED_MESSAGE);
+function delay(milliseconds: number): Promise<void> {
+  return new Promise(resolve => {
+    window.setTimeout(resolve, milliseconds);
+  });
+}
+
+/**
+ * Poll the local service until the synchronisation leaves the running state.
+ *
+ * @param accountId Local account identifier.
+ * @returns Promise resolving to the final synchronisation state.
+ */
+async function pollItemSync(accountId: number): Promise<ItemSyncStatus> {
+  for (let attempt = 0; attempt < ITEM_SYNC_POLL_MAX_ATTEMPTS; attempt += 1) {
+    await delay(ITEM_SYNC_POLL_INTERVAL_MS);
+    const currentSyncStatus = await getItemSyncStatus(accountId);
+    if (currentSyncStatus.state !== ITEM_SYNC_STATE_RUNNING) {
+      return currentSyncStatus;
+    }
+  }
+  throw new Error(ITEM_SYNC_TIMEOUT_MESSAGE);
+}
+
+/**
+ * Queue one product synchronisation and report its outcome to the operator.
+ *
+ * @returns Promise resolved after the synchronisation and list refresh finish.
+ */
+async function handleSyncItems(): Promise<void> {
+  const account = detailAccount.value;
+  if (!account || syncingAccountId.value !== null) {
+    return;
+  }
+  syncingAccountId.value = account.id;
+  try {
+    await startItemSync(account.id);
+    ElMessage.info(ITEM_SYNC_PROGRESS_MESSAGE);
+    const result = await pollItemSync(account.id);
+    if (result.state === ITEM_SYNC_STATE_FAILED) {
+      ElMessage.error(result.message || ITEM_SYNC_START_ERROR_MESSAGE);
+    } else {
+      ElMessage.success(result.message);
+    }
+    await refreshAccounts();
+  } catch (error) {
+    ElMessage.error(error instanceof Error ? error.message : ITEM_SYNC_START_ERROR_MESSAGE);
+  } finally {
+    syncingAccountId.value = null;
+  }
 }
 
 onMounted(() => {
@@ -686,7 +746,9 @@ onBeforeUnmount(() => {
         </el-descriptions>
       </div>
       <template #footer>
-        <el-button @click="handleSyncUnsupported">{{ ACCOUNT_SYNC_BUTTON }}</el-button>
+        <el-button :loading="syncingAccountId !== null" @click="handleSyncItems">
+          {{ ACCOUNT_SYNC_BUTTON }}
+        </el-button>
         <el-button type="primary" @click="closeDetailDialog">
           {{ ACCOUNT_DETAIL_CLOSE_BUTTON }}
         </el-button>

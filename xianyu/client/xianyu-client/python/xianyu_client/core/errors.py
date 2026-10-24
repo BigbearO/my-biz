@@ -6,11 +6,13 @@ from xianyu_client.core.constants import (
     ACCOUNT_STATE_CONFLICT_ERROR_MESSAGE,
     AUTH_TOKEN_DECRYPTION_ERROR_MESSAGE,
     CLOUD_FORBIDDEN_ERROR_MESSAGE,
+    CLOUD_ITEM_SYNC_FAILED_ERROR_MESSAGE,
     CLOUD_REPORT_FAILED_ERROR_MESSAGE,
     CLOUD_UNAVAILABLE_ERROR_MESSAGE,
     CLOUD_UNAUTHORIZED_ERROR_MESSAGE,
     CREDENTIAL_UNAVAILABLE_ERROR_MESSAGE,
     INVALID_XIANYU_COOKIE_ERROR_MESSAGE,
+    ITEM_SYNC_IN_PROGRESS_ERROR_MESSAGE,
     NOT_LOGGED_IN_ERROR_MESSAGE,
     XIANYU_COOKIE_MISMATCH_ERROR_MESSAGE,
     XIANYU_NETWORK_ERROR_MESSAGE,
@@ -141,3 +143,23 @@ class AuthTokenUnavailableError(Exception):
             message: Stable external message describing the failure.
         """
         super().__init__(message)
+
+
+class CloudItemSyncError(Exception):
+    """Raised when the cloud refuses or fails a product synchronisation."""
+
+    def __init__(self, message: str = CLOUD_ITEM_SYNC_FAILED_ERROR_MESSAGE) -> None:
+        """Create the error with a non-secret message.
+
+        Args:
+            message: Stable external message describing the rejection.
+        """
+        super().__init__(message)
+
+
+class ItemSyncInProgressError(Exception):
+    """Raised when a product synchronisation is already running for one account."""
+
+    def __init__(self) -> None:
+        """Create the error with its stable external message."""
+        super().__init__(ITEM_SYNC_IN_PROGRESS_ERROR_MESSAGE)

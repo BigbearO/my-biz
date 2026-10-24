@@ -9,6 +9,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from xianyu_client.api.account_api import router as account_router
+from xianyu_client.api.item_api import router as item_router
 from xianyu_client.api.system_api import router as system_router
 from xianyu.http_protocol import HttpXianyuProtocol
 from xianyu_client.core.constants import (
@@ -30,6 +31,7 @@ from xianyu_client.managers.master_key_manager import MasterKeyManager
 from xianyu_client.services.auth_service import AuthService
 from xianyu_client.services.cloud_client import CloudClient
 from xianyu_client.services.credential_service import CredentialService
+from xianyu_client.services.item_sync_service import ItemSyncService
 from xianyu_client.services.system_service import SystemService
 from xianyu_client.services.account_service import AccountService
 
@@ -66,6 +68,7 @@ def create_app(settings: RuntimeSettings, master_key_protector=None, xianyu_prot
         auth_service,
         cloud_client,
     )
+    item_sync_service = ItemSyncService(account_service, protocol, cloud_client)
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -79,6 +82,7 @@ def create_app(settings: RuntimeSettings, master_key_protector=None, xianyu_prot
             yield
         finally:
             await auth_service.stop_periodic_check()
+            await item_sync_service.stop()
             await database_engine.dispose()
 
     app = FastAPI(lifespan=lifespan)
@@ -90,8 +94,10 @@ def create_app(settings: RuntimeSettings, master_key_protector=None, xianyu_prot
     app.state.auth_service = auth_service
     app.state.cloud_client = cloud_client
     app.state.account_service = account_service
+    app.state.item_sync_service = item_sync_service
     app.state.system_service = SystemService(config_manager, credential_service, auth_service)
     app.include_router(account_router)
+    app.include_router(item_router)
     app.include_router(system_router)
     app.add_middleware(
         CORSMiddleware,

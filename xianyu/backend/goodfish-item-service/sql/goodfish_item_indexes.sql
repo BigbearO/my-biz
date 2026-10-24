@@ -1,12 +1,17 @@
 -- =============================================================================
 -- goodfish-item-service：唯一键与查询索引（PostgreSQL）
 --
+-- 【已废弃，勿再执行】全新建库请直接用 backend/sql/good_fish_init.sql
+--   （同一套索引已包含在内；主键为 bigint + 应用侧雪花 ID，无序列）
+--   本文件仅作增量补索引的历史参考。
+--
 -- 背景：
 --   1. 商品同步使用 INSERT ... ON CONFLICT (goodfish_account_id, goodfish_item_id)，
 --      该语法在缺少对应唯一索引时会直接报错 42P10
 --      （there is no unique or exclusion constraint matching the ON CONFLICT
 --       specification），因此必须先建 uk_gfid_item。
---   2. 提示词按 item_id 一对一 upsert（ON CONFLICT (item_id)），依赖 uk_item_id。
+--   2. 提示词与商品一对一：uk_item_id 既是约束，也是并发保存时的兜底
+--      （代码走 insert / updateById，撞唯一键后退化为按主键更新）。
 --   3. 主键 id 由 MyBatis-Plus 雪花算法在应用侧生成（ASSIGN_ID），
 --      不是 BIGSERIAL，无需 sequence。
 --

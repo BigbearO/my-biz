@@ -5,21 +5,14 @@ import org.dromara.goodfish.meta.domain.GoodfishAccount;
 import org.dromara.goodfish.meta.domain.vo.GoodfishAccountVo;
 
 /**
- * 闲鱼账号Mapper接口.
+ * 闲鱼账号Mapper接口（纯 MyBatis-Plus，无自定义 SQL）.
+ *
+ * <p>新增走 {@code insert}（主键由 MyBatis-Plus 雪花算法填充），
+ * 修改走 {@code updateById}（必须带主键，null 字段不写库），
+ * 不存在「按业务键隐式 upsert」的第三种语义.</p>
  *
  * @author goodfish
  */
 public interface GoodfishAccountMapper extends BaseMapperPlus<GoodfishAccount, GoodfishAccountVo> {
-
-    /**
-     * 按 goodfish_id upsert（PostgreSQL ON CONFLICT 原子操作）.
-     *
-     * <p>新账号插入完整记录；已存在仅更新昵称/备注/最后活跃时间，
-     * <strong>不更新 status</strong>（★上报不停用复活，停用由管理员控制）.</p>
-     *
-     * @param entity 账号实体（id 由 useGeneratedKeys 回填）
-     * @return 影响行数
-     */
-    int upsertByGoodfishId(GoodfishAccount entity);
 
 }

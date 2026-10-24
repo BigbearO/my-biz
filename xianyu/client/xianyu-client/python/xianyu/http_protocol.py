@@ -1,23 +1,37 @@
-"""Minimal signed Goodfish mtop client used for Cookie validation."""
+"""Minimal signed Goodfish mtop client used for Cookie validation and item reads."""
 
+import asyncio
 import hashlib
+import json
 import time
 from collections.abc import Mapping
 from urllib.parse import unquote
 
 import aiohttp
+from loguru import logger
 
-from xianyu.protocol import XianyuAccountInfo, XianyuProtocol
+from xianyu.protocol import XianyuAccountInfo, XianyuItem, XianyuProtocol
 from xianyu_client.core.constants import (
+    ITEM_SYNC_MAX_ITEMS,
+    ITEM_SYNC_TRUNCATED_LOG_MESSAGE,
     XIANYU_COOKIE_NICKNAME_KEY,
     XIANYU_COOKIE_TOKEN_KEY,
     XIANYU_COOKIE_USER_ID_KEYS,
+    XIANYU_ITEM_EMPTY_TEXT,
+    XIANYU_ITEM_GROUP_ID_ON_SALE,
+    XIANYU_ITEM_GROUP_NAME_ON_SALE,
+    XIANYU_ITEM_MAX_PAGES,
+    XIANYU_ITEM_PAGE_INTERVAL_SECONDS,
+    XIANYU_ITEM_PAGE_SIZE,
     XIANYU_MTOP_ACCOUNT_SITE,
+    XIANYU_MTOP_API_ITEM_LIST,
     XIANYU_MTOP_API_LOGIN_USER_GET,
     XIANYU_MTOP_API_VERSION,
     XIANYU_MTOP_APP_KEY,
     XIANYU_MTOP_BASE_URL,
     XIANYU_MTOP_DATA_TYPE,
+    XIANYU_MTOP_ITEM_LIST_SPM_CNT,
+    XIANYU_MTOP_ITEM_LIST_SPM_PRE,
     XIANYU_MTOP_JSV,
     XIANYU_MTOP_RESPONSE_TYPE,
     XIANYU_MTOP_SESSION_OPTION,
@@ -71,6 +85,49 @@ class HttpXianyuProtocol(XianyuProtocol):
 
         raise InvalidXianyuCookieError()
 
+    async def fetch_items(self, cookie: str) -> list[XianyuItem]:
+        """Read every on-sale item of the account owning this Cookie.
+
+        The listing is read page by page from the personal Goodfish site
+        (`mtop.idle.web.xyh.item.list`, group 在售) because the cloud sync
+        contract stores at most `ITEM_SYNC_MAX_ITEMS` items per call.
+
+        Args:
+            cookie: Plaintext Cookie supplied by the local account store.
+
+        Returns:
+            On-sale items clipped to the cloud column limits.
+
+        Raises:
+            InvalidXianyuCookieError: When the Cookie cannot identify a logged-in account.
+            XianyuNetworkError: When the request cannot reach Goodfish.
+            XianyuProtocolError: When a page cannot be interpreted safely.
+            XianyuRiskControlError: When Goodfish requires risk-control verification.
+        """
+        current_cookie = _sanitize_cookie(cookie)
+        user_id = _extract_account_info(_parse_cookies(current_cookie)).goodfish_id
+        collected: list[XianyuItem] = []
+        async with aiohttp.ClientSession(
+            timeout=aiohttp.ClientTimeout(total=XIANYU_PROTOCOL_TIMEOUT_SECONDS)
+        ) as session:
+            for page_number in range(1, XIANYU_ITEM_MAX_PAGES + 1):
+                page = await _request_item_page(session, current_cookie, user_id, page_number)
+                if page.refreshed_cookie:
+                    current_cookie = page.refreshed_cookie
+                collected.extend(page.items)
+                if len(collected) >= ITEM_SYNC_MAX_ITEMS:
+                    logger.warning(
+                        ITEM_SYNC_TRUNCATED_LOG_MESSAGE,
+                        ITEM_SYNC_MAX_ITEMS,
+                        user_id,
+                    )
+                    collected = collected[:ITEM_SYNC_MAX_ITEMS]
+                    break
+                if not page.has_more:
+                    break
+                await asyncio.sleep(XIANYU_ITEM_PAGE_INTERVAL_SECONDS)
+        return [item.bounded() for item in collected]
+
 
 class _LoginUserResult:
     """Internal classification of one mtop response."""
@@ -106,6 +163,31 @@ class _LoginUserResult:
         if any(marker in message for marker in _RISK_CONTROL_MARKERS):
             raise XianyuRiskControlError()
         raise XianyuProtocolError()
+
+
+class _ItemPageResult(_LoginUserResult):
+    """Internal classification of one item-list page response."""
+
+    def __init__(
+        self,
+        is_success: bool,
+        ret_message: str,
+        items: list[XianyuItem],
+        has_more: bool,
+        refreshed_cookie: str = "",
+    ) -> None:
+        """Create a page classification.
+
+        Args:
+            is_success: Whether mtop returned its success marker.
+            ret_message: First sanitized `ret` entry from mtop.
+            items: Items extracted from this page.
+            has_more: Whether another page may still hold items.
+            refreshed_cookie: In-memory Cookie updated from `Set-Cookie`, if present.
+        """
+        super().__init__(is_success, ret_message, refreshed_cookie)
+        self.items = items
+        self.has_more = has_more
 
 
 _INVALID_COOKIE_MARKERS = (
@@ -194,6 +276,204 @@ async def _request_login_user(session: aiohttp.ClientSession, cookie: str) -> _L
         ret_message=ret_message,
         refreshed_cookie=refreshed_cookie,
     )
+
+
+async def _request_item_page(
+    session: aiohttp.ClientSession,
+    cookie: str,
+    user_id: str,
+    page_number: int,
+) -> _ItemPageResult:
+    """Read one listing page, retrying once after an in-memory token refresh.
+
+    Args:
+        session: Active HTTP session with the configured timeout.
+        cookie: Sanitized Cookie used for the first attempt.
+        user_id: Goodfish ID that owns the Cookie.
+        page_number: One-based listing page number.
+
+    Returns:
+        The classified page, including a refreshed Cookie when Goodfish supplied one.
+
+    Raises:
+        InvalidXianyuCookieError: When no attempt could be authenticated.
+        XianyuNetworkError: When transport fails or times out.
+        XianyuProtocolError: When a response cannot be interpreted safely.
+        XianyuRiskControlError: When risk control intercepts the listing.
+    """
+    request_cookie = cookie
+    for _ in range(XIANYU_TOKEN_RETRY_LIMIT):
+        result = await _request_item_page_once(session, request_cookie, user_id, page_number)
+        if result.is_success:
+            return result
+        if result.refreshed_cookie:
+            request_cookie = result.refreshed_cookie
+            continue
+        result.raise_protocol_error()
+    raise InvalidXianyuCookieError()
+
+
+async def _request_item_page_once(
+    session: aiohttp.ClientSession,
+    cookie: str,
+    user_id: str,
+    page_number: int,
+) -> _ItemPageResult:
+    """Issue one signed `item.list` request for a single page.
+
+    Args:
+        session: Active HTTP session with the configured timeout.
+        cookie: Sanitized Cookie used for this attempt only.
+        user_id: Goodfish ID that owns the Cookie.
+        page_number: One-based listing page number.
+
+    Returns:
+        A classified page response, including refreshed Cookie material when supplied.
+
+    Raises:
+        XianyuNetworkError: When transport fails or times out.
+        XianyuProtocolError: When HTTP status or JSON shape is unexpected.
+    """
+    timestamp = str(int(time.time() * 1000))
+    token = _parse_cookies(cookie).get(XIANYU_COOKIE_TOKEN_KEY, "")
+    token_seed = token.split("_", 1)[0] if token else ""
+    data = json.dumps(
+        {
+            "needGroupInfo": False,
+            "pageNumber": page_number,
+            "pageSize": XIANYU_ITEM_PAGE_SIZE,
+            "groupName": XIANYU_ITEM_GROUP_NAME_ON_SALE,
+            "groupId": XIANYU_ITEM_GROUP_ID_ON_SALE,
+            "defaultGroup": True,
+            "userId": user_id,
+        },
+        separators=(",", ":"),
+    )
+    sign = _generate_sign(timestamp, token_seed, data)
+    url = f"{XIANYU_MTOP_BASE_URL}/{XIANYU_MTOP_API_ITEM_LIST}/{XIANYU_MTOP_API_VERSION}/"
+    params = {
+        "jsv": XIANYU_MTOP_JSV,
+        "appKey": XIANYU_MTOP_APP_KEY,
+        "t": timestamp,
+        "sign": sign,
+        "v": XIANYU_MTOP_API_VERSION,
+        "type": XIANYU_MTOP_RESPONSE_TYPE,
+        "accountSite": XIANYU_MTOP_ACCOUNT_SITE,
+        "dataType": XIANYU_MTOP_DATA_TYPE,
+        "timeout": XIANYU_MTOP_TIMEOUT_MILLISECONDS,
+        "api": XIANYU_MTOP_API_ITEM_LIST,
+        "sessionOption": XIANYU_MTOP_SESSION_OPTION,
+        "spm_cnt": XIANYU_MTOP_ITEM_LIST_SPM_CNT,
+        "spm_pre": XIANYU_MTOP_ITEM_LIST_SPM_PRE,
+    }
+    headers = {
+        "Accept": "application/json",
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Origin": XIANYU_WEB_ORIGIN,
+        "Referer": f"{XIANYU_WEB_ORIGIN}/",
+        "User-Agent": _USER_AGENT,
+        "Cookie": cookie,
+    }
+    try:
+        async with session.post(
+            url,
+            params=params,
+            data={"data": data},
+            headers=headers,
+        ) as response:
+            refreshed_cookie = _merge_response_cookies(response, cookie)
+            if response.status != 200:
+                raise XianyuProtocolError()
+            try:
+                body = await response.json(content_type=None)
+            except (aiohttp.ContentTypeError, ValueError) as error:
+                raise XianyuProtocolError() from error
+    except (aiohttp.ClientError, TimeoutError) as error:
+        raise XianyuNetworkError() from error
+
+    if not isinstance(body, Mapping):
+        raise XianyuProtocolError()
+    ret_values = body.get("ret", [])
+    ret_message = str(ret_values[0]) if ret_values else ""
+    is_success = _SUCCESS_MARKER in ret_message
+    items, has_more = _extract_items(body) if is_success else ([], False)
+    return _ItemPageResult(
+        is_success=is_success,
+        ret_message=ret_message,
+        items=items,
+        has_more=has_more,
+        refreshed_cookie=refreshed_cookie,
+    )
+
+
+def _extract_items(body: Mapping) -> tuple[list[XianyuItem], bool]:
+    """Read the item cards of one listing page.
+
+    Args:
+        body: Decoded mtop response of a successful page request.
+
+    Returns:
+        The items carried by this page and whether another page may follow.
+
+    Notes:
+        The listing response carries no description, so `description` stays empty;
+        the operator edits it in the management UI instead.
+    """
+    data = body.get("data")
+    if not isinstance(data, Mapping):
+        return [], False
+    cards = data.get("cardList")
+    if not isinstance(cards, list):
+        return [], False
+    items: list[XianyuItem] = []
+    for card in cards:
+        if not isinstance(card, Mapping):
+            continue
+        card_data = card.get("cardData")
+        if not isinstance(card_data, Mapping):
+            continue
+        item_id = _to_text(card_data.get("id"))
+        if not item_id:
+            continue
+        items.append(
+            XianyuItem(
+                goodfish_item_id=item_id,
+                title=_to_text(card_data.get("title")),
+                description=XIANYU_ITEM_EMPTY_TEXT,
+                price=_extract_price(card_data),
+                stock_status=_to_text(card_data.get("itemStatus")),
+            )
+        )
+    return items, len(items) >= XIANYU_ITEM_PAGE_SIZE
+
+
+def _extract_price(card_data: Mapping) -> str:
+    """Read the display price of one listing card.
+
+    Args:
+        card_data: `cardData` object of one listing card.
+
+    Returns:
+        The raw price text, or an empty string when the card carries none.
+    """
+    price_info = card_data.get("priceInfo")
+    if not isinstance(price_info, Mapping):
+        return XIANYU_ITEM_EMPTY_TEXT
+    return _to_text(price_info.get("price"))
+
+
+def _to_text(value: object) -> str:
+    """Convert one optional response field to trimmed text.
+
+    Args:
+        value: Raw JSON value.
+
+    Returns:
+        The trimmed text, or an empty string for `None`.
+    """
+    if value is None:
+        return XIANYU_ITEM_EMPTY_TEXT
+    return str(value).strip()
 
 
 def _sanitize_cookie(cookie: str) -> str:

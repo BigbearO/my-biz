@@ -109,7 +109,7 @@ public class GoodfishItemServiceImpl implements IGoodfishItemService {
     public Boolean editItem(GoodfishItemEditBo bo) {
         GoodfishItemVo exist = itemManager.requireVoWithPromptById(bo.getId());
         itemManager.updateBasicById(bo.getId(), bo.getTitle(), bo.getDescription(), bo.getPrice());
-        promptManager.upsertByItemId(buildPrompt(bo.getId(), bo.getSystemPrompt(), bo.getPricePrompt(),
+        promptManager.saveByItemId(buildPrompt(bo.getId(), bo.getSystemPrompt(), bo.getPricePrompt(),
             bo.getTechPrompt(), bo.getDefaultPrompt(), bo.getMaxReplyLength()));
         runtimeCacheManager.delete(exist.getGoodfishAccountId(), exist.getGoodfishItemId());
         return true;
@@ -144,7 +144,7 @@ public class GoodfishItemServiceImpl implements IGoodfishItemService {
         Integer sourceMaxReplyLength = source.getMaxReplyLength() == null
             ? GoodfishItemConstants.DEFAULT_MAX_REPLY_LENGTH : source.getMaxReplyLength();
         for (GoodfishItemVo target : targets) {
-            promptManager.upsertByItemId(buildPrompt(target.getId(), source.getSystemPrompt(),
+            promptManager.saveByItemId(buildPrompt(target.getId(), source.getSystemPrompt(),
                 source.getPricePrompt(), source.getTechPrompt(), source.getDefaultPrompt(),
                 sourceMaxReplyLength));
             runtimeCacheManager.delete(target.getGoodfishAccountId(), target.getGoodfishItemId());
@@ -163,9 +163,9 @@ public class GoodfishItemServiceImpl implements IGoodfishItemService {
     /**
      * 组装提示词实体.
      *
-     * <p>null 保持 null 传给 Mapper：SQL 侧用 COALESCE 实现「未传不改」，
-     * 仅在插入新行时回落默认最大回复字数。若在此处把 null 换成默认值，
-     * 用户只改标题时会把已有提示词字数重置为 50.</p>
+     * <p>null 必须保持 null 传给 Mapper：更新分支靠 MyBatis-Plus 忽略 null 字段
+     * 实现「未传不改」，默认最大回复字数只在插入新行时由 manager 回落。
+     * 若在此处把 null 换成默认值，用户只改标题时会把已有提示词字数重置为 50.</p>
      */
     private GoodfishItemPrompt buildPrompt(Long itemId, String systemPrompt, String pricePrompt,
                                            String techPrompt, String defaultPrompt, Integer maxReplyLength) {

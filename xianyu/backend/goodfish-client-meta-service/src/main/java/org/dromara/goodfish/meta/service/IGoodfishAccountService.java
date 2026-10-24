@@ -14,9 +14,9 @@ import org.dromara.goodfish.meta.domain.vo.GoodfishAccountVo;
 public interface IGoodfishAccountService {
 
     /**
-     * 客户端账号上报：按 goodfish_id upsert.
+     * 客户端账号上报：按 goodfish_id 查，没有则新增、有则按主键更新.
      *
-     * <p>已存在更新昵称/备注/最后活跃时间，<strong>不停用复活</strong>；不接收 Cookie.</p>
+     * <p>已存在仅更新昵称/备注/最后活跃时间，<strong>不停用复活</strong>；不接收 Cookie.</p>
      *
      * @param bo 上报参数（goodfish_id / goodfish_nickname / remark）
      * @return 上报后的账号信息

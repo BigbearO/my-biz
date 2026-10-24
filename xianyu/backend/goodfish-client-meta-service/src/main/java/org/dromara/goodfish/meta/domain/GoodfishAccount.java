@@ -1,5 +1,6 @@
 package org.dromara.goodfish.meta.domain;
 
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
@@ -25,9 +26,9 @@ public class GoodfishAccount extends BaseEntity {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 主键
+     * 主键（应用侧雪花 ID；显式声明 ASSIGN_ID，避免全局配置被覆盖后退回自增）
      */
-    @TableId(value = "id")
+    @TableId(value = "id", type = IdType.ASSIGN_ID)
     private Long id;
 
     /**

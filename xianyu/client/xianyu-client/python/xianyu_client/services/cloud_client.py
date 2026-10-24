@@ -10,12 +10,21 @@ from loguru import logger
 from xianyu_client.core.constants import (
     CLOUD_API_PATH_ACCOUNT_REPORT,
     CLOUD_API_PATH_AUTH_ACCESS,
+    CLOUD_API_PATH_ITEM_SYNC,
     CLOUD_AUTHORIZATION_HEADER,
     CLOUD_AUTHORIZATION_PREFIX,
     CLOUD_CLIENT_ID_HEADER,
     CLOUD_HTTP_STATUS_FORBIDDEN,
     CLOUD_HTTP_STATUS_SERVER_ERROR_MIN,
     CLOUD_HTTP_STATUS_UNAUTHORIZED,
+    CLOUD_ITEM_SYNC_ACCOUNT_DISABLED_MESSAGE,
+    CLOUD_ITEM_SYNC_ACCOUNT_NOT_FOUND_MESSAGE,
+    CLOUD_ITEM_SYNC_CODE_ACCOUNT_DISABLED,
+    CLOUD_ITEM_SYNC_CODE_ACCOUNT_NOT_FOUND,
+    CLOUD_ITEM_SYNC_INITIAL_COUNT,
+    CLOUD_ITEM_SYNC_INSERTED_KEY,
+    CLOUD_ITEM_SYNC_LOG_MESSAGE,
+    CLOUD_ITEM_SYNC_UPDATED_KEY,
     CLOUD_REPORT_LOG_MESSAGE,
     CLOUD_REQUEST_TIMEOUT_SECONDS,
     CLOUD_RETRY_INTERVAL_MAX_SECONDS,
@@ -26,6 +35,7 @@ from xianyu_client.core.constants import (
 )
 from xianyu_client.core.errors import (
     CloudForbiddenError,
+    CloudItemSyncError,
     CloudReportError,
     CloudUnauthorizedError,
     CloudUnavailableError,
@@ -77,6 +87,46 @@ class CloudClient:
         if body.get("code") != CLOUD_SUCCESS_CODE:
             logger.warning(CLOUD_REPORT_LOG_MESSAGE, goodfish_id, status)
             raise CloudReportError()
+
+    async def sync_items(self, goodfish_id: str, items: list[dict]) -> tuple[int, int]:
+        """Upload the full on-sale listing of one account.
+
+        Args:
+            goodfish_id: Goodfish account identifier that owns these items.
+            items: Sync payloads already shaped for the cloud contract.
+
+        Returns:
+            The `(inserted, updated)` counters reported by the cloud.
+
+        Raises:
+            NotLoggedInError: When no token is stored locally.
+            CloudUnauthorizedError: When the gateway rejects the token.
+            CloudForbiddenError: When the account authorization expired.
+            CloudItemSyncError: When the cloud rejects the sync or returns a business error.
+            CloudUnavailableError: When the cloud stays unreachable.
+        """
+        payload = {"goodfishAccountId": goodfish_id, "items": items}
+        try:
+            status, body = await self._request("POST", CLOUD_API_PATH_ITEM_SYNC, payload)
+        except CloudUnavailableError as error:
+            raise CloudItemSyncError() from error
+        code = body.get("code")
+        if code == CLOUD_ITEM_SYNC_CODE_ACCOUNT_NOT_FOUND:
+            logger.warning(CLOUD_ITEM_SYNC_LOG_MESSAGE, goodfish_id, status, code)
+            raise CloudItemSyncError(CLOUD_ITEM_SYNC_ACCOUNT_NOT_FOUND_MESSAGE)
+        if code == CLOUD_ITEM_SYNC_CODE_ACCOUNT_DISABLED:
+            logger.warning(CLOUD_ITEM_SYNC_LOG_MESSAGE, goodfish_id, status, code)
+            raise CloudItemSyncError(CLOUD_ITEM_SYNC_ACCOUNT_DISABLED_MESSAGE)
+        if status != CLOUD_SUCCESS_HTTP_STATUS or code != CLOUD_SUCCESS_CODE:
+            logger.warning(CLOUD_ITEM_SYNC_LOG_MESSAGE, goodfish_id, status, code)
+            raise CloudItemSyncError()
+        data = body.get("data")
+        if not isinstance(data, dict):
+            return CLOUD_ITEM_SYNC_INITIAL_COUNT, CLOUD_ITEM_SYNC_INITIAL_COUNT
+        return (
+            int(data.get(CLOUD_ITEM_SYNC_INSERTED_KEY, CLOUD_ITEM_SYNC_INITIAL_COUNT) or 0),
+            int(data.get(CLOUD_ITEM_SYNC_UPDATED_KEY, CLOUD_ITEM_SYNC_INITIAL_COUNT) or 0),
+        )
 
     async def check_access(self) -> bool:
         """Ask the cloud whether the current account may keep running.

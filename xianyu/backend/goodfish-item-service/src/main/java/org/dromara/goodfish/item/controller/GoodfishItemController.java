@@ -89,7 +89,7 @@ public class GoodfishItemController extends BaseController {
     /**
      * 复制提示词到其他商品（覆盖式，可多选目标）.
      */
-    @SaCheckPermission("goodfish:item:edit")
+    @SaCheckPermission("goodfish:item:copyPrompt")
     @PostMapping("/copy-prompt")
     public R<Void> copyPrompt(@Validated @RequestBody GoodfishItemCopyPromptBo bo) {
         return toAjax(itemService.copyPrompt(bo));

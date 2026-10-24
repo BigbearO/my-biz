@@ -25,14 +25,34 @@ public class GoodfishAccountManager {
     private final GoodfishAccountMapper accountMapper;
 
     /**
-     * 按 goodfish_id upsert：新账号插入完整记录；已存在更新昵称/备注/最后活跃时间，不更新 status.
+     * 按闲鱼用户 ID 查询账号实体（上报时判断是否需要插入）.
      *
-     * @param entity 账号实体（upsert 后 id 已回填）
-     * @return 回填 id 的账号实体
+     * @param goodfishId 闲鱼用户 ID（唯一索引）
+     * @return 账号实体；不存在返回 null
      */
-    public GoodfishAccount upsertByGoodfishId(GoodfishAccount entity) {
-        accountMapper.upsertByGoodfishId(entity);
-        return entity;
+    public GoodfishAccount selectByGoodfishId(String goodfishId) {
+        return accountMapper.selectOne(new LambdaQueryWrapper<GoodfishAccount>()
+            .eq(GoodfishAccount::getGoodfishId, goodfishId));
+    }
+
+    /**
+     * 新增账号（主键由 MyBatis-Plus 雪花算法填充，入参不得预先赋值）.
+     *
+     * @param entity 账号实体
+     * @return 是否成功（成功时 entity.id 已回填）
+     */
+    public boolean insert(GoodfishAccount entity) {
+        return accountMapper.insert(entity) > 0;
+    }
+
+    /**
+     * 按主键更新账号（MyBatis-Plus 默认忽略 null 字段：未赋值的字段不写库）.
+     *
+     * @param entity 账号实体（主键必填）
+     * @return 是否成功
+     */
+    public boolean updateById(GoodfishAccount entity) {
+        return accountMapper.updateById(entity) > 0;
     }
 
     /**

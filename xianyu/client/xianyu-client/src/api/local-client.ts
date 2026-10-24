@@ -1,6 +1,7 @@
 import type { SystemStatus } from "@/types/system";
 import type { AccountCreatePayload, AccountDetail, AccountRecord, AccountUpdatePayload } from "@/types/account";
-import { ACCOUNT_DETAIL_API_PATH, ACCOUNT_LIST_API_PATH } from "@/constants/account";
+import type { ItemSyncStatus } from "@/types/item";
+import { ACCOUNT_DETAIL_API_PATH, ACCOUNT_LIST_API_PATH, ITEM_SYNC_API_PATH } from "@/constants/account";
 import {
   SYSTEM_LOGIN_API_PATH,
   SYSTEM_LOGOUT_API_PATH,
@@ -109,6 +110,30 @@ export async function deleteAccount(accountId: number): Promise<AccountRecord> {
     method: "DELETE"
   });
   return response as AccountRecord;
+}
+
+/**
+ * Queue one product synchronisation for an account.
+ *
+ * @param accountId Local account identifier.
+ * @returns Promise resolving to the initial running state.
+ */
+export async function startItemSync(accountId: number): Promise<ItemSyncStatus> {
+  const response = await window.goodfish.request(`${ITEM_SYNC_API_PATH}/${accountId}`, {
+    method: "POST"
+  });
+  return response as ItemSyncStatus;
+}
+
+/**
+ * Read the latest product synchronisation state of an account.
+ *
+ * @param accountId Local account identifier.
+ * @returns Promise resolving to the stored state.
+ */
+export async function getItemSyncStatus(accountId: number): Promise<ItemSyncStatus> {
+  const response = await window.goodfish.request(`${ITEM_SYNC_API_PATH}/${accountId}`);
+  return response as ItemSyncStatus;
 }
 
 /**

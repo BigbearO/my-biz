@@ -21,7 +21,8 @@ import java.io.Serializable;
  * 库存状态只读（从同步来），不在本接口修改；
  * price_prompt / tech_prompt / default_prompt 字段保留，本期页面不提供输入.</p>
  *
- * <p>未传（null）的字段不会覆盖库中已有值，详见 GoodfishItemPromptMapper.xml 的 COALESCE.</p>
+ * <p>未传（null）的字段不会覆盖库中已有值：由 MyBatis-Plus 的
+ * {@code updateStrategy: NOT_NULL} 保证（null 字段不进 UPDATE 语句）.</p>
  *
  * @author goodfish
  */

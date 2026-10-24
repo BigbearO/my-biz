@@ -24,6 +24,18 @@ def get_account_service(request: Request):
     return request.app.state.account_service
 
 
+def get_item_sync_service(request: Request):
+    """Return the product synchronisation service attached to the current application.
+
+    Args:
+        request: Active FastAPI request carrying application state.
+
+    Returns:
+        The synchronisation service used by product sync routes.
+    """
+    return request.app.state.item_sync_service
+
+
 def get_auth_service(request: Request):
     """Return the login state service attached to the current application.
 
