@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>com.bigbear</groupId>
+        <artifactId>goodfish_parent</artifactId>
+        <version>1.0.0</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <packaging>jar</packaging>
+    <artifactId>goodfish-item-service</artifactId>
+
+    <description>
+        goodfish 商品服务：商品同步落库、商品查询、提示词配置、提示词模板（内置只读）
+    </description>
+
+    <properties>
+        <!-- gRPC 契约单一事实源目录（xianyu/proto）：goodfish_parent/<module> 上跳 3 级到 xianyu，再进 proto；
+             可用 -Dgoodfish.proto.root 覆盖。插件/gRPC 版本属性统一在 goodfish_parent 中定义 -->
+        <goodfish.proto.root>${project.basedir}/../../../proto</goodfish.proto.root>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.bigbear</groupId>
+                <artifactId>xxs-spring-ruoyi-bom</artifactId>
+                <version>6.0.0</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!-- 统一 io.grpc 版本：覆盖 spring-cloud-alibaba BOM 可能引入的旧版 io.grpc -->
+            <dependency>
+                <groupId>io.grpc</groupId>
+                <artifactId>grpc-bom</artifactId>
+                <version>${grpc-java.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>ruoyi-common-nacos</artifactId>
+            <version>6.0.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>ruoyi-common-web</artifactId>
+            <version>6.0.0</version>
+        </dependency>
+
+        <!-- 登录态与权限统一在网关校验：不引入 ruoyi-common-security（它会自动注册
+             SaInterceptor 对 /** 做权限注解校验、并注册同令牌过滤器）。
+             保留 ruoyi-common-satoken 仅因为 ruoyi-common-mybatis 的审计字段填充
+             依赖 LoginHelper，未登录时回落到 -1L，不参与任何鉴权判定。 -->
+
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>ruoyi-common-doc</artifactId>
+            <version>6.0.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>ruoyi-common-mybatis</artifactId>
+            <version>6.0.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>ruoyi-common-redis</artifactId>
+            <version>6.0.0</version>
+        </dependency>
+
+        <!-- xxs spring-grpc：Spring Boot 4.1 官方 spring-grpc（@GrpcService 等）
+             ＋ nacos:// NameResolver ＋ gRPC 端口以 <appName>-grpc 双注册到 Nacos -->
+        <dependency>
+            <groupId>com.bigbear</groupId>
+            <artifactId>xxs-spring-grpc-nacos</artifactId>
+            <version>${xxs-spring-grpc.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>${project.artifactId}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>4.1.1</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- 由共享 proto 目录生成 Java message 与 gRPC service 代码 -->
+            <plugin>
+                <groupId>io.github.ascopes</groupId>
+                <artifactId>protobuf-maven-plugin</artifactId>
+                <version>${protobuf-maven-plugin.version}</version>
+                <configuration>
+                    <sourceDirectories>
+                        <sourceDirectory>${goodfish.proto.root}</sourceDirectory>
+                    </sourceDirectories>
+                    <includes>
+                        <include>item/v1/item.proto</include>
+                        <include>account/v1/account.proto</include>
+                        <include>llm/v1/llm.proto</include>
+                    </includes>
+                    <protoc kind="binary-maven">
+                        <version>${protobuf-java.version}</version>
+                    </protoc>
+                    <plugins>
+                        <plugin kind="binary-maven">
+                            <groupId>io.grpc</groupId>
+                            <artifactId>protoc-gen-grpc-java</artifactId>
+                            <version>${grpc-java.version}</version>
+                        </plugin>
+                    </plugins>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

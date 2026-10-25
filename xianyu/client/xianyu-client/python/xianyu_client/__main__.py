@@ -18,6 +18,9 @@ from xianyu_client.core.constants import (
     SERVER_SHUTDOWN_TIMEOUT_SECONDS,
     SERVER_STARTED_POLL_INTERVAL_SECONDS,
     SERVER_STARTED_TIMEOUT_SECONDS,
+    STDIO_ENCODING,
+    STDIO_ERROR_STRATEGY,
+    STDIO_STREAM_NAMES,
 )
 from xianyu_client.core.logging import setup_logging
 from xianyu_client.core.settings import load_settings
@@ -99,8 +102,28 @@ async def run_service() -> None:
             await asyncio.gather(server_task, return_exceptions=True)
 
 
+def force_utf8_stdio() -> None:
+    """Force standard streams to UTF-8 regardless of the Windows code page.
+
+    Piped streams default to the ANSI code page (for example cp936), which makes
+    the parent Electron process decode Chinese text as invalid UTF-8. PyInstaller
+    windowed builds may expose ``None`` streams, so reconfigure is optional.
+    """
+    for stream_name in STDIO_STREAM_NAMES:
+        stream = getattr(sys, stream_name, None)
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is None:
+            continue
+        try:
+            reconfigure(encoding=STDIO_ENCODING, errors=STDIO_ERROR_STRATEGY)
+        except (OSError, ValueError):
+            # Detached or redirected streams may refuse reconfiguration.
+            continue
+
+
 def main() -> None:
     """Run the local service until Electron disconnects or terminates it."""
+    force_utf8_stdio()
     asyncio.run(run_service())
 
 

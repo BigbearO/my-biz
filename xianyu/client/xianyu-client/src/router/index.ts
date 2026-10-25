@@ -3,7 +3,6 @@ import { createRouter, createWebHashHistory } from "vue-router";
 import { getSystemStatus } from "@/api/local-client";
 import {
   ROUTE_PATH_ACCOUNTS,
-  ROUTE_PATH_CLOUD,
   ROUTE_PATH_FROZEN,
   ROUTE_PATH_LOGIN,
   ROUTE_PATH_SETTINGS
@@ -16,7 +15,6 @@ import {
 } from "@/constants/system";
 import MainLayout from "@/layout/MainLayout.vue";
 import AccountList from "@/views/AccountList.vue";
-import CloudManage from "@/views/CloudManage.vue";
 import Frozen from "@/views/Frozen.vue";
 import Login from "@/views/Login.vue";
 import Settings from "@/views/Settings.vue";
@@ -33,11 +31,6 @@ const router = createRouter({
           path: "accounts",
           name: "account-list",
           component: AccountList
-        },
-        {
-          path: "cloud",
-          name: "cloud-manage",
-          component: CloudManage
         },
         {
           path: "settings",

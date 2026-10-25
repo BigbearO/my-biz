@@ -28,7 +28,7 @@ def _detail() -> AccountDetailResponse:
     return AccountDetailResponse(
         id=TEST_ACCOUNT_ID,
         goodfish_id=TEST_GOODFISH_ID,
-        nickname="买家",
+        goodfish_nickname="买家",
         is_valid=True,
         listen_state="idle",
         remark="",

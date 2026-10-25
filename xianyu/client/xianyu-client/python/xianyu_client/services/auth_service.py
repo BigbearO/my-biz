@@ -6,6 +6,8 @@ from typing import Optional
 from loguru import logger
 
 from xianyu_client.core.constants import (
+    AUTH_ACCESS_CHECK_FAILED_LOG_MESSAGE,
+    AUTH_LOGIN_RESULT_LOG_MESSAGE,
     AUTH_STATE_EXPIRED,
     AUTH_STATE_FROZEN,
     AUTH_STATE_LOGGED_IN,
@@ -84,8 +86,9 @@ class AuthService:
         """
         await self._token_manager.save(token, client_id)
         self._state = AUTH_STATE_LOGGED_IN
-        await self.refresh_access()
-        return self._state
+        auth_state = await self.refresh_access()
+        logger.info(AUTH_LOGIN_RESULT_LOG_MESSAGE, auth_state)
+        return auth_state
 
     async def logout(self) -> str:
         """Remove the stored token pair.
@@ -120,6 +123,9 @@ class AuthService:
             await self._token_manager.clear()
             self._state = AUTH_STATE_FROZEN
         except CloudUnavailableError:
+            self._state = AUTH_STATE_UNAVAILABLE
+        except Exception as error:
+            logger.opt(exception=error).error(AUTH_ACCESS_CHECK_FAILED_LOG_MESSAGE)
             self._state = AUTH_STATE_UNAVAILABLE
         else:
             if allowed:

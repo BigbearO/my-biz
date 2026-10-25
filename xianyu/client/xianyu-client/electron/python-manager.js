@@ -1,4 +1,5 @@
 const { createInterface } = require("node:readline");
+const { StringDecoder } = require("node:string_decoder");
 const net = require("node:net");
 const fs = require("node:fs/promises");
 const path = require("node:path");
@@ -8,9 +9,11 @@ const {
   CLOUD_BASE_URL_DEFAULT,
   CLOUD_BASE_URL_ENV_NAME,
   DEVELOPMENT_RUNTIME_ENV,
+  EXIT_CODE_SUCCESS,
   HANDSHAKE_BEGIN,
   HANDSHAKE_END,
   HANDSHAKE_TIMEOUT_MS,
+  LINE_BREAK,
   LOCAL_TOKEN_ENV_NAME,
   LOG_LEVEL_ENV_NAME,
   PROCESS_NAME_PYTHON,
@@ -18,10 +21,21 @@ const {
   PYTHON_EXECUTABLE_NOT_FOUND_MESSAGE,
   PYTHON_HANDSHAKE_EXITED_MESSAGE,
   PYTHON_HANDSHAKE_TIMEOUT_MESSAGE,
+  PYTHON_IO_ENCODING_ENV_NAME,
+  PYTHON_IO_ENCODING_UTF8_VALUE,
   PYTHON_PARENT_PIPE_ENABLED_VALUE,
   PYTHON_PARENT_PIPE_ENV_NAME,
+  PYTHON_STDERR_TAIL_LOG_PREFIX,
+  PYTHON_UNBUFFERED_ENABLED_VALUE,
+  PYTHON_UNBUFFERED_ENV_NAME,
+  PYTHON_UTF8_MODE_ENABLED_VALUE,
+  PYTHON_UTF8_MODE_ENV_NAME,
+  READLINE_INFINITE_CRLF_DELAY,
   RUNTIME_ENV_NAME,
-  TCP_PROBE_TIMEOUT_MS
+  STDERR_TAIL_LINE_LIMIT,
+  STDIO_ENCODING,
+  TCP_PROBE_TIMEOUT_MS,
+  TRAILING_CARRIAGE_RETURN_PATTERN
 } = require("./constants");
 const {
   registerProcess,
@@ -86,8 +100,13 @@ function fsSyncExists(candidate) {
   }
 }
 
+let appendLogChain = Promise.resolve();
+
 /**
  * Append one delimited line to the Electron log without writing secrets.
+ *
+ * Writes are chained so concurrent callers cannot interleave lines inside the
+ * same file, which previously scrambled multi-line Python tracebacks.
  *
  * @param {string} dataDir Goodfish application data directory.
  * @param {string} message Text to append.
@@ -95,8 +114,80 @@ function fsSyncExists(candidate) {
  */
 async function appendElectronLog(dataDir, message) {
   const logDir = path.join(dataDir, LOGS_DIRECTORY_NAME);
-  await fs.mkdir(logDir, { recursive: true });
-  await fs.appendFile(path.join(logDir, ELECTRON_LOG_FILE_NAME), `${new Date().toISOString()} ${message}\n`, "utf8");
+  const line = `${new Date().toISOString()} ${message}${LINE_BREAK}`;
+  appendLogChain = appendLogChain
+    .catch(() => undefined)
+    .then(async () => {
+      await fs.mkdir(logDir, { recursive: true });
+      await fs.appendFile(path.join(logDir, ELECTRON_LOG_FILE_NAME), line, STDIO_ENCODING);
+    });
+  return appendLogChain;
+}
+
+/**
+ * Collect Python stderr while optionally mirroring raw bytes to the console.
+ *
+ * Development runs stream the original bytes to Electron's stderr so the
+ * UTF-8 output reaches the terminal unchanged; packaged runs only keep a
+ * bounded tail used to explain a failed handshake.
+ *
+ * @param {boolean} isPackaged Whether Electron is running from a packaged application.
+ * @returns {{handleChunk: (chunk: Buffer) => void, flushTail: (dataDir: string) => Promise<void>}}
+ */
+function createStderrCollector(isPackaged) {
+  const decoder = new StringDecoder(STDIO_ENCODING);
+  const tail = [];
+  let pending = "";
+  let flushed = false;
+
+  const pushLine = (line) => {
+    if (!line) {
+      return;
+    }
+    tail.push(line);
+    if (tail.length > STDERR_TAIL_LINE_LIMIT) {
+      tail.shift();
+    }
+  };
+
+  const handleChunk = (chunk) => {
+    if (!isPackaged) {
+      try {
+        process.stderr.write(chunk);
+      } catch {
+        // The console may be unavailable for windowed Electron; keep collecting.
+      }
+    }
+    pending += decoder.write(chunk);
+    const lines = pending.split(LINE_BREAK);
+    pending = lines.pop() ?? "";
+    for (const line of lines) {
+      pushLine(line.replace(TRAILING_CARRIAGE_RETURN_PATTERN, ""));
+    }
+  };
+
+  const readTail = () => {
+    const trailing = pending.replace(TRAILING_CARRIAGE_RETURN_PATTERN, "");
+    const lines = trailing ? [...tail, trailing] : [...tail];
+    return lines.join(LINE_BREAK);
+  };
+
+  const flushTail = async (dataDir) => {
+    if (flushed) {
+      return;
+    }
+    flushed = true;
+    const content = readTail();
+    if (!content) {
+      return;
+    }
+    await appendElectronLog(
+      dataDir,
+      `${PYTHON_STDERR_TAIL_LOG_PREFIX}${LINE_BREAK}${content}`
+    ).catch(() => undefined);
+  };
+
+  return { handleChunk, flushTail };
 }
 
 /**
@@ -153,7 +244,7 @@ async function startPythonService({ dataDir, localToken, logLevel, isPackaged })
   await fs.writeFile(
     path.join(dataDir, RUNTIME_FILE_NAME),
     JSON.stringify({ state: STARTING_RUNTIME_STATE }),
-    "utf8"
+    STDIO_ENCODING
   );
 
   const { command, args } = resolvePythonLauncher(isPackaged);
@@ -166,15 +257,22 @@ async function startPythonService({ dataDir, localToken, logLevel, isPackaged })
       [LOG_LEVEL_ENV_NAME]: logLevel,
       [RUNTIME_ENV_NAME]: isPackaged ? PRODUCTION_RUNTIME_ENV : DEVELOPMENT_RUNTIME_ENV,
       [PYTHON_PARENT_PIPE_ENV_NAME]: PYTHON_PARENT_PIPE_ENABLED_VALUE,
-      [CLOUD_BASE_URL_ENV_NAME]: process.env[CLOUD_BASE_URL_ENV_NAME] || CLOUD_BASE_URL_DEFAULT
+      [CLOUD_BASE_URL_ENV_NAME]: process.env[CLOUD_BASE_URL_ENV_NAME] || CLOUD_BASE_URL_DEFAULT,
+      [PYTHON_UTF8_MODE_ENV_NAME]: PYTHON_UTF8_MODE_ENABLED_VALUE,
+      [PYTHON_IO_ENCODING_ENV_NAME]: PYTHON_IO_ENCODING_UTF8_VALUE,
+      [PYTHON_UNBUFFERED_ENV_NAME]: PYTHON_UNBUFFERED_ENABLED_VALUE
     },
     stdio: ["pipe", "pipe", "pipe"],
     windowsHide: true
   });
   registerProcess(PROCESS_NAME_PYTHON, child);
 
-  createInterface({ input: child.stderr }).on("line", async (line) => {
-    await appendElectronLog(dataDir, `python stderr: ${line}`).catch(() => undefined);
+  const stderrCollector = createStderrCollector(isPackaged);
+  child.stderr.on("data", stderrCollector.handleChunk);
+  child.once("exit", (code) => {
+    if (code !== EXIT_CODE_SUCCESS) {
+      void stderrCollector.flushTail(dataDir);
+    }
   });
 
   const handshakePromise = new Promise((resolve, reject) => {
@@ -204,7 +302,11 @@ async function startPythonService({ dataDir, localToken, logLevel, isPackaged })
     );
     child.once("error", handleError);
     child.once("exit", handleExit);
-    createInterface({ input: child.stdout }).on("line", (line) => {
+    createInterface({
+      input: child.stdout,
+      crlfDelay: READLINE_INFINITE_CRLF_DELAY,
+      encoding: STDIO_ENCODING
+    }).on("line", (line) => {
       const payload = parseHandshakeLine(line);
       if (payload) {
         finish(resolve, payload);
@@ -218,6 +320,7 @@ async function startPythonService({ dataDir, localToken, logLevel, isPackaged })
     await appendElectronLog(dataDir, `python handshake ok port=${payload.port} pid=${payload.pid}`);
     return { process: child, port: Number(payload.port), pid: Number(payload.pid), version: payload.version };
   } catch (primaryError) {
+    await stderrCollector.flushTail(dataDir);
     const fallbackPayload = await readRuntimeFallback(dataDir).catch(() => null);
     if (fallbackPayload?.port) {
       try {
@@ -249,7 +352,7 @@ async function startPythonService({ dataDir, localToken, logLevel, isPackaged })
  */
 async function readRuntimeFallback(dataDir) {
   try {
-    const content = await fs.readFile(path.join(dataDir, RUNTIME_FILE_NAME), "utf8");
+    const content = await fs.readFile(path.join(dataDir, RUNTIME_FILE_NAME), STDIO_ENCODING);
     const payload = JSON.parse(content);
     return payload.state === STARTING_RUNTIME_STATE ? null : payload;
   } catch {

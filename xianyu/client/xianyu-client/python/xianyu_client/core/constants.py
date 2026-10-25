@@ -122,6 +122,16 @@ COOKIE_UNDECRYPTABLE_LOG_MESSAGE = "Some stored cookies cannot be decrypted acco
 LOG_ROTATION_DAYS = 1
 LOG_RETENTION_DAYS = 14
 LOG_ENCODING = "utf-8"
+LOG_FORMAT = (
+    "{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | {name}:{function}:{line} - {message}"
+)
+LOG_BACKTRACE_ENABLED = True
+LOG_DIAGNOSE_ENABLED = False
+LOG_COLORIZE_ENABLED = False
+
+STDIO_ENCODING = "utf-8"
+STDIO_ERROR_STRATEGY = "backslashreplace"
+STDIO_STREAM_NAMES = ("stdout", "stderr")
 
 HANDSHAKE_BEGIN = "#GOODFISH_PORT#"
 HANDSHAKE_END = "#END#"
@@ -174,6 +184,17 @@ CLOUD_FORBIDDEN_ERROR_MESSAGE = "授权已过期，请联系管理员"
 CLOUD_REPORT_FAILED_ERROR_MESSAGE = "账号信息上报云端失败，请检查网络后重试"
 CLOUD_UNAVAILABLE_ERROR_MESSAGE = "服务器异常，请联系管理员"
 CLOUD_REPORT_LOG_MESSAGE = "Account report rejected by cloud goodfish_id={} status={}"
+CLOUD_RESPONSE_CODE_KEY = "code"
+CLOUD_RESPONSE_MSG_KEY = "msg"
+CLOUD_RESPONSE_DATA_KEY = "data"
+CLOUD_ACCESS_CHECK_LOG_MESSAGE = "Cloud access check body_code={} allowed={}"
+CLOUD_ACCESS_REJECTED_LOG_MESSAGE = "Cloud access check rejected http_status={} body_code={} msg={}"
+CLOUD_REQUEST_REJECTED_LOG_MESSAGE = "Cloud request rejected method={} path={} http_status={}"
+AUTH_LOGIN_RESULT_LOG_MESSAGE = "Login handover finished auth_state={}"
+AUTH_ACCESS_CHECK_FAILED_LOG_MESSAGE = "Unexpected authorization check failure"
+AUTH_STARTUP_CHECK_FAILED_LOG_MESSAGE = "Startup authorization check failed; stored token is kept"
+LOCAL_API_INTERNAL_ERROR_MESSAGE = "本地服务内部错误，请查看本地日志"
+LOCAL_API_UNEXPECTED_ERROR_LOG_MESSAGE = "Unexpected local API error path={}"
 
 # ==================== 闲鱼商品同步 ====================
 # 闲鱼商品列表接口（个人版 goofish.com，非鱼小铺 seller.goofish.com）

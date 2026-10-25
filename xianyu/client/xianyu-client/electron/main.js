@@ -15,9 +15,14 @@ const {
   ELECTRON_DATA_DIR_NAME,
   EXIT_CODE_FAILURE,
   EXIT_CODE_SUCCESS,
-  LOCAL_API_ERROR_MESSAGE,
+  LOCAL_API_DETAIL_KEY,
+  LOCAL_API_ERROR_BODY_LIMIT,
+  LOCAL_API_ERROR_STATUS_KEY,
+  LOCAL_API_ERROR_STATUS_TEMPLATE,
   LOCAL_API_JSON_CONTENT_TYPE,
   LOCAL_API_PATH_PREFIX,
+  LOCAL_API_REQUEST_TIMEOUT_MS,
+  LOCAL_API_TIMEOUT_ERROR_MESSAGE,
   LOCAL_REQUEST_CHANNEL,
   LOCAL_SERVICE_HOST,
   LOCAL_SERVICE_NOT_READY_ERROR_MESSAGE,
@@ -28,6 +33,9 @@ const {
   PROCESS_NAME_PYTHON,
   PROCESS_NAME_VITE,
   PYTHON_GRACEFUL_SHUTDOWN_TIMEOUT_MS,
+  TIMEOUT_ERROR_NAME,
+  VALIDATION_DETAIL_JOINER,
+  VALIDATION_DETAIL_KEY,
   WINDOW_HEIGHT,
   WINDOW_TITLE,
   WINDOW_WIDTH
@@ -79,15 +87,24 @@ async function requestLocalApi(pathname, options = {}) {
   if (!pythonSession || typeof pathname !== "string" || !pathname.startsWith(LOCAL_API_PATH_PREFIX)) {
     throw new Error(LOCAL_SERVICE_NOT_READY_ERROR_MESSAGE);
   }
-  const response = await fetch(`http://${LOCAL_SERVICE_HOST}:${pythonSession.port}${pathname}`, {
-    ...options,
-    headers: {
-      ...(options.headers || {}),
-      [LOCAL_TOKEN_HEADER]: process.env[LOCAL_TOKEN_ENV_NAME] || ""
+  let response;
+  try {
+    response = await fetch(`http://${LOCAL_SERVICE_HOST}:${pythonSession.port}${pathname}`, {
+      ...options,
+      headers: {
+        ...(options.headers || {}),
+        [LOCAL_TOKEN_HEADER]: process.env[LOCAL_TOKEN_ENV_NAME] || ""
+      },
+      signal: AbortSignal.timeout(LOCAL_API_REQUEST_TIMEOUT_MS)
+    });
+  } catch (error) {
+    if (error instanceof Error && error.name === TIMEOUT_ERROR_NAME) {
+      throw new Error(LOCAL_API_TIMEOUT_ERROR_MESSAGE);
     }
-  });
+    throw error;
+  }
   if (!response.ok) {
-    throw await createLocalApiError(response);
+    throw await createLocalApiError(response, pathname);
   }
   return response.json();
 }
@@ -96,20 +113,51 @@ async function requestLocalApi(pathname, options = {}) {
  * Build an error from a safe JSON detail response without echoing request bodies.
  *
  * @param {Response} response Failed local API response.
+ * @param {string} pathname Requested API path used for logging only.
  * @returns {Promise<Error>} Error carrying a non-secret backend message.
  */
-async function createLocalApiError(response) {
-  try {
-    if (response.headers.get("content-type")?.startsWith(LOCAL_API_JSON_CONTENT_TYPE)) {
-      const payload = await response.json();
-      if (typeof payload.detail === "string") {
-        return new Error(payload.detail);
-      }
+async function createLocalApiError(response, pathname) {
+  const contentType = response.headers.get("content-type") || "";
+  if (contentType.startsWith(LOCAL_API_JSON_CONTENT_TYPE)) {
+    const payload = await response.json().catch(() => null);
+    const detail = extractErrorDetail(payload);
+    if (detail) {
+      return new Error(detail);
     }
-  } catch {
-    return new Error(LOCAL_API_ERROR_MESSAGE);
+  } else {
+    const body = await response.text().catch(() => "");
+    const excerpt = body.slice(0, LOCAL_API_ERROR_BODY_LIMIT);
+    await appendElectronLog(
+      resolveDataDir(),
+      `local api failure path=${pathname} status=${response.status} body=${excerpt}`
+    ).catch(() => undefined);
   }
-  return new Error(LOCAL_API_ERROR_MESSAGE);
+  return new Error(
+    LOCAL_API_ERROR_STATUS_TEMPLATE.replace(LOCAL_API_ERROR_STATUS_KEY, String(response.status))
+  );
+}
+
+/**
+ * Extract a readable message from a FastAPI error payload.
+ *
+ * @param {unknown} payload Decoded JSON body returned by the local service.
+ * @returns {string} Detail text, or an empty string when no message is present.
+ */
+function extractErrorDetail(payload) {
+  if (!payload || typeof payload !== "object") {
+    return "";
+  }
+  const detail = payload[LOCAL_API_DETAIL_KEY];
+  if (typeof detail === "string") {
+    return detail;
+  }
+  if (!Array.isArray(detail)) {
+    return "";
+  }
+  return detail
+    .map((item) => (item && typeof item === "object" ? item[VALIDATION_DETAIL_KEY] : ""))
+    .filter((message) => typeof message === "string" && message)
+    .join(VALIDATION_DETAIL_JOINER);
 }
 
 /**

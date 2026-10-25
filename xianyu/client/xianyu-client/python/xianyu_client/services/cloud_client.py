@@ -8,6 +8,8 @@ import aiohttp
 from loguru import logger
 
 from xianyu_client.core.constants import (
+    CLOUD_ACCESS_CHECK_LOG_MESSAGE,
+    CLOUD_ACCESS_REJECTED_LOG_MESSAGE,
     CLOUD_API_PATH_ACCOUNT_REPORT,
     CLOUD_API_PATH_AUTH_ACCESS,
     CLOUD_API_PATH_ITEM_SYNC,
@@ -26,11 +28,16 @@ from xianyu_client.core.constants import (
     CLOUD_ITEM_SYNC_LOG_MESSAGE,
     CLOUD_ITEM_SYNC_UPDATED_KEY,
     CLOUD_REPORT_LOG_MESSAGE,
+    CLOUD_REQUEST_REJECTED_LOG_MESSAGE,
     CLOUD_REQUEST_TIMEOUT_SECONDS,
+    CLOUD_RESPONSE_CODE_KEY,
+    CLOUD_RESPONSE_DATA_KEY,
+    CLOUD_RESPONSE_MSG_KEY,
     CLOUD_RETRY_INTERVAL_MAX_SECONDS,
     CLOUD_RETRY_INTERVAL_MIN_SECONDS,
     CLOUD_RETRY_LIMIT,
     CLOUD_SUCCESS_CODE,
+    CLOUD_SUCCESS_HTTP_STATUS,
     CONTENT_TYPE_JSON_HEADER,
 )
 from xianyu_client.core.errors import (
@@ -84,7 +91,7 @@ class CloudClient:
         if status != CLOUD_SUCCESS_HTTP_STATUS:
             logger.warning(CLOUD_REPORT_LOG_MESSAGE, goodfish_id, status)
             raise CloudReportError()
-        if body.get("code") != CLOUD_SUCCESS_CODE:
+        if body.get(CLOUD_RESPONSE_CODE_KEY) != CLOUD_SUCCESS_CODE:
             logger.warning(CLOUD_REPORT_LOG_MESSAGE, goodfish_id, status)
             raise CloudReportError()
 
@@ -110,7 +117,7 @@ class CloudClient:
             status, body = await self._request("POST", CLOUD_API_PATH_ITEM_SYNC, payload)
         except CloudUnavailableError as error:
             raise CloudItemSyncError() from error
-        code = body.get("code")
+        code = body.get(CLOUD_RESPONSE_CODE_KEY)
         if code == CLOUD_ITEM_SYNC_CODE_ACCOUNT_NOT_FOUND:
             logger.warning(CLOUD_ITEM_SYNC_LOG_MESSAGE, goodfish_id, status, code)
             raise CloudItemSyncError(CLOUD_ITEM_SYNC_ACCOUNT_NOT_FOUND_MESSAGE)
@@ -120,7 +127,7 @@ class CloudClient:
         if status != CLOUD_SUCCESS_HTTP_STATUS or code != CLOUD_SUCCESS_CODE:
             logger.warning(CLOUD_ITEM_SYNC_LOG_MESSAGE, goodfish_id, status, code)
             raise CloudItemSyncError()
-        data = body.get("data")
+        data = body.get(CLOUD_RESPONSE_DATA_KEY)
         if not isinstance(data, dict):
             return CLOUD_ITEM_SYNC_INITIAL_COUNT, CLOUD_ITEM_SYNC_INITIAL_COUNT
         return (
@@ -130,6 +137,9 @@ class CloudClient:
 
     async def check_access(self) -> bool:
         """Ask the cloud whether the current account may keep running.
+
+        The gateway wraps authentication failures as HTTP 200 with a body code of
+        401, so the body code is inspected before reading the data flag.
 
         Returns:
             True when the authorization is valid, False when it expired.
@@ -147,7 +157,22 @@ class CloudClient:
             raise CloudForbiddenError()
         if status != CLOUD_SUCCESS_HTTP_STATUS:
             raise CloudUnavailableError()
-        return bool(body.get("data", False))
+        code = body.get(CLOUD_RESPONSE_CODE_KEY)
+        if code == CLOUD_SUCCESS_CODE:
+            allowed = bool(body.get(CLOUD_RESPONSE_DATA_KEY, False))
+            logger.info(CLOUD_ACCESS_CHECK_LOG_MESSAGE, code, allowed)
+            return allowed
+        logger.warning(
+            CLOUD_ACCESS_REJECTED_LOG_MESSAGE,
+            status,
+            code,
+            body.get(CLOUD_RESPONSE_MSG_KEY),
+        )
+        if code == CLOUD_HTTP_STATUS_UNAUTHORIZED:
+            raise CloudUnauthorizedError()
+        if code == CLOUD_HTTP_STATUS_FORBIDDEN:
+            raise CloudForbiddenError()
+        raise CloudUnavailableError()
 
     async def _request(
         self,
@@ -181,8 +206,10 @@ class CloudClient:
                 last_error = error
             else:
                 if status == CLOUD_HTTP_STATUS_UNAUTHORIZED:
+                    logger.warning(CLOUD_REQUEST_REJECTED_LOG_MESSAGE, method, path, status)
                     raise CloudUnauthorizedError()
                 if status == CLOUD_HTTP_STATUS_FORBIDDEN:
+                    logger.warning(CLOUD_REQUEST_REJECTED_LOG_MESSAGE, method, path, status)
                     raise CloudForbiddenError()
                 if status < CLOUD_HTTP_STATUS_SERVER_ERROR_MIN:
                     return status, body

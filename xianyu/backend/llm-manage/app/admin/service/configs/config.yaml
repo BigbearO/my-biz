@@ -1,7 +1,7 @@
 registry:
   type: "nacos"
   nacos:
-    address: "192.168.73.93"  #地址
+    address: "10.0.0.8"  #地址
     port: 8848
     namespace_id: xhf
     username: nacos
@@ -15,7 +15,7 @@ registry:
 #config:
 #  type: "nacos"               # 远程配置类型（支持 etcd/nacos/consul 等）
 #  nacos:
-#    address: "192.168.73.93"  # nacos 集群地址
+#    address: "10.0.0.8"  # nacos 集群地址
 #    port: 8848
 #    username: nacos
 #    password: nacos
@@ -33,7 +33,7 @@ registry:
 
 
 #trace:
-#  endpoint: "192.168.73.93:4318"
+#  endpoint: "10.0.0.8:4318"
 #  exporter: "otlp-http"
 #  sampler: 1.0
 #  env: "dev"

@@ -11,6 +11,7 @@ export const LOGIN_USERNAME_REQUIRED_MESSAGE = "请输入账号";
 export const LOGIN_PASSWORD_REQUIRED_MESSAGE = "请输入密码";
 export const LOGIN_CAPTCHA_REQUIRED_MESSAGE = "请输入验证码";
 export const LOGIN_FAILED_MESSAGE = "登录失败，请检查账号密码与验证码";
+export const LOGIN_CREDENTIAL_REJECTED_MESSAGE = "登录凭证校验未通过，请重新登录";
 export const LOGIN_HANDOVER_FAILED_MESSAGE = "登录凭证保存失败，请重试";
 export const LOGIN_SUCCESS_MESSAGE = "登录成功";
 export const LOGIN_CAPTCHA_EMPTY_MESSAGE = "验证码加载失败，请点击刷新";

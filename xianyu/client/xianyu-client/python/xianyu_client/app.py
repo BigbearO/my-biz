@@ -3,10 +3,11 @@
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from loguru import logger
 
 from xianyu_client.api.account_api import router as account_router
 from xianyu_client.api.item_api import router as item_router
@@ -14,8 +15,11 @@ from xianyu_client.api.system_api import router as system_router
 from xianyu.http_protocol import HttpXianyuProtocol
 from xianyu_client.core.constants import (
     ACCOUNT_REQUEST_VALIDATION_ERROR_MESSAGE,
+    AUTH_STARTUP_CHECK_FAILED_LOG_MESSAGE,
     FILE_ORIGIN,
     LOCAL_API_ALLOWED_METHODS,
+    LOCAL_API_INTERNAL_ERROR_MESSAGE,
+    LOCAL_API_UNEXPECTED_ERROR_LOG_MESSAGE,
     LOCAL_TOKEN_HEADER,
     VITE_DEV_ORIGIN,
 )
@@ -76,7 +80,10 @@ def create_app(settings: RuntimeSettings, master_key_protector=None, xianyu_prot
         await run_database_lifecycle(Path(settings.database_path))
         await config_manager.initialize_defaults()
         await credential_service.initialize()
-        await auth_service.load_persisted_state()
+        try:
+            await auth_service.load_persisted_state()
+        except Exception:
+            logger.exception(AUTH_STARTUP_CHECK_FAILED_LOG_MESSAGE)
         await auth_service.start_periodic_check()
         try:
             yield
@@ -107,7 +114,28 @@ def create_app(settings: RuntimeSettings, master_key_protector=None, xianyu_prot
         allow_headers=["Content-Type", LOCAL_TOKEN_HEADER],
     )
     app.add_exception_handler(RequestValidationError, sanitize_request_validation_error)
+    app.add_exception_handler(Exception, handle_unexpected_error)
     return app
+
+
+async def handle_unexpected_error(request: Request, exception: Exception) -> JSONResponse:
+    """Log an unexpected local API failure without echoing request content.
+
+    Args:
+        request: Failed request used only for its path.
+        exception: Unexpected error raised by a route or dependency.
+
+    Returns:
+        A JSON response containing only a stable non-secret message.
+    """
+    logger.opt(exception=exception).error(
+        LOCAL_API_UNEXPECTED_ERROR_LOG_MESSAGE,
+        request.url.path,
+    )
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={"detail": LOCAL_API_INTERNAL_ERROR_MESSAGE},
+    )
 
 
 async def sanitize_request_validation_error(

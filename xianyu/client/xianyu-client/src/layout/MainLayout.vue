@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ElMessage, ElMessageBox } from "element-plus";
-import { Cloud, LogOut, MonitorCog, Settings as SettingsIcon, Users } from "lucide-vue-next";
+import { LogOut, MonitorCog, Settings as SettingsIcon, Users } from "lucide-vue-next";
 import { computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
@@ -10,10 +10,8 @@ import {
   LAYOUT_LOGOUT_BUTTON,
   LAYOUT_LOGOUT_CONFIRM_MESSAGE,
   LAYOUT_MENU_ACCOUNT,
-  LAYOUT_MENU_CLOUD,
   LAYOUT_MENU_SETTINGS,
   ROUTE_PATH_ACCOUNTS,
-  ROUTE_PATH_CLOUD,
   ROUTE_PATH_LOGIN,
   ROUTE_PATH_SETTINGS
 } from "@/constants/layout";
@@ -77,10 +75,6 @@ async function handleLogout(): Promise<void> {
         <el-menu-item :index="ROUTE_PATH_ACCOUNTS">
           <Users :size="18" />
           <span>{{ LAYOUT_MENU_ACCOUNT }}</span>
-        </el-menu-item>
-        <el-menu-item :index="ROUTE_PATH_CLOUD">
-          <Cloud :size="18" />
-          <span>{{ LAYOUT_MENU_CLOUD }}</span>
         </el-menu-item>
         <el-menu-item :index="ROUTE_PATH_SETTINGS">
           <SettingsIcon :size="18" />

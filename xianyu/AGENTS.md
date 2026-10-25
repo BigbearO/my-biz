@@ -11,6 +11,8 @@
 6. github相关搜索加上前缀https://v6.gh-proxy.org/
 7. 代码写完,编译，自测之前，先问问要不要编译测试,不要直接就执行
 
+maven在 
+E:\programing\apache\apache-maven-3.9.9\conf\ 
 
 
 ## 一、代码分层规范

@@ -10,8 +10,10 @@ import {
   LOGIN_CAPTCHA_PLACEHOLDER,
   LOGIN_CAPTCHA_REFRESH_HINT,
   LOGIN_CAPTCHA_REQUIRED_MESSAGE,
+  LOGIN_CREDENTIAL_REJECTED_MESSAGE,
   LOGIN_FAILED_MESSAGE,
   LOGIN_FORM_WIDTH,
+  LOGIN_FROZEN_MESSAGE,
   LOGIN_HANDOVER_FAILED_MESSAGE,
   LOGIN_PAGE_SUBTITLE,
   LOGIN_PAGE_TITLE,
@@ -25,7 +27,7 @@ import {
   LOGIN_USERNAME_REQUIRED_MESSAGE
 } from "@/constants/login";
 import { ROUTE_PATH_ACCOUNTS } from "@/constants/layout";
-import { AUTH_STATE_LOGGED_IN, AUTH_STATE_UNAVAILABLE } from "@/constants/system";
+import { AUTH_STATE_FROZEN, AUTH_STATE_LOGGED_IN, AUTH_STATE_UNAVAILABLE } from "@/constants/system";
 
 interface LoginForm {
   username: string;
@@ -104,8 +106,11 @@ async function submitLogin(): Promise<void> {
       if (result.authState === AUTH_STATE_UNAVAILABLE) {
         throw new Error(LOGIN_UNAVAILABLE_MESSAGE);
       }
+      if (result.authState === AUTH_STATE_FROZEN) {
+        throw new Error(LOGIN_FROZEN_MESSAGE);
+      }
       if (result.authState !== AUTH_STATE_LOGGED_IN) {
-        throw new Error(LOGIN_FAILED_MESSAGE);
+        throw new Error(LOGIN_CREDENTIAL_REJECTED_MESSAGE);
       }
     } catch (error) {
       throw new Error(error instanceof Error ? error.message : LOGIN_HANDOVER_FAILED_MESSAGE);
