@@ -28,6 +28,7 @@ import {
 } from "@/constants/login";
 import { ROUTE_PATH_ACCOUNTS } from "@/constants/layout";
 import { AUTH_STATE_FROZEN, AUTH_STATE_LOGGED_IN, AUTH_STATE_UNAVAILABLE } from "@/constants/system";
+import { saveLoginUsername } from "@/utils/session";
 
 interface LoginForm {
   username: string;
@@ -115,6 +116,7 @@ async function submitLogin(): Promise<void> {
     } catch (error) {
       throw new Error(error instanceof Error ? error.message : LOGIN_HANDOVER_FAILED_MESSAGE);
     }
+    saveLoginUsername(form.username.trim());
     ElMessage.success(LOGIN_SUCCESS_MESSAGE);
     await router.replace(ROUTE_PATH_ACCOUNTS);
   } catch (error) {

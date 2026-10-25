@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { ElMessage, ElMessageBox } from "element-plus";
-import { LogOut, MonitorCog, Settings as SettingsIcon, Users } from "lucide-vue-next";
-import { computed } from "vue";
+import { LogOut, MonitorCog, Settings as SettingsIcon, User, Users } from "lucide-vue-next";
+import { computed, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
 import { localLogout } from "@/api/local-client";
 import {
   LAYOUT_APP_TITLE,
+  LAYOUT_LOGIN_USER_LABEL,
   LAYOUT_LOGOUT_BUTTON,
   LAYOUT_LOGOUT_CONFIRM_MESSAGE,
   LAYOUT_MENU_ACCOUNT,
@@ -15,11 +16,13 @@ import {
   ROUTE_PATH_LOGIN,
   ROUTE_PATH_SETTINGS
 } from "@/constants/layout";
+import { clearLoginUsername, readLoginUsername } from "@/utils/session";
 
 const route = useRoute();
 const router = useRouter();
 
 const activeMenu = computed(() => route.path);
+const loginUsername = ref(readLoginUsername());
 
 /**
  * Navigate to one section of the main layout.
@@ -53,6 +56,8 @@ async function handleLogout(): Promise<void> {
   } catch (error) {
     ElMessage.error(error instanceof Error ? error.message : LAYOUT_LOGOUT_BUTTON);
   }
+  clearLoginUsername();
+  loginUsername.value = "";
   await router.replace(ROUTE_PATH_LOGIN);
 }
 </script>
@@ -82,6 +87,15 @@ async function handleLogout(): Promise<void> {
         </el-menu-item>
       </el-menu>
       <div class="layout-footer">
+        <div
+          v-if="loginUsername"
+          class="layout-user"
+          :title="loginUsername"
+          :aria-label="LAYOUT_LOGIN_USER_LABEL"
+        >
+          <User :size="16" />
+          <span class="layout-user-name">{{ loginUsername }}</span>
+        </div>
         <el-button link :icon="LogOut" @click="handleLogout">
           {{ LAYOUT_LOGOUT_BUTTON }}
         </el-button>
@@ -125,6 +139,25 @@ async function handleLogout(): Promise<void> {
 
 .layout-footer {
   padding: 12px 18px 18px;
+}
+
+.layout-user {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  min-width: 0;
+  margin-bottom: 8px;
+  padding: 6px 8px;
+  color: #4b5b6b;
+  font-size: 13px;
+  background: #f4f7fb;
+  border-radius: 6px;
+}
+
+.layout-user-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .layout-content {
