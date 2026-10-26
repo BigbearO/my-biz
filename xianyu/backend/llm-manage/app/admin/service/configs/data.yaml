@@ -1,7 +1,7 @@
 data:
   database:
     driver: "postgres"
-    source: "host=10.0.0.8 port=5432 user=root password=123456 dbname=good_fish sslmode=disable"
+    source: "host=10.0.0.5 port=5432 user=root password=123456 dbname=good_fish sslmode=disable"
 #    driver: "mysql"
 #    source: "root:*Abcd123456@tcp(localhost:3306)/gwa?parseTime=true&charset=utf8mb4&loc=Asia%2FShanghai"
     migrate: true
@@ -13,7 +13,7 @@ data:
     connection_max_lifetime: 300s
 
   redis:
-    addr: "10.0.0.8:6379"
+    addr: "10.0.0.5:6379"
     password: "123456"
     dial_timeout: 10s
     read_timeout: 0.4s

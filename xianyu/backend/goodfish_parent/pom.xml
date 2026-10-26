@@ -51,7 +51,7 @@
             <id>dev</id>
             <properties>
                 <profiles.active>dev</profiles.active>
-                <nacos.server>10.0.0.8:8848</nacos.server>
+                <nacos.server>10.0.0.5:8848</nacos.server>
                 <nacos.ns>xhf</nacos.ns>
                 <nacos.username>nacos</nacos.username>
                 <nacos.password>nacos</nacos.password>

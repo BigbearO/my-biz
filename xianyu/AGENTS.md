@@ -15,6 +15,13 @@ maven在
 E:\programing\apache\apache-maven-3.9.9\conf\ 
 
 
+闲鱼接口参考
+https://github.com/cv-cat/XianYuApis
+https://github.com/zhinianboke/xianyu-auto-reply
+https://github.com/GuDong2003/xianyu-auto-reply-fix
+https://github.com/23Star/xianyu-super-butler
+
+
 ## 一、代码分层规范
 
 ### 1.1 分层架构

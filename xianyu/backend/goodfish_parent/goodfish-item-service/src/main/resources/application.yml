@@ -19,26 +19,7 @@ spring:
       channel:
         account:
           target: nacos://goodfish-client-meta-service-grpc
-  # 数据源：PostgreSQL 统一库（初级阶段单库 good_fish，各服务表按名前缀隔离）
-  datasource:
-    dynamic:
-      primary: master
-      datasource:
-        master:
-          type: com.zaxxer.hikari.HikariDataSource
-          driver-class-name: org.postgresql.Driver
-          url: jdbc:postgresql://192.168.73.93:5432/good_fish?useUnicode=true&characterEncoding=utf8&useSSL=true&serverTimezone=GMT%2B8&autoReconnect=true&reWriteBatchedInserts=true
-          username: root
-          password: "123456"
-  # Redis：复用 goodfish 栈现有 Redis（与 llm-manage data.yaml 对齐）
-  data:
-    redis:
-      host: 192.168.73.93
-      port: 6379
-      password: "123456"
-      database: 0
-      timeout: 10000
-      ssl.enabled: false
+
 
 # MyBatisPlus（与 application-common.yml 同口径）
 mybatis-plus:
