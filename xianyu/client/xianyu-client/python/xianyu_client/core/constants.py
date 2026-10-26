@@ -208,6 +208,8 @@ CLOUD_HTTP_STATUS_FORBIDDEN = 403
 CLOUD_HTTP_STATUS_SERVER_ERROR_MIN = 500
 CLOUD_SUCCESS_HTTP_STATUS = 200
 CLOUD_SUCCESS_CODE = 200
+CLOUD_METHOD_GET = "GET"
+CLOUD_METHOD_POST = "POST"
 CONTENT_TYPE_JSON_HEADER = "Content-Type"
 
 CLOUD_STATE_ONLINE = "online"
@@ -234,6 +236,9 @@ CLOUD_RESPONSE_DATA_KEY = "data"
 CLOUD_ACCESS_CHECK_LOG_MESSAGE = "Cloud access check body_code={} allowed={}"
 CLOUD_ACCESS_REJECTED_LOG_MESSAGE = "Cloud access check rejected http_status={} body_code={} msg={}"
 CLOUD_REQUEST_REJECTED_LOG_MESSAGE = "Cloud request rejected method={} path={} http_status={}"
+CLOUD_REQUEST_REJECTED_BODY_LOG_MESSAGE = (
+    "Cloud request rejected method={} path={} http_status={} body_code={} msg={}"
+)
 AUTH_LOGIN_RESULT_LOG_MESSAGE = "Login handover finished auth_state={}"
 AUTH_ACCESS_CHECK_FAILED_LOG_MESSAGE = "Unexpected authorization check failure"
 AUTH_STARTUP_CHECK_FAILED_LOG_MESSAGE = "Startup authorization check failed; stored token is kept"

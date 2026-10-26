@@ -114,6 +114,34 @@
                         <useDefaultDelimiters>false</useDefaultDelimiters>
                     </configuration>
                 </plugin>
+                <!-- mapstruct-plus 注解处理器：父 pom xxs-common-spring 只配了原生 mapstruct-processor，
+                     @AutoMapper 不会生成转换器，运行时 MapstructUtils 会抛“转换失败”。
+                     注意：annotationProcessorPaths 是列表型配置，子 pom 一旦声明会整体替换父 pom 的列表，
+                     因此 lombok / lombok-mapstruct-binding 必须一并列出；且不要再保留 org.mapstruct:mapstruct-processor，
+                     避免与 mapstruct-plus-processor 自带的 MappingProcessor 重复处理。 -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <configuration>
+                        <annotationProcessorPaths>
+                            <path>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok</artifactId>
+                            </path>
+                            <path>
+                                <!-- 确保 Lombok 生成的 getter/setter 能被 MapStruct 识别 -->
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok-mapstruct-binding</artifactId>
+                                <version>0.2.0</version>
+                            </path>
+                            <path>
+                                <groupId>io.github.linpeilie</groupId>
+                                <artifactId>mapstruct-plus-processor</artifactId>
+                                <version>1.5.1</version>
+                            </path>
+                        </annotationProcessorPaths>
+                    </configuration>
+                </plugin>
             </plugins>
         </pluginManagement>
     </build>

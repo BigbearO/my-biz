@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration scan="true" scanPeriod="60 seconds" debug="false">
-    <!-- 日志存放路径 -->
-    <property name="log.path" value="logs/${project.artifactId}"/>
+    <!-- 日志存放路径：必须用 @...@ 定界符（父 pom 已关闭 Maven 默认的 ${...}），
+         否则占位符不会被替换，运行时 logback 会把目录写成 logs/project.artifactId_IS_UNDEFINED -->
+    <property name="log.path" value="logs/@project.artifactId@"/>
     <!-- 日志输出格式 -->
     <property name="console.log.pattern"
               value="%cyan(%d{yyyy-MM-dd HH:mm:ss}) %green([%thread]) %highlight(%-5level) %boldMagenta(%logger{36}%n) - %msg%n"/>

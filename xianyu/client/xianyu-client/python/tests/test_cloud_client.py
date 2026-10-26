@@ -13,6 +13,7 @@ from xianyu_client.core.constants import (
 )
 from xianyu_client.core.errors import (
     CloudForbiddenError,
+    CloudReportError,
     CloudUnauthorizedError,
     CloudUnavailableError,
 )
@@ -29,6 +30,7 @@ TEST_INSERTED_COUNT = 2
 TEST_UPDATED_COUNT = 1
 DATA_KEY = "data"
 CODE_KEY = "code"
+CLOUD_FAILURE_CODE = 500
 
 
 def build_client() -> CloudClient:
@@ -98,6 +100,30 @@ async def test_report_account_accepts_success_code(monkeypatch):
     await build_client().report_account(TEST_GOODFISH_ID, TEST_NICKNAME, TEST_REMARK)
 
     assert len(calls) == 1
+
+
+async def test_report_account_maps_unauthorized_body_code(monkeypatch):
+    """The gateway rejects a stale token with HTTP 200 and body code 401."""
+    patch_send(monkeypatch, CLOUD_SUCCESS_HTTP_STATUS, {CODE_KEY: CLOUD_HTTP_STATUS_UNAUTHORIZED})
+
+    with pytest.raises(CloudUnauthorizedError):
+        await build_client().report_account(TEST_GOODFISH_ID, TEST_NICKNAME, TEST_REMARK)
+
+
+async def test_report_account_maps_forbidden_body_code(monkeypatch):
+    """The gateway reports an expired authorization with HTTP 200 and body code 403."""
+    patch_send(monkeypatch, CLOUD_SUCCESS_HTTP_STATUS, {CODE_KEY: CLOUD_HTTP_STATUS_FORBIDDEN})
+
+    with pytest.raises(CloudForbiddenError):
+        await build_client().report_account(TEST_GOODFISH_ID, TEST_NICKNAME, TEST_REMARK)
+
+
+async def test_report_account_maps_business_failure_to_report_error(monkeypatch):
+    """A non-auth business failure still surfaces as a report error."""
+    patch_send(monkeypatch, CLOUD_SUCCESS_HTTP_STATUS, {CODE_KEY: CLOUD_FAILURE_CODE})
+
+    with pytest.raises(CloudReportError):
+        await build_client().report_account(TEST_GOODFISH_ID, TEST_NICKNAME, TEST_REMARK)
 
 
 async def test_sync_items_returns_cloud_counters(monkeypatch):

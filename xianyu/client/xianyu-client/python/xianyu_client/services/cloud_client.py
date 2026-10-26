@@ -27,7 +27,9 @@ from xianyu_client.core.constants import (
     CLOUD_ITEM_SYNC_INSERTED_KEY,
     CLOUD_ITEM_SYNC_LOG_MESSAGE,
     CLOUD_ITEM_SYNC_UPDATED_KEY,
+    CLOUD_METHOD_POST,
     CLOUD_REPORT_LOG_MESSAGE,
+    CLOUD_REQUEST_REJECTED_BODY_LOG_MESSAGE,
     CLOUD_REQUEST_REJECTED_LOG_MESSAGE,
     CLOUD_REQUEST_TIMEOUT_SECONDS,
     CLOUD_RESPONSE_CODE_KEY,
@@ -85,13 +87,23 @@ class CloudClient:
             "remark": remark,
         }
         try:
-            status, body = await self._request("POST", CLOUD_API_PATH_ACCOUNT_REPORT, payload)
+            status, body = await self._request(CLOUD_METHOD_POST, CLOUD_API_PATH_ACCOUNT_REPORT, payload)
         except CloudUnavailableError as error:
             raise CloudReportError() from error
-        if status != CLOUD_SUCCESS_HTTP_STATUS:
-            logger.warning(CLOUD_REPORT_LOG_MESSAGE, goodfish_id, status)
-            raise CloudReportError()
-        if body.get(CLOUD_RESPONSE_CODE_KEY) != CLOUD_SUCCESS_CODE:
+        code = body.get(CLOUD_RESPONSE_CODE_KEY)
+        if code in (CLOUD_HTTP_STATUS_UNAUTHORIZED, CLOUD_HTTP_STATUS_FORBIDDEN):
+            logger.warning(
+                CLOUD_REQUEST_REJECTED_BODY_LOG_MESSAGE,
+                CLOUD_METHOD_POST,
+                CLOUD_API_PATH_ACCOUNT_REPORT,
+                status,
+                code,
+                body.get(CLOUD_RESPONSE_MSG_KEY),
+            )
+            if code == CLOUD_HTTP_STATUS_UNAUTHORIZED:
+                raise CloudUnauthorizedError()
+            raise CloudForbiddenError()
+        if status != CLOUD_SUCCESS_HTTP_STATUS or code != CLOUD_SUCCESS_CODE:
             logger.warning(CLOUD_REPORT_LOG_MESSAGE, goodfish_id, status)
             raise CloudReportError()
 
