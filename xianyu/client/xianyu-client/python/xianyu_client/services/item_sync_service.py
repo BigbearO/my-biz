@@ -10,10 +10,16 @@ from loguru import logger
 from xianyu.protocol import XianyuItem, XianyuProtocol
 from xianyu_client.core.constants import (
     ITEM_PRICE_PATTERN,
+    ITEM_SYNC_CLOUD_FAILURE_MESSAGE,
+    ITEM_SYNC_COOKIE_INVALID_MESSAGE,
+    ITEM_SYNC_COOKIE_MISMATCH_MESSAGE,
     ITEM_SYNC_EMPTY_RESULT_MESSAGE,
     ITEM_SYNC_FAILED_LOG_MESSAGE,
     ITEM_SYNC_INITIAL_COUNT,
     ITEM_SYNC_MAX_ITEMS,
+    ITEM_SYNC_NETWORK_FAILURE_MESSAGE,
+    ITEM_SYNC_PROTOCOL_FAILURE_MESSAGE,
+    ITEM_SYNC_RISK_CONTROL_MESSAGE,
     ITEM_SYNC_START_LOG_MESSAGE,
     ITEM_SYNC_STATE_FAILED,
     ITEM_SYNC_STATE_IDLE,
@@ -23,7 +29,15 @@ from xianyu_client.core.constants import (
     ITEM_SYNC_SUCCESS_MESSAGE,
     ITEM_SYNC_UNKNOWN_FAILURE_MESSAGE,
 )
-from xianyu_client.core.errors import ItemSyncInProgressError
+from xianyu_client.core.errors import (
+    CloudItemSyncError,
+    InvalidXianyuCookieError,
+    ItemSyncInProgressError,
+    XianyuCookieMismatchError,
+    XianyuNetworkError,
+    XianyuProtocolError,
+    XianyuRiskControlError,
+)
 from xianyu_client.schemas.account_schemas import AccountDetailResponse
 from xianyu_client.schemas.item_schemas import ItemSyncStatusResponse
 from xianyu_client.services.account_service import AccountService
@@ -149,11 +163,35 @@ class ItemSyncService:
             )
         except Exception as error:  # noqa: BLE001 - every failure must surface as a status
             status.state = ITEM_SYNC_STATE_FAILED
-            status.message = str(error) or ITEM_SYNC_UNKNOWN_FAILURE_MESSAGE
+            status.message = _failure_message(error)
             logger.warning(ITEM_SYNC_FAILED_LOG_MESSAGE, status.account_id, error)
         finally:
             async with self._lock:
                 self._tasks.pop(status.account_id, None)
+
+
+def _failure_message(error: Exception) -> str:
+    """Translate one synchronisation failure into an operator-facing message.
+
+    Args:
+        error: Exception raised while reading or uploading the listing.
+
+    Returns:
+        A localized hint; unknown failures keep their original text for the log.
+    """
+    if isinstance(error, InvalidXianyuCookieError):
+        return ITEM_SYNC_COOKIE_INVALID_MESSAGE
+    if isinstance(error, XianyuCookieMismatchError):
+        return ITEM_SYNC_COOKIE_MISMATCH_MESSAGE
+    if isinstance(error, XianyuRiskControlError):
+        return ITEM_SYNC_RISK_CONTROL_MESSAGE
+    if isinstance(error, XianyuNetworkError):
+        return ITEM_SYNC_NETWORK_FAILURE_MESSAGE
+    if isinstance(error, XianyuProtocolError):
+        return ITEM_SYNC_PROTOCOL_FAILURE_MESSAGE
+    if isinstance(error, CloudItemSyncError):
+        return ITEM_SYNC_CLOUD_FAILURE_MESSAGE
+    return str(error) or ITEM_SYNC_UNKNOWN_FAILURE_MESSAGE
 
 
 def _to_payload(item: XianyuItem) -> dict:

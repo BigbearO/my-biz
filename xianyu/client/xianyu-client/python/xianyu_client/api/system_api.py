@@ -1,8 +1,10 @@
 """Local HTTP routes for system state and login handover."""
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 
 from xianyu_client.api.dependencies import get_auth_service, get_system_service, validate_local_token
+from xianyu_client.api.local_errors import LocalApiError
+from xianyu_client.core.constants import ERROR_CODE_CREDENTIAL_UNAVAILABLE
 from xianyu_client.core.errors import AuthTokenUnavailableError
 from xianyu_client.schemas.auth_schemas import AuthStateResponse, LoginRequest, TokenResponse
 from xianyu_client.schemas.system_schemas import SystemStatusResponse
@@ -35,14 +37,15 @@ async def hand_over_login(
         The authorization state after the startup access check.
 
     Raises:
-        HTTPException: When the token pair cannot be encrypted for storage.
+        LocalApiError: When the token pair cannot be encrypted for storage.
     """
     try:
         auth_state = await auth_service.login(request.token, request.client_id)
     except AuthTokenUnavailableError as error:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=str(error),
+        raise LocalApiError(
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+            ERROR_CODE_CREDENTIAL_UNAVAILABLE,
+            str(error),
         ) from error
     return AuthStateResponse(auth_state=auth_state)
 
@@ -54,14 +57,15 @@ async def get_login_token(
     """Return the stored token pair to the trusted Electron process.
 
     Raises:
-        HTTPException: When the stored token cannot be decrypted.
+        LocalApiError: When the stored token cannot be decrypted.
     """
     try:
         token, client_id = await auth_service.get_credentials()
     except AuthTokenUnavailableError as error:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=str(error),
+        raise LocalApiError(
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+            ERROR_CODE_CREDENTIAL_UNAVAILABLE,
+            str(error),
         ) from error
     return TokenResponse(token=token, client_id=client_id)
 

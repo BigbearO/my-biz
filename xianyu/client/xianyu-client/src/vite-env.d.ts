@@ -7,6 +7,18 @@ declare module "*.vue" {
   export default component;
 }
 
+interface BridgeFailurePayload {
+  status: number;
+  code: string;
+  message: string;
+}
+
+interface BridgeResult<T> {
+  ok: boolean;
+  data?: T;
+  error?: BridgeFailurePayload;
+}
+
 interface CloudLoginPayload {
   username: string;
   password: string;
@@ -26,9 +38,9 @@ interface CloudCaptcha {
 
 interface GoodfishBridge {
   getLocalServiceInfo(): { baseUrl: string };
-  request(pathname: string, options?: RequestInit): Promise<unknown>;
-  fetchCaptcha(): Promise<CloudCaptcha>;
-  cloudLogin(payload: CloudLoginPayload): Promise<CloudLoginResult>;
+  request<T = unknown>(pathname: string, options?: RequestInit): Promise<BridgeResult<T>>;
+  fetchCaptcha(): Promise<BridgeResult<CloudCaptcha>>;
+  cloudLogin(payload: CloudLoginPayload): Promise<BridgeResult<CloudLoginResult>>;
 }
 
 declare global {
@@ -38,4 +50,3 @@ declare global {
 }
 
 export {};
-

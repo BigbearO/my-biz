@@ -7,6 +7,7 @@ from multidict import CIMultiDict
 
 from xianyu.http_protocol import (
     _LoginUserResult,
+    _build_mtop_url,
     _extract_account_info,
     _generate_sign,
     _merge_response_cookies,
@@ -45,6 +46,13 @@ def test_bounded_identity_falls_back_to_goodfish_id():
     assert not account_info.belongs_to("2038890")
 
 
+def test_mtop_url_keeps_the_h5_path_prefix():
+    """Signed mtop endpoints must keep the /h5 prefix and the trailing slash."""
+    url = _build_mtop_url("mtop.taobao.idlemessage.pc.loginuser.get", "1.0")
+
+    assert url == "https://h5api.m.goofish.com/h5/mtop.taobao.idlemessage.pc.loginuser.get/1.0/"
+
+
 def test_sign_changes_with_token_and_is_md5_shaped():
     """The signing helper includes the mtop token in its digest material."""
     first_sign = _generate_sign("1760000000000", "token-one", "{}")
@@ -71,5 +79,7 @@ def test_protocol_errors_are_classified_without_secret_material():
         _LoginUserResult(False, "FAIL_SYS_SESSION_EXPIRED").raise_protocol_error()
     with pytest.raises(XianyuRiskControlError):
         _LoginUserResult(False, "RGV587_ERROR::PLEASE_VALIDATE").raise_protocol_error()
-    with pytest.raises(XianyuProtocolError):
+    with pytest.raises(XianyuProtocolError) as captured:
         _LoginUserResult(False, "FAIL_SYS_UNKNOWN").raise_protocol_error()
+    assert captured.value.detail == "FAIL_SYS_UNKNOWN"
+    assert str(captured.value) == "Goodfish service returned an unexpected response"

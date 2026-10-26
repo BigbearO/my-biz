@@ -1,6 +1,7 @@
 import type { SystemStatus } from "@/types/system";
 import type { AccountCreatePayload, AccountDetail, AccountRecord, AccountUpdatePayload } from "@/types/account";
 import type { ItemSyncStatus } from "@/types/item";
+import { request } from "@/api/bridge";
 import { ACCOUNT_DETAIL_API_PATH, ACCOUNT_LIST_API_PATH, ITEM_SYNC_API_PATH } from "@/constants/account";
 import {
   SYSTEM_LOGIN_API_PATH,
@@ -14,8 +15,7 @@ import {
  * @returns Promise resolving to the local service status payload.
  */
 export async function getSystemStatus(): Promise<SystemStatus> {
-  const response = await window.goodfish.request(SYSTEM_STATUS_API_PATH);
-  return response as SystemStatus;
+  return request<SystemStatus>(SYSTEM_STATUS_API_PATH);
 }
 
 /**
@@ -26,12 +26,11 @@ export async function getSystemStatus(): Promise<SystemStatus> {
  * @returns Promise resolving to the authorization state.
  */
 export async function localLogin(token: string, clientid: string): Promise<{ authState: string }> {
-  const response = await window.goodfish.request(SYSTEM_LOGIN_API_PATH, {
+  return request<{ authState: string }>(SYSTEM_LOGIN_API_PATH, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ token, clientid })
   });
-  return response as { authState: string };
 }
 
 /**
@@ -40,8 +39,7 @@ export async function localLogin(token: string, clientid: string): Promise<{ aut
  * @returns Promise resolving to the authorization state.
  */
 export async function localLogout(): Promise<{ authState: string }> {
-  const response = await window.goodfish.request(SYSTEM_LOGOUT_API_PATH, { method: "POST" });
-  return response as { authState: string };
+  return request<{ authState: string }>(SYSTEM_LOGOUT_API_PATH, { method: "POST" });
 }
 
 /**
@@ -50,8 +48,7 @@ export async function localLogout(): Promise<{ authState: string }> {
  * @returns Promise resolving to the current account list.
  */
 export async function listAccounts(): Promise<AccountRecord[]> {
-  const response = await window.goodfish.request(ACCOUNT_LIST_API_PATH);
-  return response as AccountRecord[];
+  return request<AccountRecord[]>(ACCOUNT_LIST_API_PATH);
 }
 
 /**
@@ -61,8 +58,7 @@ export async function listAccounts(): Promise<AccountRecord[]> {
  * @returns Promise resolving to the account detail payload.
  */
 export async function getAccountDetail(accountId: number): Promise<AccountDetail> {
-  const response = await window.goodfish.request(`${ACCOUNT_DETAIL_API_PATH}/${accountId}/detail`);
-  return response as AccountDetail;
+  return request<AccountDetail>(`${ACCOUNT_DETAIL_API_PATH}/${accountId}/detail`);
 }
 
 /**
@@ -72,12 +68,11 @@ export async function getAccountDetail(accountId: number): Promise<AccountDetail
  * @returns Promise resolving to the saved non-secret account.
  */
 export async function createAccount(payload: AccountCreatePayload): Promise<AccountRecord> {
-  const response = await window.goodfish.request(ACCOUNT_LIST_API_PATH, {
+  return request<AccountRecord>(ACCOUNT_LIST_API_PATH, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
   });
-  return response as AccountRecord;
 }
 
 /**
@@ -91,12 +86,11 @@ export async function updateAccount(
   accountId: number,
   payload: AccountUpdatePayload
 ): Promise<AccountRecord> {
-  const response = await window.goodfish.request(`${ACCOUNT_DETAIL_API_PATH}/${accountId}`, {
+  return request<AccountRecord>(`${ACCOUNT_DETAIL_API_PATH}/${accountId}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
   });
-  return response as AccountRecord;
 }
 
 /**
@@ -106,10 +100,9 @@ export async function updateAccount(
  * @returns Promise resolving to the deleted non-secret account.
  */
 export async function deleteAccount(accountId: number): Promise<AccountRecord> {
-  const response = await window.goodfish.request(`${ACCOUNT_DETAIL_API_PATH}/${accountId}`, {
+  return request<AccountRecord>(`${ACCOUNT_DETAIL_API_PATH}/${accountId}`, {
     method: "DELETE"
   });
-  return response as AccountRecord;
 }
 
 /**
@@ -119,10 +112,9 @@ export async function deleteAccount(accountId: number): Promise<AccountRecord> {
  * @returns Promise resolving to the initial running state.
  */
 export async function startItemSync(accountId: number): Promise<ItemSyncStatus> {
-  const response = await window.goodfish.request(`${ITEM_SYNC_API_PATH}/${accountId}`, {
+  return request<ItemSyncStatus>(`${ITEM_SYNC_API_PATH}/${accountId}`, {
     method: "POST"
   });
-  return response as ItemSyncStatus;
 }
 
 /**
@@ -132,8 +124,7 @@ export async function startItemSync(accountId: number): Promise<ItemSyncStatus> 
  * @returns Promise resolving to the stored state.
  */
 export async function getItemSyncStatus(accountId: number): Promise<ItemSyncStatus> {
-  const response = await window.goodfish.request(`${ITEM_SYNC_API_PATH}/${accountId}`);
-  return response as ItemSyncStatus;
+  return request<ItemSyncStatus>(`${ITEM_SYNC_API_PATH}/${accountId}`);
 }
 
 /**
@@ -143,8 +134,7 @@ export async function getItemSyncStatus(accountId: number): Promise<ItemSyncStat
  * @returns Promise resolving to the account after its validation state is refreshed.
  */
 export async function verifyAccount(accountId: number): Promise<AccountRecord> {
-  const response = await window.goodfish.request(`${ACCOUNT_DETAIL_API_PATH}/${accountId}/verify`, {
+  return request<AccountRecord>(`${ACCOUNT_DETAIL_API_PATH}/${accountId}/verify`, {
     method: "POST"
   });
-  return response as AccountRecord;
 }

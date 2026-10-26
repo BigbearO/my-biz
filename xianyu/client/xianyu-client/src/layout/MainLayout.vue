@@ -10,12 +10,14 @@ import {
   LAYOUT_LOGIN_USER_LABEL,
   LAYOUT_LOGOUT_BUTTON,
   LAYOUT_LOGOUT_CONFIRM_MESSAGE,
+  LAYOUT_LOGOUT_ERROR_MESSAGE,
   LAYOUT_MENU_ACCOUNT,
   LAYOUT_MENU_SETTINGS,
   ROUTE_PATH_ACCOUNTS,
   ROUTE_PATH_LOGIN,
   ROUTE_PATH_SETTINGS
 } from "@/constants/layout";
+import { resolveErrorMessage } from "@/utils/error";
 import { clearLoginUsername, readLoginUsername } from "@/utils/session";
 
 const route = useRoute();
@@ -54,7 +56,7 @@ async function handleLogout(): Promise<void> {
   try {
     await localLogout();
   } catch (error) {
-    ElMessage.error(error instanceof Error ? error.message : LAYOUT_LOGOUT_BUTTON);
+    ElMessage.error(resolveErrorMessage(error, LAYOUT_LOGOUT_ERROR_MESSAGE));
   }
   clearLoginUsername();
   loginUsername.value = "";

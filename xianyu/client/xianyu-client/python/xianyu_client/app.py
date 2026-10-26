@@ -1,5 +1,6 @@
 """FastAPI application factory for the local desktop service."""
 
+import asyncio
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -8,16 +9,22 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from loguru import logger
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from xianyu_client.api.account_api import router as account_router
 from xianyu_client.api.item_api import router as item_router
+from xianyu_client.api.local_errors import resolve_error_code
 from xianyu_client.api.system_api import router as system_router
 from xianyu.http_protocol import HttpXianyuProtocol
 from xianyu_client.core.constants import (
     ACCOUNT_REQUEST_VALIDATION_ERROR_MESSAGE,
     AUTH_STARTUP_CHECK_FAILED_LOG_MESSAGE,
+    ERROR_CODE_LOCAL_API_INTERNAL,
+    ERROR_CODE_REQUEST_VALIDATION,
     FILE_ORIGIN,
     LOCAL_API_ALLOWED_METHODS,
+    LOCAL_API_CODE_KEY,
+    LOCAL_API_DETAIL_KEY,
     LOCAL_API_INTERNAL_ERROR_MESSAGE,
     LOCAL_API_UNEXPECTED_ERROR_LOG_MESSAGE,
     LOCAL_TOKEN_HEADER,
@@ -80,14 +87,14 @@ def create_app(settings: RuntimeSettings, master_key_protector=None, xianyu_prot
         await run_database_lifecycle(Path(settings.database_path))
         await config_manager.initialize_defaults()
         await credential_service.initialize()
-        try:
-            await auth_service.load_persisted_state()
-        except Exception:
-            logger.exception(AUTH_STARTUP_CHECK_FAILED_LOG_MESSAGE)
+        startup_check_task = None
+        if await auth_service.load_persisted_token():
+            startup_check_task = asyncio.create_task(run_startup_access_check(auth_service))
         await auth_service.start_periodic_check()
         try:
             yield
         finally:
+            await stop_startup_access_check(startup_check_task)
             await auth_service.stop_periodic_check()
             await item_sync_service.stop()
             await database_engine.dispose()
@@ -113,9 +120,30 @@ def create_app(settings: RuntimeSettings, master_key_protector=None, xianyu_prot
         allow_methods=LOCAL_API_ALLOWED_METHODS,
         allow_headers=["Content-Type", LOCAL_TOKEN_HEADER],
     )
+    app.add_exception_handler(StarletteHTTPException, handle_http_error)
     app.add_exception_handler(RequestValidationError, sanitize_request_validation_error)
     app.add_exception_handler(Exception, handle_unexpected_error)
     return app
+
+
+async def handle_http_error(_request: Request, exception: StarletteHTTPException) -> JSONResponse:
+    """Return one HTTP error with both its stable code and its safe message.
+
+    Args:
+        _request: Unused request whose route raised the error.
+        exception: HTTP error raised by a route or dependency.
+
+    Returns:
+        A JSON response carrying `code` and `detail` without request content.
+    """
+    return JSONResponse(
+        status_code=exception.status_code,
+        content={
+            LOCAL_API_CODE_KEY: resolve_error_code(exception),
+            LOCAL_API_DETAIL_KEY: exception.detail,
+        },
+        headers=exception.headers,
+    )
 
 
 async def handle_unexpected_error(request: Request, exception: Exception) -> JSONResponse:
@@ -134,7 +162,10 @@ async def handle_unexpected_error(request: Request, exception: Exception) -> JSO
     )
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content={"detail": LOCAL_API_INTERNAL_ERROR_MESSAGE},
+        content={
+            LOCAL_API_CODE_KEY: ERROR_CODE_LOCAL_API_INTERNAL,
+            LOCAL_API_DETAIL_KEY: LOCAL_API_INTERNAL_ERROR_MESSAGE,
+        },
     )
 
 
@@ -153,13 +184,44 @@ async def sanitize_request_validation_error(
     """
     return JSONResponse(
         status_code=400,
-        content={"detail": ACCOUNT_REQUEST_VALIDATION_ERROR_MESSAGE},
+        content={
+            LOCAL_API_CODE_KEY: ERROR_CODE_REQUEST_VALIDATION,
+            LOCAL_API_DETAIL_KEY: ACCOUNT_REQUEST_VALIDATION_ERROR_MESSAGE,
+        },
     )
 
 
 async def run_database_lifecycle(database_path: Path) -> None:
     """Run schema migrations off the event loop before sessions are used."""
-    import asyncio
-
     await asyncio.to_thread(run_migrations, database_path)
+
+
+async def run_startup_access_check(auth_service: AuthService) -> None:
+    """Run the first authorization check without blocking the local handshake.
+
+    The cloud may be slow or unreachable at launch; blocking `lifespan` would
+    delay the port handshake until Electron aborts the startup. The renderer
+    polls `/api/system/status`, so the result is reflected once it arrives.
+
+    Args:
+        auth_service: Service owning the authorization state machine.
+    """
+    try:
+        await auth_service.refresh_access()
+    except asyncio.CancelledError:
+        raise
+    except Exception:
+        logger.exception(AUTH_STARTUP_CHECK_FAILED_LOG_MESSAGE)
+
+
+async def stop_startup_access_check(task: asyncio.Task | None) -> None:
+    """Cancel the background authorization check during shutdown.
+
+    Args:
+        task: Task started by the lifespan, or `None` when no token was stored.
+    """
+    if task is None or task.done():
+        return
+    task.cancel()
+    await asyncio.gather(task, return_exceptions=True)
 

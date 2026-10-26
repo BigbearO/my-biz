@@ -11,6 +11,7 @@ from xianyu_client.core.constants import (
     CLOUD_UNAVAILABLE_ERROR_MESSAGE,
     CLOUD_UNAUTHORIZED_ERROR_MESSAGE,
     CREDENTIAL_UNAVAILABLE_ERROR_MESSAGE,
+    ERROR_DETAIL_EMPTY,
     INVALID_XIANYU_COOKIE_ERROR_MESSAGE,
     ITEM_SYNC_IN_PROGRESS_ERROR_MESSAGE,
     NOT_LOGGED_IN_ERROR_MESSAGE,
@@ -80,9 +81,15 @@ class XianyuNetworkError(Exception):
 class XianyuProtocolError(Exception):
     """Raised when Goodfish returns an unusable protocol response."""
 
-    def __init__(self) -> None:
-        """Create the error without exposing response details."""
+    def __init__(self, detail: str = ERROR_DETAIL_EMPTY) -> None:
+        """Create the error with an optional non-secret diagnostic detail.
+
+        Args:
+            detail: Technical hint kept for the local log only; never returned to
+                the renderer, because the external message stays stable.
+        """
         super().__init__(XIANYU_PROTOCOL_ERROR_MESSAGE)
+        self.detail = detail
 
 
 class XianyuRiskControlError(Exception):

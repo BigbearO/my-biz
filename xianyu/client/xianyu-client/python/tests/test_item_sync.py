@@ -6,6 +6,7 @@ from xianyu.http_protocol import _extract_items
 from xianyu.protocol import XianyuItem
 from xianyu_client.core.constants import (
     ITEM_SYNC_EMPTY_RESULT_MESSAGE,
+    ITEM_SYNC_NETWORK_FAILURE_MESSAGE,
     ITEM_SYNC_STATE_FAILED,
     ITEM_SYNC_STATE_RUNNING,
     ITEM_SYNC_STATE_SUCCESS,
@@ -194,7 +195,7 @@ def test_protocol_failure_is_reported_as_failed_state():
     status = asyncio.run(scenario())
 
     assert status.state == ITEM_SYNC_STATE_FAILED
-    assert status.message == str(XianyuNetworkError())
+    assert status.message == ITEM_SYNC_NETWORK_FAILURE_MESSAGE
 
 
 def test_unknown_account_state_defaults_to_idle():

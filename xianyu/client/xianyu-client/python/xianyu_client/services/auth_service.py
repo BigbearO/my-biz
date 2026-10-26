@@ -135,22 +135,22 @@ class AuthService:
                 self._state = AUTH_STATE_EXPIRED
         return self._state
 
-    async def load_persisted_state(self) -> str:
-        """Restore state from disk during startup and run one access check.
+    async def load_persisted_token(self) -> bool:
+        """Restore the login state from disk without any network access.
+
+        Startup must stay responsive, so the first authorization check is left
+        to a background task started by the application lifespan.
 
         Returns:
-            The authorization state after startup verification.
+            True when a usable token exists and a background check is warranted.
         """
         try:
             token, _client_id = await self.get_credentials()
         except AuthTokenUnavailableError:
             self._state = AUTH_STATE_NOT_LOGGED_IN
-            return self._state
-        if not token:
-            self._state = AUTH_STATE_NOT_LOGGED_IN
-            return self._state
-        self._state = AUTH_STATE_LOGGED_IN
-        return await self.refresh_access()
+            return False
+        self._state = AUTH_STATE_LOGGED_IN if token else AUTH_STATE_NOT_LOGGED_IN
+        return bool(token)
 
     async def start_periodic_check(self) -> None:
         """Run the hourly authorization check in the background."""

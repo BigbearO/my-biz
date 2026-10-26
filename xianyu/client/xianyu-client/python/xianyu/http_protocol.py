@@ -12,6 +12,7 @@ from loguru import logger
 
 from xianyu.protocol import XianyuAccountInfo, XianyuItem, XianyuProtocol
 from xianyu_client.core.constants import (
+    COOKIE_KEY_JOINER,
     ITEM_SYNC_MAX_ITEMS,
     ITEM_SYNC_TRUNCATED_LOG_MESSAGE,
     XIANYU_COOKIE_NICKNAME_KEY,
@@ -23,6 +24,14 @@ from xianyu_client.core.constants import (
     XIANYU_ITEM_MAX_PAGES,
     XIANYU_ITEM_PAGE_INTERVAL_SECONDS,
     XIANYU_ITEM_PAGE_SIZE,
+    XIANYU_ITEM_RESPONSE_CARD_DATA_KEY,
+    XIANYU_ITEM_RESPONSE_CARD_LIST_KEY,
+    XIANYU_ITEM_RESPONSE_DATA_KEY,
+    XIANYU_ITEM_RESPONSE_ID_KEY,
+    XIANYU_ITEM_RESPONSE_PRICE_INFO_KEY,
+    XIANYU_ITEM_RESPONSE_PRICE_KEY,
+    XIANYU_ITEM_RESPONSE_STATUS_KEY,
+    XIANYU_ITEM_RESPONSE_TITLE_KEY,
     XIANYU_MTOP_ACCOUNT_SITE,
     XIANYU_MTOP_API_ITEM_LIST,
     XIANYU_MTOP_API_LOGIN_USER_GET,
@@ -33,10 +42,22 @@ from xianyu_client.core.constants import (
     XIANYU_MTOP_ITEM_LIST_SPM_CNT,
     XIANYU_MTOP_ITEM_LIST_SPM_PRE,
     XIANYU_MTOP_JSV,
+    XIANYU_MTOP_LOGIN_SPM_CNT,
+    XIANYU_MTOP_PATH_PREFIX,
     XIANYU_MTOP_RESPONSE_TYPE,
     XIANYU_MTOP_SESSION_OPTION,
     XIANYU_MTOP_TIMEOUT_MILLISECONDS,
+    XIANYU_PROTOCOL_BODY_LOG_MESSAGE,
+    XIANYU_PROTOCOL_DETAIL_BODY,
+    XIANYU_PROTOCOL_DETAIL_HTTP_STATUS,
+    XIANYU_PROTOCOL_DETAIL_SHAPE,
+    XIANYU_PROTOCOL_HTML_BODY_MARKER,
+    XIANYU_PROTOCOL_HTTP_STATUS_LOG_MESSAGE,
+    XIANYU_PROTOCOL_RET_LOG_MESSAGE,
+    XIANYU_PROTOCOL_SHAPE_LOG_MESSAGE,
     XIANYU_PROTOCOL_TIMEOUT_SECONDS,
+    XIANYU_MTOP_RESPONSE_RET_KEY,
+    HTTP_STATUS_OK,
     XIANYU_TOKEN_RETRY_LIMIT,
     XIANYU_WEB_ORIGIN,
 )
@@ -162,7 +183,7 @@ class _LoginUserResult:
             raise InvalidXianyuCookieError()
         if any(marker in message for marker in _RISK_CONTROL_MARKERS):
             raise XianyuRiskControlError()
-        raise XianyuProtocolError()
+        raise XianyuProtocolError(detail=message)
 
 
 class _ItemPageResult(_LoginUserResult):
@@ -208,6 +229,8 @@ _RISK_CONTROL_MARKERS = (
 )
 _EMPTY_JSON_PAYLOAD = "{}"
 _SUCCESS_MARKER = "SUCCESS"
+_RET_KEY = XIANYU_MTOP_RESPONSE_RET_KEY
+_HTTP_STATUS_OK = HTTP_STATUS_OK
 
 
 async def _request_login_user(session: aiohttp.ClientSession, cookie: str) -> _LoginUserResult:
@@ -228,7 +251,7 @@ async def _request_login_user(session: aiohttp.ClientSession, cookie: str) -> _L
     token = _parse_cookies(cookie).get(XIANYU_COOKIE_TOKEN_KEY, "")
     token_seed = token.split("_", 1)[0] if token else ""
     sign = _generate_sign(timestamp, token_seed, _EMPTY_JSON_PAYLOAD)
-    url = f"{XIANYU_MTOP_BASE_URL}/{XIANYU_MTOP_API_LOGIN_USER_GET}/{XIANYU_MTOP_API_VERSION}/"
+    url = _build_mtop_url(XIANYU_MTOP_API_LOGIN_USER_GET, XIANYU_MTOP_API_VERSION)
     params = {
         "jsv": XIANYU_MTOP_JSV,
         "appKey": XIANYU_MTOP_APP_KEY,
@@ -241,6 +264,7 @@ async def _request_login_user(session: aiohttp.ClientSession, cookie: str) -> _L
         "timeout": XIANYU_MTOP_TIMEOUT_MILLISECONDS,
         "api": XIANYU_MTOP_API_LOGIN_USER_GET,
         "sessionOption": XIANYU_MTOP_SESSION_OPTION,
+        "spm_cnt": XIANYU_MTOP_LOGIN_SPM_CNT,
     }
     headers = {
         "Accept": "application/json",
@@ -258,21 +282,37 @@ async def _request_login_user(session: aiohttp.ClientSession, cookie: str) -> _L
             headers=headers,
         ) as response:
             refreshed_cookie = _merge_response_cookies(response, cookie)
-            if response.status != 200:
-                raise XianyuProtocolError()
+            if response.status != _HTTP_STATUS_OK:
+                logger.warning(
+                    XIANYU_PROTOCOL_HTTP_STATUS_LOG_MESSAGE,
+                    XIANYU_MTOP_API_LOGIN_USER_GET,
+                    response.status,
+                    _cookie_keys(cookie),
+                )
+                raise XianyuProtocolError(
+                    detail=XIANYU_PROTOCOL_DETAIL_HTTP_STATUS.format(
+                        response.status, XIANYU_MTOP_API_LOGIN_USER_GET
+                    )
+                )
             try:
                 body = await response.json(content_type=None)
             except (aiohttp.ContentTypeError, ValueError) as error:
-                raise XianyuProtocolError() from error
+                raise (await _unreadable_body_error(response, XIANYU_MTOP_API_LOGIN_USER_GET)) from error
     except (aiohttp.ClientError, TimeoutError) as error:
         raise XianyuNetworkError() from error
 
     if not isinstance(body, Mapping):
-        raise XianyuProtocolError()
-    ret_values = body.get("ret", [])
+        logger.warning(XIANYU_PROTOCOL_SHAPE_LOG_MESSAGE, XIANYU_MTOP_API_LOGIN_USER_GET, type(body))
+        raise XianyuProtocolError(
+            detail=XIANYU_PROTOCOL_DETAIL_SHAPE.format(type(body), XIANYU_MTOP_API_LOGIN_USER_GET)
+        )
+    ret_values = body.get(_RET_KEY, [])
     ret_message = str(ret_values[0]) if ret_values else ""
+    is_success = _SUCCESS_MARKER in ret_message
+    if not is_success:
+        logger.warning(XIANYU_PROTOCOL_RET_LOG_MESSAGE, XIANYU_MTOP_API_LOGIN_USER_GET, ret_message)
     return _LoginUserResult(
-        is_success=_SUCCESS_MARKER in ret_message,
+        is_success=is_success,
         ret_message=ret_message,
         refreshed_cookie=refreshed_cookie,
     )
@@ -350,7 +390,7 @@ async def _request_item_page_once(
         separators=(",", ":"),
     )
     sign = _generate_sign(timestamp, token_seed, data)
-    url = f"{XIANYU_MTOP_BASE_URL}/{XIANYU_MTOP_API_ITEM_LIST}/{XIANYU_MTOP_API_VERSION}/"
+    url = _build_mtop_url(XIANYU_MTOP_API_ITEM_LIST, XIANYU_MTOP_API_VERSION)
     params = {
         "jsv": XIANYU_MTOP_JSV,
         "appKey": XIANYU_MTOP_APP_KEY,
@@ -382,20 +422,35 @@ async def _request_item_page_once(
             headers=headers,
         ) as response:
             refreshed_cookie = _merge_response_cookies(response, cookie)
-            if response.status != 200:
-                raise XianyuProtocolError()
+            if response.status != _HTTP_STATUS_OK:
+                logger.warning(
+                    XIANYU_PROTOCOL_HTTP_STATUS_LOG_MESSAGE,
+                    XIANYU_MTOP_API_ITEM_LIST,
+                    response.status,
+                    _cookie_keys(cookie),
+                )
+                raise XianyuProtocolError(
+                    detail=XIANYU_PROTOCOL_DETAIL_HTTP_STATUS.format(
+                        response.status, XIANYU_MTOP_API_ITEM_LIST
+                    )
+                )
             try:
                 body = await response.json(content_type=None)
             except (aiohttp.ContentTypeError, ValueError) as error:
-                raise XianyuProtocolError() from error
+                raise (await _unreadable_body_error(response, XIANYU_MTOP_API_ITEM_LIST)) from error
     except (aiohttp.ClientError, TimeoutError) as error:
         raise XianyuNetworkError() from error
 
     if not isinstance(body, Mapping):
-        raise XianyuProtocolError()
-    ret_values = body.get("ret", [])
+        logger.warning(XIANYU_PROTOCOL_SHAPE_LOG_MESSAGE, XIANYU_MTOP_API_ITEM_LIST, type(body))
+        raise XianyuProtocolError(
+            detail=XIANYU_PROTOCOL_DETAIL_SHAPE.format(type(body), XIANYU_MTOP_API_ITEM_LIST)
+        )
+    ret_values = body.get(_RET_KEY, [])
     ret_message = str(ret_values[0]) if ret_values else ""
     is_success = _SUCCESS_MARKER in ret_message
+    if not is_success:
+        logger.warning(XIANYU_PROTOCOL_RET_LOG_MESSAGE, XIANYU_MTOP_API_ITEM_LIST, ret_message)
     items, has_more = _extract_items(body) if is_success else ([], False)
     return _ItemPageResult(
         is_success=is_success,
@@ -419,29 +474,39 @@ def _extract_items(body: Mapping) -> tuple[list[XianyuItem], bool]:
         The listing response carries no description, so `description` stays empty;
         the operator edits it in the management UI instead.
     """
-    data = body.get("data")
+    data = body.get(XIANYU_ITEM_RESPONSE_DATA_KEY)
     if not isinstance(data, Mapping):
+        logger.warning(
+            XIANYU_PROTOCOL_SHAPE_LOG_MESSAGE,
+            XIANYU_MTOP_API_ITEM_LIST,
+            sorted(body.keys()),
+        )
         return [], False
-    cards = data.get("cardList")
+    cards = data.get(XIANYU_ITEM_RESPONSE_CARD_LIST_KEY)
     if not isinstance(cards, list):
+        logger.warning(
+            XIANYU_PROTOCOL_SHAPE_LOG_MESSAGE,
+            XIANYU_MTOP_API_ITEM_LIST,
+            sorted(data.keys()),
+        )
         return [], False
     items: list[XianyuItem] = []
     for card in cards:
         if not isinstance(card, Mapping):
             continue
-        card_data = card.get("cardData")
+        card_data = card.get(XIANYU_ITEM_RESPONSE_CARD_DATA_KEY)
         if not isinstance(card_data, Mapping):
             continue
-        item_id = _to_text(card_data.get("id"))
+        item_id = _to_text(card_data.get(XIANYU_ITEM_RESPONSE_ID_KEY))
         if not item_id:
             continue
         items.append(
             XianyuItem(
                 goodfish_item_id=item_id,
-                title=_to_text(card_data.get("title")),
+                title=_to_text(card_data.get(XIANYU_ITEM_RESPONSE_TITLE_KEY)),
                 description=XIANYU_ITEM_EMPTY_TEXT,
                 price=_extract_price(card_data),
-                stock_status=_to_text(card_data.get("itemStatus")),
+                stock_status=_to_text(card_data.get(XIANYU_ITEM_RESPONSE_STATUS_KEY)),
             )
         )
     return items, len(items) >= XIANYU_ITEM_PAGE_SIZE
@@ -456,10 +521,10 @@ def _extract_price(card_data: Mapping) -> str:
     Returns:
         The raw price text, or an empty string when the card carries none.
     """
-    price_info = card_data.get("priceInfo")
+    price_info = card_data.get(XIANYU_ITEM_RESPONSE_PRICE_INFO_KEY)
     if not isinstance(price_info, Mapping):
         return XIANYU_ITEM_EMPTY_TEXT
-    return _to_text(price_info.get("price"))
+    return _to_text(price_info.get(XIANYU_ITEM_RESPONSE_PRICE_KEY))
 
 
 def _to_text(value: object) -> str:
@@ -492,6 +557,59 @@ def _sanitize_cookie(cookie: str) -> str:
     if not sanitized:
         raise InvalidXianyuCookieError()
     return sanitized
+
+
+def _build_mtop_url(api: str, version: str) -> str:
+    """Build the signed mtop endpoint for one API call.
+
+    Args:
+        api: mtop API name, e.g. `mtop.taobao.idlemessage.pc.loginuser.get`.
+        version: mtop API version, which must match the `v` request parameter.
+
+    Returns:
+        The absolute endpoint including the mandatory `/h5` path prefix.
+    """
+    return f"{XIANYU_MTOP_BASE_URL}{XIANYU_MTOP_PATH_PREFIX}/{api}/{version}/"
+
+
+def _cookie_keys(cookie: str) -> str:
+    """List the Cookie field names for diagnostics without exposing values.
+
+    Args:
+        cookie: Single-line Cookie input.
+
+    Returns:
+        Comma-joined field names in input order.
+    """
+    return COOKIE_KEY_JOINER.join(_parse_cookies(cookie).keys())
+
+
+async def _unreadable_body_error(
+    response: aiohttp.ClientResponse, api: str
+) -> XianyuProtocolError:
+    """Classify a non-JSON mtop body and record its shape only.
+
+    Args:
+        response: Completed response whose body could not be decoded as JSON.
+        api: mtop API name used for the log and the diagnostic detail.
+
+    Returns:
+        A protocol error carrying a non-secret diagnostic detail.
+    """
+    content_type = response.headers.get("Content-Type", XIANYU_ITEM_EMPTY_TEXT)
+    try:
+        body_text = await response.text()
+    except (aiohttp.ClientError, TimeoutError, UnicodeDecodeError):
+        body_text = XIANYU_ITEM_EMPTY_TEXT
+    logger.warning(
+        XIANYU_PROTOCOL_BODY_LOG_MESSAGE,
+        api,
+        response.status,
+        content_type,
+        len(body_text),
+        body_text.startswith(XIANYU_PROTOCOL_HTML_BODY_MARKER),
+    )
+    return XianyuProtocolError(detail=XIANYU_PROTOCOL_DETAIL_BODY.format(api, content_type))
 
 
 def _parse_cookies(cookie: str) -> dict[str, str]:

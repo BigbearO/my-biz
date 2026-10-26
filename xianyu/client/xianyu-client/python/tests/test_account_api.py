@@ -15,6 +15,7 @@ from xianyu_client.core.constants import (
     ACCOUNT_TABLE_NAME,
     CREDENTIAL_STATE_READY,
     CREDENTIAL_STATE_UNDECRYPTABLE,
+    ERROR_CODE_REQUEST_VALIDATION,
 )
 from xianyu_client.core.settings import load_settings
 from tests.helpers.key_protectors import ReversibleKeyProtector, UnavailableKeyProtector
@@ -293,7 +294,10 @@ async def test_validation_failure_does_not_echo_cookie(tmp_path):
             )
 
     assert response.status_code == 400
-    assert response.json() == {"detail": ACCOUNT_REQUEST_VALIDATION_ERROR_MESSAGE}
+    assert response.json() == {
+        "code": ERROR_CODE_REQUEST_VALIDATION,
+        "detail": ACCOUNT_REQUEST_VALIDATION_ERROR_MESSAGE,
+    }
     assert oversized_cookie not in response.text
 
 

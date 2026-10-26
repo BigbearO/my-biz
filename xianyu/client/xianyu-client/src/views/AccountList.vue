@@ -102,6 +102,7 @@ import {
 import type { AccountDetail, AccountRecord } from "@/types/account";
 import type { ItemSyncStatus } from "@/types/item";
 import type { SystemStatus } from "@/types/system";
+import { resolveErrorMessage } from "@/utils/error";
 
 interface AccountForm {
   nickname: string;
@@ -212,7 +213,7 @@ async function refreshStatus(): Promise<void> {
     statusError.value = "";
     await redirectByAuthState(status.value.authState);
   } catch (error) {
-    statusError.value = error instanceof Error ? error.message : ACCOUNT_STATUS_ERROR_MESSAGE;
+    statusError.value = resolveErrorMessage(error, ACCOUNT_STATUS_ERROR_MESSAGE);
   } finally {
     loading.value = false;
   }
@@ -247,7 +248,7 @@ async function refreshAccounts(): Promise<void> {
     accounts.value = await listAccounts();
     accountsError.value = "";
   } catch (error) {
-    accountsError.value = error instanceof Error ? error.message : ACCOUNT_LOAD_ERROR_MESSAGE;
+    accountsError.value = resolveErrorMessage(error, ACCOUNT_LOAD_ERROR_MESSAGE);
   } finally {
     accountsLoading.value = false;
   }
@@ -382,7 +383,7 @@ async function submitAccountForm(): Promise<void> {
     await resetAccountForm();
     await refreshAll();
   } catch (error) {
-    ElMessage.error(error instanceof Error ? error.message : ACCOUNT_SAVE_ERROR_MESSAGE);
+    ElMessage.error(resolveErrorMessage(error, ACCOUNT_SAVE_ERROR_MESSAGE));
   } finally {
     submitting.value = false;
   }
@@ -405,7 +406,7 @@ async function checkAccount(account: AccountRecord): Promise<void> {
     ElMessage.success(ACCOUNT_VERIFY_SUCCESS_MESSAGE);
     await refreshStatus();
   } catch (error) {
-    ElMessage.error(error instanceof Error ? error.message : ACCOUNT_VERIFY_ERROR_MESSAGE);
+    ElMessage.error(resolveErrorMessage(error, ACCOUNT_VERIFY_ERROR_MESSAGE));
     await refreshAccounts();
   } finally {
     verifyingAccountIds.value = verifyingAccountIds.value.filter(id => id !== account.id);
@@ -436,7 +437,7 @@ async function removeAccount(account: AccountRecord): Promise<void> {
     ElMessage.success(ACCOUNT_DELETE_SUCCESS_MESSAGE);
     await refreshAll();
   } catch (error) {
-    ElMessage.error(error instanceof Error ? error.message : ACCOUNT_DELETE_ERROR_MESSAGE);
+    ElMessage.error(resolveErrorMessage(error, ACCOUNT_DELETE_ERROR_MESSAGE));
   }
 }
 
@@ -454,7 +455,7 @@ async function openDetailDialog(account: AccountRecord): Promise<void> {
   try {
     detailAccount.value = await getAccountDetail(account.id);
   } catch (error) {
-    ElMessage.error(error instanceof Error ? error.message : ACCOUNT_DETAIL_LOAD_ERROR_MESSAGE);
+    ElMessage.error(resolveErrorMessage(error, ACCOUNT_DETAIL_LOAD_ERROR_MESSAGE));
     detailVisible.value = false;
   } finally {
     detailLoading.value = false;
@@ -535,7 +536,7 @@ async function handleSyncItems(): Promise<void> {
     }
     await refreshAccounts();
   } catch (error) {
-    ElMessage.error(error instanceof Error ? error.message : ITEM_SYNC_START_ERROR_MESSAGE);
+    ElMessage.error(resolveErrorMessage(error, ITEM_SYNC_START_ERROR_MESSAGE));
   } finally {
     syncingAccountId.value = null;
   }

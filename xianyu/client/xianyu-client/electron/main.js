@@ -15,6 +15,7 @@ const {
   ELECTRON_DATA_DIR_NAME,
   EXIT_CODE_FAILURE,
   EXIT_CODE_SUCCESS,
+  LOCAL_API_CODE_KEY,
   LOCAL_API_DETAIL_KEY,
   LOCAL_API_ERROR_BODY_LIMIT,
   LOCAL_API_ERROR_STATUS_KEY,
@@ -22,7 +23,9 @@ const {
   LOCAL_API_JSON_CONTENT_TYPE,
   LOCAL_API_PATH_PREFIX,
   LOCAL_API_REQUEST_TIMEOUT_MS,
+  LOCAL_API_STATUS_UNAVAILABLE,
   LOCAL_API_TIMEOUT_ERROR_MESSAGE,
+  LOCAL_API_UNKNOWN_CODE,
   LOCAL_REQUEST_CHANNEL,
   LOCAL_SERVICE_HOST,
   LOCAL_SERVICE_NOT_READY_ERROR_MESSAGE,
@@ -110,6 +113,21 @@ async function requestLocalApi(pathname, options = {}) {
 }
 
 /**
+ * Build an error carrying both the HTTP status and the backend error code.
+ *
+ * @param {string} message Non-secret message safe to show to the operator.
+ * @param {number} statusCode HTTP status returned by the local service.
+ * @param {string} code Stable backend error code used by the renderer.
+ * @returns {Error} Error with `status` and `code` attached.
+ */
+function createBridgeError(message, statusCode, code) {
+  const error = new Error(message);
+  error.status = statusCode;
+  error.code = code;
+  return error;
+}
+
+/**
  * Build an error from a safe JSON detail response without echoing request bodies.
  *
  * @param {Response} response Failed local API response.
@@ -121,8 +139,9 @@ async function createLocalApiError(response, pathname) {
   if (contentType.startsWith(LOCAL_API_JSON_CONTENT_TYPE)) {
     const payload = await response.json().catch(() => null);
     const detail = extractErrorDetail(payload);
+    const code = extractErrorCode(payload);
     if (detail) {
-      return new Error(detail);
+      return createBridgeError(detail, response.status, code);
     }
   } else {
     const body = await response.text().catch(() => "");
@@ -132,8 +151,10 @@ async function createLocalApiError(response, pathname) {
       `local api failure path=${pathname} status=${response.status} body=${excerpt}`
     ).catch(() => undefined);
   }
-  return new Error(
-    LOCAL_API_ERROR_STATUS_TEMPLATE.replace(LOCAL_API_ERROR_STATUS_KEY, String(response.status))
+  return createBridgeError(
+    LOCAL_API_ERROR_STATUS_TEMPLATE.replace(LOCAL_API_ERROR_STATUS_KEY, String(response.status)),
+    response.status,
+    LOCAL_API_UNKNOWN_CODE
   );
 }
 
@@ -158,6 +179,58 @@ function extractErrorDetail(payload) {
     .map((item) => (item && typeof item === "object" ? item[VALIDATION_DETAIL_KEY] : ""))
     .filter((message) => typeof message === "string" && message)
     .join(VALIDATION_DETAIL_JOINER);
+}
+
+/**
+ * Extract the stable backend error code from a FastAPI error payload.
+ *
+ * @param {unknown} payload Decoded JSON body returned by the local service.
+ * @returns {string} Backend code, or the generic fallback when it is absent.
+ */
+function extractErrorCode(payload) {
+  if (!payload || typeof payload !== "object") {
+    return LOCAL_API_UNKNOWN_CODE;
+  }
+  const code = payload[LOCAL_API_CODE_KEY];
+  return typeof code === "string" && code ? code : LOCAL_API_UNKNOWN_CODE;
+}
+
+/**
+ * Shape one thrown value into the failure payload sent to the renderer.
+ *
+ * @param {unknown} error Error raised by a local API or cloud call.
+ * @returns {{status: number, code: string, message: string}} Renderer failure payload.
+ */
+function toBridgeFailure(error) {
+  return {
+    status: Number.isInteger(error?.status) ? error.status : LOCAL_API_STATUS_UNAVAILABLE,
+    code: typeof error?.code === "string" && error.code ? error.code : LOCAL_API_UNKNOWN_CODE,
+    message: getErrorMessage(error)
+  };
+}
+
+/**
+ * Run one renderer-initiated call and always resolve with a result envelope.
+ *
+ * Failures are returned instead of thrown so the renderer never receives the
+ * opaque `Error invoking remote method ...` wrapper produced by ipcRenderer.
+ *
+ * @param {string} channel IPC channel name used for diagnostics only.
+ * @param {() => Promise<unknown>} operation Work performed for the renderer.
+ * @returns {Promise<{ok: boolean, data?: unknown, error?: {status: number, code: string, message: string}}>}
+ *   Envelope describing the outcome.
+ */
+async function runBridgeCall(channel, operation) {
+  try {
+    return { ok: true, data: await operation() };
+  } catch (error) {
+    const failure = toBridgeFailure(error);
+    await appendElectronLog(
+      resolveDataDir(),
+      `ipc call failed channel=${channel} code=${failure.code} message=${failure.message}`
+    ).catch(() => undefined);
+    return { ok: false, error: failure };
+  }
 }
 
 /**
@@ -265,9 +338,15 @@ async function bootstrapApplication() {
   }
 
   await startLocalService(dataDir, localToken);
-  ipcMain.handle(LOCAL_REQUEST_CHANNEL, (_event, pathname, options) => requestLocalApi(pathname, options));
-  ipcMain.handle(CLOUD_LOGIN_CHANNEL, (_event, credentials) => cloudLogin(credentials));
-  ipcMain.handle(CLOUD_CAPTCHA_CHANNEL, () => fetchCaptcha());
+  ipcMain.handle(LOCAL_REQUEST_CHANNEL, (_event, pathname, options) => (
+    runBridgeCall(LOCAL_REQUEST_CHANNEL, () => requestLocalApi(pathname, options))
+  ));
+  ipcMain.handle(CLOUD_LOGIN_CHANNEL, (_event, credentials) => (
+    runBridgeCall(CLOUD_LOGIN_CHANNEL, () => cloudLogin(credentials))
+  ));
+  ipcMain.handle(CLOUD_CAPTCHA_CHANNEL, () => (
+    runBridgeCall(CLOUD_CAPTCHA_CHANNEL, () => fetchCaptcha())
+  ));
 
   mainWindow = createMainWindow();
   if (isDevelopmentMode()) {

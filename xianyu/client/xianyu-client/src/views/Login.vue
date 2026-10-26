@@ -3,6 +3,7 @@ import { ElMessage, type FormInstance, type FormRules } from "element-plus";
 import { onMounted, reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 
+import { cloudLogin, fetchCaptcha } from "@/api/bridge";
 import { localLogin } from "@/api/local-client";
 import {
   LOGIN_CAPTCHA_EMPTY_MESSAGE,
@@ -28,6 +29,7 @@ import {
 } from "@/constants/login";
 import { ROUTE_PATH_ACCOUNTS } from "@/constants/layout";
 import { AUTH_STATE_FROZEN, AUTH_STATE_LOGGED_IN, AUTH_STATE_UNAVAILABLE } from "@/constants/system";
+import { resolveErrorMessage } from "@/utils/error";
 import { saveLoginUsername } from "@/utils/session";
 
 interface LoginForm {
@@ -62,14 +64,14 @@ const rules: FormRules<LoginForm> = {
 async function loadCaptcha(): Promise<void> {
   captchaLoading.value = true;
   try {
-    const captcha = await window.goodfish.fetchCaptcha();
+    const captcha = await fetchCaptcha();
     captchaUuid.value = captcha.uuid;
     captchaImage.value = captcha.img;
     form.code = "";
   } catch (error) {
     captchaImage.value = "";
     captchaUuid.value = "";
-    ElMessage.error(error instanceof Error ? error.message : LOGIN_CAPTCHA_EMPTY_MESSAGE);
+    ElMessage.error(resolveErrorMessage(error, LOGIN_CAPTCHA_EMPTY_MESSAGE));
   } finally {
     captchaLoading.value = false;
   }
@@ -96,7 +98,7 @@ async function submitLogin(): Promise<void> {
   }
   submitting.value = true;
   try {
-    const credentials = await window.goodfish.cloudLogin({
+    const credentials = await cloudLogin({
       username: form.username.trim(),
       password: form.password,
       code: form.code.trim(),
@@ -114,13 +116,13 @@ async function submitLogin(): Promise<void> {
         throw new Error(LOGIN_CREDENTIAL_REJECTED_MESSAGE);
       }
     } catch (error) {
-      throw new Error(error instanceof Error ? error.message : LOGIN_HANDOVER_FAILED_MESSAGE);
+      throw new Error(resolveErrorMessage(error, LOGIN_HANDOVER_FAILED_MESSAGE));
     }
     saveLoginUsername(form.username.trim());
     ElMessage.success(LOGIN_SUCCESS_MESSAGE);
     await router.replace(ROUTE_PATH_ACCOUNTS);
   } catch (error) {
-    ElMessage.error(error instanceof Error ? error.message : LOGIN_FAILED_MESSAGE);
+    ElMessage.error(resolveErrorMessage(error, LOGIN_FAILED_MESSAGE));
     await loadCaptcha();
   } finally {
     submitting.value = false;
