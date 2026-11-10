@@ -23,15 +23,16 @@ public interface GoodfishItemMapper extends BaseMapperPlus<GoodfishItem, Goodfis
      *
      * <p>已存在商品更新标题/描述/价格/库存状态/同步时间并<strong>保留提示词</strong>（不碰提示词表）；
      * 软删记录命中时 del_flag 置回 0（等同复活）；新商品插入完整记录.
-     * 借助 {@code xmax = 0} 判定插入/更新，返回分类计数.</p>
+     * 借助 {@code xmax = 0} 判定插入，再与旧值逐列比对区分"真实更新"与"未变化"，
+     * 返回三类计数.</p>
      *
      * <p>主键 id 为应用侧雪花值，实体必须已赋值；依赖唯一索引
      * {@code uk_gfid_item(goodfish_account_id, goodfish_item_id)}.</p>
      *
      * @param entities 商品实体列表（同一账号）
-     * @return 新增/更新计数
+     * @return 新增/更新/未变化计数
      */
-    GoodfishItemSyncCountVo upsertBatch(List<GoodfishItem> entities);
+    GoodfishItemSyncCountVo upsertBatch(@Param("entities") List<GoodfishItem> entities);
 
     /**
      * 查询商品详情（联表提示词配置，提示词可为空）.

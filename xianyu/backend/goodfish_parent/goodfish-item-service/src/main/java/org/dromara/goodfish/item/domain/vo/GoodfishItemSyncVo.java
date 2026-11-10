@@ -22,8 +22,13 @@ public class GoodfishItemSyncVo implements Serializable {
     private int inserted;
 
     /**
-     * 更新商品数（含软删记录复活）
+     * 更新商品数（内容真实变化，含软删记录复活）
      */
     private int updated;
+
+    /**
+     * 未变化商品数（重新上报但内容与库中一致）
+     */
+    private int unchanged;
 
 }

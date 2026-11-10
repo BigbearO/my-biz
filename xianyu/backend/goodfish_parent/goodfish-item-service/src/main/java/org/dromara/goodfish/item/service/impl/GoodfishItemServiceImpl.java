@@ -70,12 +70,14 @@ public class GoodfishItemServiceImpl implements IGoodfishItemService {
         // 4. 变更后主动删除运行时缓存（TTL 兜底之外的即时失效）
         runtimeCacheManager.deleteAll(bo.getGoodfishAccountId(),
             bo.getItems().stream().map(item -> item.getGoodfishItemId()).toList());
-        log.info("[{}] 商品同步完成 goodfishId={}, 新增={}, 更新={}",
+        log.info("[{}] 商品同步完成 goodfishId={}, 上报={}, 新增={}, 更新={}, 未变化={}",
             GoodfishItemConstants.LOGGER_ITEM_SERVICE, bo.getGoodfishAccountId(),
-            count.getInsertedCount(), count.getUpdatedCount());
+            bo.getItems().size(), count.getInsertedCount(), count.getUpdatedCount(),
+            count.getUnchangedCount());
         GoodfishItemSyncVo vo = new GoodfishItemSyncVo();
         vo.setInserted(count.getInsertedCount());
         vo.setUpdated(count.getUpdatedCount());
+        vo.setUnchanged(count.getUnchangedCount());
         return vo;
     }
 

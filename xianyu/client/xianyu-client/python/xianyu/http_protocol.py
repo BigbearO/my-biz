@@ -13,7 +13,9 @@ from loguru import logger
 from xianyu.protocol import XianyuAccountInfo, XianyuItem, XianyuProtocol
 from xianyu_client.core.constants import (
     COOKIE_KEY_JOINER,
+    ITEM_SYNC_DUPLICATE_LOG_MESSAGE,
     ITEM_SYNC_MAX_ITEMS,
+    ITEM_SYNC_PAGE_META_LOG_MESSAGE,
     ITEM_SYNC_TRUNCATED_LOG_MESSAGE,
     XIANYU_COOKIE_NICKNAME_KEY,
     XIANYU_COOKIE_TOKEN_KEY,
@@ -119,6 +121,10 @@ class HttpXianyuProtocol(XianyuProtocol):
         Returns:
             On-sale items clipped to the cloud column limits.
 
+        Notes:
+            Cards are merged by `goodfishItemId` across pages, so an overlapping
+            or non-advancing page can never inflate the uploaded item count.
+
         Raises:
             InvalidXianyuCookieError: When the Cookie cannot identify a logged-in account.
             XianyuNetworkError: When the request cannot reach Goodfish.
@@ -128,6 +134,8 @@ class HttpXianyuProtocol(XianyuProtocol):
         current_cookie = _sanitize_cookie(cookie)
         user_id = _extract_account_info(_parse_cookies(current_cookie)).goodfish_id
         collected: list[XianyuItem] = []
+        seen: set[str] = set()
+        duplicates = 0
         async with aiohttp.ClientSession(
             timeout=aiohttp.ClientTimeout(total=XIANYU_PROTOCOL_TIMEOUT_SECONDS)
         ) as session:
@@ -135,7 +143,13 @@ class HttpXianyuProtocol(XianyuProtocol):
                 page = await _request_item_page(session, current_cookie, user_id, page_number)
                 if page.refreshed_cookie:
                     current_cookie = page.refreshed_cookie
-                collected.extend(page.items)
+                fresh = [item for item in page.items if item.goodfish_item_id not in seen]
+                duplicates += len(page.items) - len(fresh)
+                seen.update(item.goodfish_item_id for item in fresh)
+                collected.extend(fresh)
+                if page.raw_count > 0 and not fresh:
+                    logger.warning(ITEM_SYNC_DUPLICATE_LOG_MESSAGE, page.raw_count, user_id)
+                    break
                 if len(collected) >= ITEM_SYNC_MAX_ITEMS:
                     logger.warning(
                         ITEM_SYNC_TRUNCATED_LOG_MESSAGE,
@@ -147,6 +161,8 @@ class HttpXianyuProtocol(XianyuProtocol):
                 if not page.has_more:
                     break
                 await asyncio.sleep(XIANYU_ITEM_PAGE_INTERVAL_SECONDS)
+        if duplicates:
+            logger.info(ITEM_SYNC_DUPLICATE_LOG_MESSAGE, duplicates, user_id)
         return [item.bounded() for item in collected]
 
 
@@ -196,19 +212,22 @@ class _ItemPageResult(_LoginUserResult):
         items: list[XianyuItem],
         has_more: bool,
         refreshed_cookie: str = "",
+        raw_count: int = 0,
     ) -> None:
         """Create a page classification.
 
         Args:
             is_success: Whether mtop returned its success marker.
             ret_message: First sanitized `ret` entry from mtop.
-            items: Items extracted from this page.
+            items: De-duplicated items extracted from this page.
             has_more: Whether another page may still hold items.
             refreshed_cookie: In-memory Cookie updated from `Set-Cookie`, if present.
+            raw_count: Card count before de-duplication, used to detect paging overlap.
         """
         super().__init__(is_success, ret_message, refreshed_cookie)
         self.items = items
         self.has_more = has_more
+        self.raw_count = raw_count
 
 
 _INVALID_COOKIE_MARKERS = (
@@ -231,6 +250,7 @@ _EMPTY_JSON_PAYLOAD = "{}"
 _SUCCESS_MARKER = "SUCCESS"
 _RET_KEY = XIANYU_MTOP_RESPONSE_RET_KEY
 _HTTP_STATUS_OK = HTTP_STATUS_OK
+_FIRST_PAGE_NUMBER = 1
 
 
 async def _request_login_user(session: aiohttp.ClientSession, cookie: str) -> _LoginUserResult:
@@ -451,28 +471,42 @@ async def _request_item_page_once(
     is_success = _SUCCESS_MARKER in ret_message
     if not is_success:
         logger.warning(XIANYU_PROTOCOL_RET_LOG_MESSAGE, XIANYU_MTOP_API_ITEM_LIST, ret_message)
-    items, has_more = _extract_items(body) if is_success else ([], False)
+    items, raw_count = _extract_items(body) if is_success else ([], 0)
+    if is_success and page_number == _FIRST_PAGE_NUMBER:
+        data = body.get(XIANYU_ITEM_RESPONSE_DATA_KEY)
+        logger.info(
+            ITEM_SYNC_PAGE_META_LOG_MESSAGE,
+            user_id,
+            sorted(data.keys()) if isinstance(data, Mapping) else type(data).__name__,
+            raw_count,
+        )
     return _ItemPageResult(
         is_success=is_success,
         ret_message=ret_message,
         items=items,
-        has_more=has_more,
+        has_more=raw_count >= XIANYU_ITEM_PAGE_SIZE,
         refreshed_cookie=refreshed_cookie,
+        raw_count=raw_count,
     )
 
 
-def _extract_items(body: Mapping) -> tuple[list[XianyuItem], bool]:
+def _extract_items(body: Mapping) -> tuple[list[XianyuItem], int]:
     """Read the item cards of one listing page.
 
     Args:
         body: Decoded mtop response of a successful page request.
 
     Returns:
-        The items carried by this page and whether another page may follow.
+        The de-duplicated items of this page and the raw card count before
+        de-duplication, which decides whether another page may follow.
 
     Notes:
         The listing response carries no description, so `description` stays empty;
         the operator edits it in the management UI instead.
+
+        Cards are keyed by `goodfishItemId` because the listing may repeat one
+        item across groups or overlap between pages; the raw count keeps the
+        "is this page full" signal independent from de-duplication.
     """
     data = body.get(XIANYU_ITEM_RESPONSE_DATA_KEY)
     if not isinstance(data, Mapping):
@@ -481,7 +515,7 @@ def _extract_items(body: Mapping) -> tuple[list[XianyuItem], bool]:
             XIANYU_MTOP_API_ITEM_LIST,
             sorted(body.keys()),
         )
-        return [], False
+        return [], 0
     cards = data.get(XIANYU_ITEM_RESPONSE_CARD_LIST_KEY)
     if not isinstance(cards, list):
         logger.warning(
@@ -489,8 +523,10 @@ def _extract_items(body: Mapping) -> tuple[list[XianyuItem], bool]:
             XIANYU_MTOP_API_ITEM_LIST,
             sorted(data.keys()),
         )
-        return [], False
+        return [], 0
     items: list[XianyuItem] = []
+    seen: set[str] = set()
+    raw_count = 0
     for card in cards:
         if not isinstance(card, Mapping):
             continue
@@ -500,6 +536,10 @@ def _extract_items(body: Mapping) -> tuple[list[XianyuItem], bool]:
         item_id = _to_text(card_data.get(XIANYU_ITEM_RESPONSE_ID_KEY))
         if not item_id:
             continue
+        raw_count += 1
+        if item_id in seen:
+            continue
+        seen.add(item_id)
         items.append(
             XianyuItem(
                 goodfish_item_id=item_id,
@@ -509,7 +549,7 @@ def _extract_items(body: Mapping) -> tuple[list[XianyuItem], bool]:
                 stock_status=_to_text(card_data.get(XIANYU_ITEM_RESPONSE_STATUS_KEY)),
             )
         )
-    return items, len(items) >= XIANYU_ITEM_PAGE_SIZE
+    return items, raw_count
 
 
 def _extract_price(card_data: Mapping) -> str:

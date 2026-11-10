@@ -10,6 +10,7 @@ from xianyu_client.core.constants import (
     ITEM_SYNC_STATE_FAILED,
     ITEM_SYNC_STATE_RUNNING,
     ITEM_SYNC_STATE_SUCCESS,
+    ITEM_SYNC_SUCCESS_MESSAGE,
 )
 from xianyu_client.core.errors import XianyuNetworkError
 from xianyu_client.schemas.account_schemas import AccountDetailResponse
@@ -77,18 +78,19 @@ class _FakeProtocol:
 class _FakeCloudClient:
     """Cloud boundary capturing the uploaded payload."""
 
-    def __init__(self, inserted: int, updated: int) -> None:
+    def __init__(self, inserted: int, updated: int, unchanged: int = 0) -> None:
         """Store the counters reported back to the service."""
         self._inserted = inserted
         self._updated = updated
+        self._unchanged = unchanged
         self.uploaded_goodfish_id: str | None = None
         self.uploaded_items: list[dict] = []
 
-    async def sync_items(self, goodfish_id: str, items: list[dict]) -> tuple[int, int]:
+    async def sync_items(self, goodfish_id: str, items: list[dict]) -> tuple[int, int, int]:
         """Capture the upload and return the fixed counters."""
         self.uploaded_goodfish_id = goodfish_id
         self.uploaded_items = items
-        return self._inserted, self._updated
+        return self._inserted, self._updated, self._unchanged
 
 
 async def _wait_for_finish(service: ItemSyncService):
@@ -112,13 +114,32 @@ def test_listing_cards_are_mapped_to_items():
         }
     }
 
-    items, has_more = _extract_items(body)
+    items, raw_count = _extract_items(body)
 
     assert len(items) == 1
     assert items[0].goodfish_item_id == "111"
     assert items[0].price == "12.50"
     assert items[0].description == ""
-    assert has_more is False
+    assert raw_count == 1
+
+
+def test_duplicate_cards_are_merged_but_still_counted():
+    """A repeated item is uploaded once while the raw count keeps the page signal."""
+    body = {
+        "data": {
+            "cardList": [
+                {"cardData": {"id": "111", "title": "第一次出现"}},
+                {"cardData": {"id": "111", "title": "重复出现"}},
+                {"cardData": {"id": "222", "title": "另一个商品"}},
+            ]
+        }
+    }
+
+    items, raw_count = _extract_items(body)
+
+    assert [item.goodfish_item_id for item in items] == ["111", "222"]
+    assert items[0].title == "第一次出现"
+    assert raw_count == 3
 
 
 def test_invalid_price_is_dropped_from_the_payload():
@@ -145,7 +166,7 @@ def test_sync_uploads_the_listing_and_reports_counters():
     """A successful listing read is uploaded and surfaced with its counters."""
 
     async def scenario():
-        cloud = _FakeCloudClient(inserted=2, updated=1)
+        cloud = _FakeCloudClient(inserted=2, updated=1, unchanged=0)
         service = ItemSyncService(
             _FakeAccountService(),
             _FakeProtocol([_item("111"), _item("222")]),
@@ -160,6 +181,8 @@ def test_sync_uploads_the_listing_and_reports_counters():
     assert status.total == 2
     assert status.inserted == 2
     assert status.updated == 1
+    assert status.unchanged == 0
+    assert status.message == ITEM_SYNC_SUCCESS_MESSAGE.format(2, 2, 1, 0)
     assert cloud.uploaded_goodfish_id == TEST_GOODFISH_ID
     assert [item["goodfishItemId"] for item in cloud.uploaded_items] == ["111", "222"]
 

@@ -22,8 +22,13 @@ public class GoodfishItemSyncCountVo implements Serializable {
     private int insertedCount;
 
     /**
-     * 更新数（含软删记录复活）
+     * 更新数（内容真实变化，含软删记录复活）
      */
     private int updatedCount;
+
+    /**
+     * 未变化数（重新上报但内容与库中一致）
+     */
+    private int unchangedCount;
 
 }

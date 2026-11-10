@@ -3,21 +3,39 @@
 <mapper namespace="org.dromara.goodfish.item.mapper.GoodfishItemMapper">
 
     <!--
-      批量 upsert：单条 CTE 语句完成插入/更新/复活并分类计数（xmax = 0 判定插入）。
+      批量 upsert：单条 CTE 语句完成插入/更新/复活并分类计数。
+      - src：本次上报的数据（只出现一次，供 upsert 与比对共用）
+      - prev：库中同账号同商品 ID 的旧值快照，用于判断内容是否真的变化
+      - ins：INSERT ... ON CONFLICT DO UPDATE，xmax = 0 判定插入
+      计数口径：insertedCount = 新插入；updatedCount = 内容真实变化（含软删复活）；
+      unchangedCount = 重新上报但内容与库中完全一致。
       id 由应用侧雪花算法生成（MyBatis-Plus ASSIGN_ID），表主键不是自增列，
       因此 values 必须显式写入 id；冲突更新时保留原 id。
       依赖唯一索引 uk_gfid_item(goodfish_account_id, goodfish_item_id)，
       见 sql/goodfish_item_indexes.sql。
     -->
     <select id="upsertBatch" resultType="org.dromara.goodfish.item.domain.vo.GoodfishItemSyncCountVo">
-        with ins as (
-            insert into goodfish_item (id, account_id, goodfish_account_id, goodfish_item_id, title,
-                                       description, price, stock_status, image_url, sync_time, del_flag)
+        with src (id, account_id, goodfish_account_id, goodfish_item_id, title,
+                  description, price, stock_status, image_url, sync_time) as (
             values
             <foreach collection="entities" item="it" separator=",">
                 (#{it.id}, #{it.accountId}, #{it.goodfishAccountId}, #{it.goodfishItemId}, #{it.title},
-                 #{it.description}, #{it.price}, #{it.stockStatus}, #{it.imageUrl}, #{it.syncTime}, '0')
+                 #{it.description}, #{it.price}, #{it.stockStatus}, #{it.imageUrl}, #{it.syncTime})
             </foreach>
+        ),
+        prev as (
+            select i.goodfish_item_id, i.title, i.description, i.price,
+                   i.stock_status, i.image_url, i.del_flag
+            from goodfish_item i
+            join src s on s.goodfish_item_id = i.goodfish_item_id
+            where i.goodfish_account_id = #{entities[0].goodfishAccountId}
+        ),
+        ins as (
+            insert into goodfish_item (id, account_id, goodfish_account_id, goodfish_item_id, title,
+                                       description, price, stock_status, image_url, sync_time, del_flag)
+            select id, account_id, goodfish_account_id, goodfish_item_id, title,
+                   description, price, stock_status, image_url, sync_time, '0'
+            from src
             on conflict (goodfish_account_id, goodfish_item_id) do update set
                 account_id   = excluded.account_id,
                 title        = excluded.title,
@@ -28,11 +46,23 @@
                 sync_time    = excluded.sync_time,
                 del_flag     = '0',
                 update_time  = now()
-            returning (xmax = 0) as inserted
+            returning goodfish_item_id, (xmax = 0) as inserted
         )
-        select count(*) filter (where inserted)     as "insertedCount",
-               count(*) filter (where not inserted) as "updatedCount"
+        select count(*) filter (where ins.inserted) as "insertedCount",
+               count(*) filter (where not ins.inserted and (
+                   p.goodfish_item_id is null
+                   or (p.title, p.description, p.price, p.stock_status, p.image_url, p.del_flag)
+                      is distinct from
+                      (s.title, s.description, s.price, s.stock_status, s.image_url, '0')
+               )) as "updatedCount",
+               count(*) filter (where not ins.inserted and p.goodfish_item_id is not null and not (
+                   (p.title, p.description, p.price, p.stock_status, p.image_url, p.del_flag)
+                   is distinct from
+                   (s.title, s.description, s.price, s.stock_status, s.image_url, '0')
+               )) as "unchangedCount"
         from ins
+        join src s on s.goodfish_item_id = ins.goodfish_item_id
+        left join prev p on p.goodfish_item_id = ins.goodfish_item_id
     </select>
 
     <!-- 商品详情（联表提示词，一对一；提示词未建时字段为 null） -->

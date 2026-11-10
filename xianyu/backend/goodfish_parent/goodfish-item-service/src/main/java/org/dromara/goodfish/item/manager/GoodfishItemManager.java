@@ -41,7 +41,7 @@ public class GoodfishItemManager {
      * @param accountId         云端账号主键（gRPC 解析得到）
      * @param goodfishAccountId 闲鱼账号 ID（冗余字段）
      * @param items             全量商品上报列表
-     * @return 新增/更新计数
+     * @return 新增/更新（内容真实变化）/未变化计数
      */
     public GoodfishItemSyncCountVo upsertBatch(Long accountId, String goodfishAccountId,
                                                List<GoodfishItemSyncItemBo> items) {

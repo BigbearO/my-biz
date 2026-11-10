@@ -25,8 +25,11 @@ from xianyu_client.core.constants import (
     CLOUD_ITEM_SYNC_CODE_ACCOUNT_NOT_FOUND,
     CLOUD_ITEM_SYNC_INITIAL_COUNT,
     CLOUD_ITEM_SYNC_INSERTED_KEY,
+    CLOUD_ITEM_SYNC_INSERTED_LEGACY_KEY,
     CLOUD_ITEM_SYNC_LOG_MESSAGE,
+    CLOUD_ITEM_SYNC_UNCHANGED_KEY,
     CLOUD_ITEM_SYNC_UPDATED_KEY,
+    CLOUD_ITEM_SYNC_UPDATED_LEGACY_KEY,
     CLOUD_METHOD_POST,
     CLOUD_REPORT_LOG_MESSAGE,
     CLOUD_REQUEST_REJECTED_BODY_LOG_MESSAGE,
@@ -107,7 +110,7 @@ class CloudClient:
             logger.warning(CLOUD_REPORT_LOG_MESSAGE, goodfish_id, status)
             raise CloudReportError()
 
-    async def sync_items(self, goodfish_id: str, items: list[dict]) -> tuple[int, int]:
+    async def sync_items(self, goodfish_id: str, items: list[dict]) -> tuple[int, int, int]:
         """Upload the full on-sale listing of one account.
 
         Args:
@@ -115,7 +118,7 @@ class CloudClient:
             items: Sync payloads already shaped for the cloud contract.
 
         Returns:
-            The `(inserted, updated)` counters reported by the cloud.
+            The `(inserted, updated, unchanged)` counters reported by the cloud.
 
         Raises:
             NotLoggedInError: When no token is stored locally.
@@ -141,10 +144,15 @@ class CloudClient:
             raise CloudItemSyncError()
         data = body.get(CLOUD_RESPONSE_DATA_KEY)
         if not isinstance(data, dict):
-            return CLOUD_ITEM_SYNC_INITIAL_COUNT, CLOUD_ITEM_SYNC_INITIAL_COUNT
+            return (
+                CLOUD_ITEM_SYNC_INITIAL_COUNT,
+                CLOUD_ITEM_SYNC_INITIAL_COUNT,
+                CLOUD_ITEM_SYNC_INITIAL_COUNT,
+            )
         return (
-            int(data.get(CLOUD_ITEM_SYNC_INSERTED_KEY, CLOUD_ITEM_SYNC_INITIAL_COUNT) or 0),
-            int(data.get(CLOUD_ITEM_SYNC_UPDATED_KEY, CLOUD_ITEM_SYNC_INITIAL_COUNT) or 0),
+            _read_counter(data, CLOUD_ITEM_SYNC_INSERTED_KEY, CLOUD_ITEM_SYNC_INSERTED_LEGACY_KEY),
+            _read_counter(data, CLOUD_ITEM_SYNC_UPDATED_KEY, CLOUD_ITEM_SYNC_UPDATED_LEGACY_KEY),
+            _read_counter(data, CLOUD_ITEM_SYNC_UNCHANGED_KEY),
         )
 
     async def check_access(self) -> bool:
@@ -277,3 +285,23 @@ class CloudClient:
             CLOUD_CLIENT_ID_HEADER: client_id,
             CONTENT_TYPE_JSON_HEADER: "application/json",
         }
+
+
+def _read_counter(payload: dict, key: str, legacy_key: str = "") -> int:
+    """Read one integer counter from a cloud response payload.
+
+    Args:
+        payload: Response `data` object.
+        key: Current field name of the counter.
+        legacy_key: Older field name kept for backward compatibility.
+
+    Returns:
+        The parsed counter, or zero when the field is absent or unparsable.
+    """
+    value = payload.get(key)
+    if value is None and legacy_key:
+        value = payload.get(legacy_key)
+    try:
+        return int(value or CLOUD_ITEM_SYNC_INITIAL_COUNT)
+    except (TypeError, ValueError):
+        return CLOUD_ITEM_SYNC_INITIAL_COUNT

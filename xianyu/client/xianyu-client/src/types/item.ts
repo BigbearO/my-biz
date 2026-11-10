@@ -7,5 +7,6 @@ export interface ItemSyncStatus {
   total: number;
   inserted: number;
   updated: number;
+  unchanged: number;
   message: string;
 }

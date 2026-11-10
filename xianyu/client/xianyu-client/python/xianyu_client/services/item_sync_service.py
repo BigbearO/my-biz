@@ -27,6 +27,7 @@ from xianyu_client.core.constants import (
     ITEM_SYNC_STATE_SUCCESS,
     ITEM_SYNC_SUCCESS_LOG_MESSAGE,
     ITEM_SYNC_SUCCESS_MESSAGE,
+    ITEM_SYNC_TRUNCATED_MESSAGE,
     ITEM_SYNC_UNKNOWN_FAILURE_MESSAGE,
 )
 from xianyu_client.core.errors import (
@@ -61,6 +62,7 @@ class ItemSyncStatus:
     total: int = ITEM_SYNC_INITIAL_COUNT
     inserted: int = ITEM_SYNC_INITIAL_COUNT
     updated: int = ITEM_SYNC_INITIAL_COUNT
+    unchanged: int = ITEM_SYNC_INITIAL_COUNT
     message: str = ""
 
 
@@ -149,17 +151,21 @@ class ItemSyncService:
                 status.message = ITEM_SYNC_EMPTY_RESULT_MESSAGE
                 return
             payload = [_to_payload(item) for item in items[:ITEM_SYNC_MAX_ITEMS]]
-            inserted, updated = await self._cloud_client.sync_items(detail.goodfish_id, payload)
+            inserted, updated, unchanged = await self._cloud_client.sync_items(
+                detail.goodfish_id, payload
+            )
             status.inserted = inserted
             status.updated = updated
+            status.unchanged = unchanged
             status.state = ITEM_SYNC_STATE_SUCCESS
-            status.message = ITEM_SYNC_SUCCESS_MESSAGE.format(inserted, updated)
+            status.message = _success_message(status.total, inserted, updated, unchanged)
             logger.info(
                 ITEM_SYNC_SUCCESS_LOG_MESSAGE,
                 status.account_id,
                 status.total,
                 inserted,
                 updated,
+                unchanged,
             )
         except Exception as error:  # noqa: BLE001 - every failure must surface as a status
             status.state = ITEM_SYNC_STATE_FAILED
@@ -168,6 +174,24 @@ class ItemSyncService:
         finally:
             async with self._lock:
                 self._tasks.pop(status.account_id, None)
+
+
+def _success_message(total: int, inserted: int, updated: int, unchanged: int) -> str:
+    """Describe one finished synchronisation in operator terms.
+
+    Args:
+        total: On-sale items read from Goodfish after de-duplication.
+        inserted: Items newly created by the cloud.
+        updated: Items whose content actually changed.
+        unchanged: Items re-reported without any content change.
+
+    Returns:
+        A message that explains the counters instead of only the delta.
+    """
+    message = ITEM_SYNC_SUCCESS_MESSAGE.format(total, inserted, updated, unchanged)
+    if total >= ITEM_SYNC_MAX_ITEMS:
+        message += ITEM_SYNC_TRUNCATED_MESSAGE.format(ITEM_SYNC_MAX_ITEMS)
+    return message
 
 
 def _failure_message(error: Exception) -> str:
@@ -241,5 +265,6 @@ def _to_response(status: ItemSyncStatus) -> ItemSyncStatusResponse:
         total=status.total,
         inserted=status.inserted,
         updated=status.updated,
+        unchanged=status.unchanged,
         message=status.message,
     )

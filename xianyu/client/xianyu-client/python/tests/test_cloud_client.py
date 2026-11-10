@@ -7,7 +7,10 @@ from xianyu_client.core.constants import (
     CLOUD_HTTP_STATUS_SERVER_ERROR_MIN,
     CLOUD_HTTP_STATUS_UNAUTHORIZED,
     CLOUD_ITEM_SYNC_INSERTED_KEY,
+    CLOUD_ITEM_SYNC_INSERTED_LEGACY_KEY,
+    CLOUD_ITEM_SYNC_UNCHANGED_KEY,
     CLOUD_ITEM_SYNC_UPDATED_KEY,
+    CLOUD_ITEM_SYNC_UPDATED_LEGACY_KEY,
     CLOUD_SUCCESS_CODE,
     CLOUD_SUCCESS_HTTP_STATUS,
 )
@@ -28,6 +31,7 @@ TEST_NICKNAME = "nickname"
 TEST_REMARK = "remark"
 TEST_INSERTED_COUNT = 2
 TEST_UPDATED_COUNT = 1
+TEST_UNCHANGED_COUNT = 3
 DATA_KEY = "data"
 CODE_KEY = "code"
 CLOUD_FAILURE_CODE = 500
@@ -127,7 +131,7 @@ async def test_report_account_maps_business_failure_to_report_error(monkeypatch)
 
 
 async def test_sync_items_returns_cloud_counters(monkeypatch):
-    """A 200 response with counters is surfaced as inserted/updated totals."""
+    """A 200 response with counters is surfaced as inserted/updated/unchanged."""
     patch_send(
         monkeypatch,
         CLOUD_SUCCESS_HTTP_STATUS,
@@ -136,10 +140,30 @@ async def test_sync_items_returns_cloud_counters(monkeypatch):
             DATA_KEY: {
                 CLOUD_ITEM_SYNC_INSERTED_KEY: TEST_INSERTED_COUNT,
                 CLOUD_ITEM_SYNC_UPDATED_KEY: TEST_UPDATED_COUNT,
+                CLOUD_ITEM_SYNC_UNCHANGED_KEY: TEST_UNCHANGED_COUNT,
             },
         },
     )
 
     result = await build_client().sync_items(TEST_GOODFISH_ID, [])
 
-    assert result == (TEST_INSERTED_COUNT, TEST_UPDATED_COUNT)
+    assert result == (TEST_INSERTED_COUNT, TEST_UPDATED_COUNT, TEST_UNCHANGED_COUNT)
+
+
+async def test_sync_items_reads_legacy_counter_field_names(monkeypatch):
+    """Older gateways report `insertedCount`; the client still understands them."""
+    patch_send(
+        monkeypatch,
+        CLOUD_SUCCESS_HTTP_STATUS,
+        {
+            CODE_KEY: CLOUD_SUCCESS_CODE,
+            DATA_KEY: {
+                CLOUD_ITEM_SYNC_INSERTED_LEGACY_KEY: TEST_INSERTED_COUNT,
+                CLOUD_ITEM_SYNC_UPDATED_LEGACY_KEY: TEST_UPDATED_COUNT,
+            },
+        },
+    )
+
+    result = await build_client().sync_items(TEST_GOODFISH_ID, [])
+
+    assert result == (TEST_INSERTED_COUNT, TEST_UPDATED_COUNT, 0)

@@ -13,4 +13,5 @@ class ItemSyncStatusResponse(BaseModel):
     total: int
     inserted: int
     updated: int
+    unchanged: int
     message: str

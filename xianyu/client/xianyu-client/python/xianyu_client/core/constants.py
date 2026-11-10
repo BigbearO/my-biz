@@ -279,8 +279,11 @@ CLOUD_ITEM_SYNC_FAILED_ERROR_MESSAGE = "商品同步失败，请稍后重试"
 CLOUD_ITEM_SYNC_ACCOUNT_NOT_FOUND_MESSAGE = "账号尚未上报云端，请重新添加该账号"
 CLOUD_ITEM_SYNC_ACCOUNT_DISABLED_MESSAGE = "账号已停用，请联系管理员"
 CLOUD_ITEM_SYNC_LOG_MESSAGE = "Item sync rejected by cloud goodfish_id={} status={} code={}"
-CLOUD_ITEM_SYNC_INSERTED_KEY = "insertedCount"
-CLOUD_ITEM_SYNC_UPDATED_KEY = "updatedCount"
+CLOUD_ITEM_SYNC_INSERTED_KEY = "inserted"
+CLOUD_ITEM_SYNC_UPDATED_KEY = "updated"
+CLOUD_ITEM_SYNC_UNCHANGED_KEY = "unchanged"
+CLOUD_ITEM_SYNC_INSERTED_LEGACY_KEY = "insertedCount"
+CLOUD_ITEM_SYNC_UPDATED_LEGACY_KEY = "updatedCount"
 CLOUD_ITEM_SYNC_INITIAL_COUNT = 0
 
 ITEM_SYNC_STATE_IDLE = "idle"
@@ -289,7 +292,8 @@ ITEM_SYNC_STATE_SUCCESS = "success"
 ITEM_SYNC_STATE_FAILED = "failed"
 ITEM_SYNC_IN_PROGRESS_ERROR_MESSAGE = "该账号正在同步商品，请稍后再试"
 ITEM_SYNC_EMPTY_RESULT_MESSAGE = "该账号暂无可同步的在售商品"
-ITEM_SYNC_SUCCESS_MESSAGE = "同步完成，新增 {} 个，更新 {} 个"
+ITEM_SYNC_SUCCESS_MESSAGE = "同步完成：共 {} 个在售商品，新增 {}、更新 {}、无变化 {}"
+ITEM_SYNC_TRUNCATED_MESSAGE = "；已截断到前 {} 个，剩余商品未同步"
 ITEM_SYNC_UNKNOWN_FAILURE_MESSAGE = "商品同步失败，请查看本地日志"
 ITEM_SYNC_COOKIE_INVALID_MESSAGE = "Cookie 已失效，请重新复制后再同步"
 ITEM_SYNC_COOKIE_MISMATCH_MESSAGE = "Cookie 与账号不匹配，请重新复制该账号的 Cookie"
@@ -301,10 +305,14 @@ ITEM_PRICE_PATTERN = r"^\d+(\.\d{1,2})?$"
 ITEM_SYNC_INITIAL_COUNT = 0
 ITEM_SYNC_START_LOG_MESSAGE = "Item sync started account_id={} goodfish_id={}"
 ITEM_SYNC_SUCCESS_LOG_MESSAGE = (
-    "Item sync finished account_id={} total={} inserted={} updated={}"
+    "Item sync finished account_id={} total={} inserted={} updated={} unchanged={}"
 )
 ITEM_SYNC_FAILED_LOG_MESSAGE = "Item sync failed account_id={} error={}"
 ITEM_SYNC_TRUNCATED_LOG_MESSAGE = (
     "Item list truncated at {} items for account_id={}; remaining items are not synced"
 )
+ITEM_SYNC_DUPLICATE_LOG_MESSAGE = (
+    "Item list returned {} duplicate cards for account_id={}; duplicates are merged"
+)
+ITEM_SYNC_PAGE_META_LOG_MESSAGE = "Item list page meta account_id={} keys={} raw_cards={}"
 
