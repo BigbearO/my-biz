@@ -1,0 +1,7 @@
+# data.yaml 数据源配置(示例服务暂未使用;由生成器产出的 client 读取,通常由 nacos 下发)
+data:
+  database:
+    driver: mysql
+    source: ""
+  redis:
+    addr: 127.0.0.1:6379

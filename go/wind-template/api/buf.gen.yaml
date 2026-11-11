@@ -1,0 +1,30 @@
+version: v2
+# Go 生成:产物写回本项目 api/gen/go。
+# managed 统一重定向 go_package_prefix(生成的 CRUD proto 不带 go_package 选项,由这里兜底)。
+managed:
+  enabled: true
+  # 依赖模块保持其原始 go_package(其 Go 类型在各自模块:genproto/gnostic/go-crud/api)
+  disable:
+    - module: buf.build/googleapis/googleapis
+    - module: buf.build/gnostic/gnostic
+    - module: buf.build/kratos/apis
+    - module: buf.build/tx7do/pagination
+  override:
+    - file_option: go_package_prefix
+      value: github.com/wind-scaffold/wind-template/api/gen/go
+plugins:
+  - local: protoc-gen-go
+    out: gen/go
+    opt:
+      - paths=source_relative
+      # kratos/apis BSR 模块的 errors.proto go_package 仍指向 v2,映射到 v3
+      - Merrors/errors.proto=github.com/go-kratos/kratos/v3/errors
+  - local: protoc-gen-go-grpc
+    out: gen/go
+    opt: paths=source_relative
+  - local: protoc-gen-go-http
+    out: gen/go
+    opt: paths=source_relative
+  - local: protoc-gen-go-errors
+    out: gen/go
+    opt: paths=source_relative

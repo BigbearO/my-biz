@@ -1,0 +1,8 @@
+version: v2
+# OpenAPI 3 生成:供服务 embed 与前端联调,产物落到示例服务的 assets。
+# 启用前先安装:go install github.com/google/gnostic/cmd/protoc-gen-openapi@latest
+plugins:
+  - local: protoc-gen-openapi
+    out: ../app/admin/service/cmd/server/assets
+    opt:
+      - paths=source_relative

@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package helloworld.service.v1;
+
+import "google/api/annotations.proto";
+
+option go_package = "github.com/wind-scaffold/wind-template/api/gen/go/helloworld/service/v1;helloworldv1";
+option java_multiple_files = true;
+option java_package = "dev.wind.scaffold.helloworld.service.v1";
+
+// Greeter 演示服务:验证脚手架生成链路与中间件装配。
+service Greeter {
+  rpc SayHello(SayHelloRequest) returns (SayHelloReply) {
+    option (google.api.http) = {
+      get: "/helloworld/v1/greeter/{name}"
+    };
+  }
+}
+
+message SayHelloRequest {
+  string name = 1;
+}
+
+message SayHelloReply {
+  string message = 1;
+}
