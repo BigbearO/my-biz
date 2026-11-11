@@ -1,0 +1,58 @@
+﻿syntax = "proto3";
+
+package admin.service.v1;
+
+import "gnostic/openapi/v3/annotations.proto";
+import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
+import "pagination/v1/pagination.proto";
+
+import "llm_provider/service/v1/llm_provider.proto";
+
+// 管理服务
+service LlmProviderService {
+  // 查询列表
+  rpc List (pagination.PagingRequest) returns (llm_provider.service.v1.ListLlmProviderResponse) {
+    option (google.api.http) = {
+        get: "/admin/v1/llm-providers"
+    };
+  }
+
+  // 查询详情
+  rpc Get (llm_provider.service.v1.GetLlmProviderRequest) returns (llm_provider.service.v1.LlmProvider) {
+    option (google.api.http) = {
+        get: "/admin/v1/llm-providers/{id}"
+    };
+  }
+
+  // 创建
+  rpc Create (llm_provider.service.v1.CreateLlmProviderRequest) returns (llm_provider.service.v1.LlmProvider) {
+    option (google.api.http) = {
+        post: "/admin/v1/llm-providers"
+        body: "*"
+    };
+  }
+
+  // 更新
+  rpc Update (llm_provider.service.v1.UpdateLlmProviderRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+        put: "/admin/v1/llm-providers/{id}"
+        body: "*"
+    };
+  }
+
+  // 删除
+  rpc Delete (llm_provider.service.v1.DeleteLlmProviderRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+        delete: "/admin/v1/llm-providers/{id}"
+    };
+  }
+
+  // 批量创建
+  rpc BatchCreate (llm_provider.service.v1.BatchCreateLlmProviderRequest) returns (llm_provider.service.v1.BatchCreateLlmProviderResponse) {
+    option (google.api.http) = {
+        post: "/admin/v1/llm-providers/batch"
+        body: "*"
+    };
+  }
+}

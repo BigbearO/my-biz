@@ -1,0 +1,22 @@
+# bin
+bin/
+*.exe
+
+# ide
+.idea/
+.vscode/
+
+# go
+*.test
+coverage.out
+vendor/
+
+# env
+.env
+*.local.yaml
+
+# logs
+*.log
+
+# buf 生成物由 wind new / make api 现场生成,不入库
+api/gen/

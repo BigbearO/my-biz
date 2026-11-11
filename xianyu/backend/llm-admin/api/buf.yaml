@@ -1,0 +1,8 @@
+version: v2
+modules:
+  - path: protos
+deps:
+  - buf.build/googleapis/googleapis
+  - buf.build/gnostic/gnostic
+  - buf.build/kratos/apis
+  - buf.build/tx7do/pagination

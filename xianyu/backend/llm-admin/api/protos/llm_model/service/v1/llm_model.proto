@@ -1,0 +1,181 @@
+﻿syntax = "proto3";
+
+package llm_model.service.v1;
+
+import "google/api/annotations.proto";
+
+import "gnostic/openapi/v3/annotations.proto";
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/field_mask.proto";
+
+import "pagination/v1/pagination.proto";
+
+// 服务
+service LlmModelService {
+  // 查询列表
+  rpc List (pagination.PagingRequest) returns (ListLlmModelResponse) {
+    option (google.api.http) = {
+      get: "/llm/model/list"
+    };
+  }
+
+  // 统计数量
+  rpc Count (pagination.PagingRequest) returns (CountLlmModelResponse) {
+    option (google.api.http) = {
+      get: "/llm/model/count"
+    };
+  }
+
+  // 查询详情
+  rpc Get (GetLlmModelRequest) returns (LlmModel) {
+    option (google.api.http) = {
+      get: "/llm/model/{id}"
+    };
+  }
+
+  // 创建
+  rpc Create (CreateLlmModelRequest) returns (LlmModel) {
+    option (google.api.http) = {
+      post: "/llm/model"
+      body: "*"
+    };
+  }
+
+  // 更新
+  rpc Update (UpdateLlmModelRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      put: "/llm/model"
+      body: "*"
+    };
+  }
+
+  // 删除
+  rpc Delete (DeleteLlmModelRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/llm/model/{id}"
+    };
+  }
+
+  // 批量创建
+  rpc BatchCreate (BatchCreateLlmModelRequest) returns (BatchCreateLlmModelResponse) {
+    option (google.api.http) = {
+      post: "/llm/model/batch"
+      body: "*"
+    };
+  }
+}
+
+// 
+message LlmModel {
+  optional int64 id = 1 [
+    json_name = "id",
+    (gnostic.openapi.v3.property) = {description: ""}
+  ]; // 
+
+  optional int64 provider_id = 2 [
+    json_name = "providerId",
+    (gnostic.openapi.v3.property) = {description: ""}
+  ]; // 
+
+  optional string display_name = 3 [
+    json_name = "displayName",
+    (gnostic.openapi.v3.property) = {description: ""}
+  ]; // 
+
+  optional string model_name = 4 [
+    json_name = "modelName",
+    (gnostic.openapi.v3.property) = {description: ""}
+  ]; // 
+
+  optional float temperature = 5 [
+    json_name = "temperature",
+    (gnostic.openapi.v3.property) = {description: ""}
+  ]; // 
+
+  optional int32 max_tokens = 6 [
+    json_name = "maxTokens",
+    (gnostic.openapi.v3.property) = {description: ""}
+  ]; // 
+
+  optional int32 status = 7 [
+    json_name = "status",
+    (gnostic.openapi.v3.property) = {description: ""}
+  ]; // 
+
+  optional google.protobuf.Timestamp created_at = 8 [
+    json_name = "createdAt",
+    (gnostic.openapi.v3.property) = {description: ""}
+  ]; // 
+
+  optional google.protobuf.Timestamp updated_at = 9 [
+    json_name = "updatedAt",
+    (gnostic.openapi.v3.property) = {description: ""}
+  ]; // 
+
+}
+
+message ListLlmModelResponse {
+  repeated LlmModel items = 1;
+  uint64 total = 2;
+}
+
+message GetLlmModelRequest {
+  oneof query_by {
+    int64 id = 1 [
+      (gnostic.openapi.v3.property) = {description: "ID", read_only: true},
+      json_name = "id"
+    ]; // ID
+  }
+
+  optional google.protobuf.FieldMask view_mask = 100 [
+    json_name = "viewMask",
+    (gnostic.openapi.v3.property) = {
+      description: "视图字段过滤器，用于控制返回的字段"
+    }
+  ]; // 视图字段过滤器，用于控制返回的字段
+}
+
+message CreateLlmModelRequest {
+  LlmModel data = 1;
+}
+
+message UpdateLlmModelRequest {
+  int64 id = 1;
+
+  LlmModel data = 2;
+
+  google.protobuf.FieldMask update_mask = 100 [
+    (gnostic.openapi.v3.property) = {
+      description: "要更新的字段列表",
+      example: {yaml : "id,realname,username"}
+    },
+    json_name = "updateMask"
+  ]; // 要更新的字段列表
+
+  optional bool allow_missing = 101 [
+    (gnostic.openapi.v3.property) = {description: "如果设置为true的时候，资源不存在则会新增(插入)，并且在这种情况下`updateMask`字段将会被忽略。"},
+    json_name = "allowMissing"
+  ]; // 如果设置为true的时候，资源不存在则会新增(插入)，并且在这种情况下`updateMask`字段将会被忽略。
+}
+
+message DeleteLlmModelRequest {
+  oneof delete_by {
+    int64 id = 1 [
+      (gnostic.openapi.v3.property) = {description: "ID", read_only: true},
+      json_name = "id"
+    ]; // ID
+  }
+}
+
+message BatchCreateLlmModelRequest {
+  repeated LlmModel data = 1;
+}
+message BatchCreateLlmModelResponse {
+  repeated LlmModel data = 1;
+}
+
+message CountLlmModelResponse {
+  uint64 count = 1;
+}

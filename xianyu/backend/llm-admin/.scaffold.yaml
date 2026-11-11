@@ -1,0 +1,4 @@
+# wind CLI 项目级配置;所有 proto 相关命令先读本文件。
+# proto_dir:proto 源目录,默认模板自带;可指向公共 proto 目录(相对/绝对路径)。
+module: github.com/xianyu/llm-admin
+proto_dir: api/protos

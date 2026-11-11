@@ -1,0 +1,7 @@
+# .scaffold.yaml —— wind CLI 项目级配置;wind new 生成项目时自动写入,可手改。
+# 说明:
+#   proto_dir  proto 源目录。默认 api/protos(模板自带);
+#              可指向跨项目公共 proto 目录(独立仓 checkout 或共享目录),相对/绝对路径均可。
+#              外置模式下 buf.yaml / buf.gen.*.yaml 归公共目录所有。
+module: llm-admin
+proto_dir: api/protos

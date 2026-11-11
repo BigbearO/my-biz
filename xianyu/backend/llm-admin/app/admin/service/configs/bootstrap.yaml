@@ -1,0 +1,32 @@
+# bootstrap.yaml 本地引导配置(始终本地,不下发):
+#   app    应用标识
+#   nacos  注册与配置中心连接
+#   trace  OTLP(链路 + 日志转发共用端点)
+#   log    日志级别
+#   env 环境变量(前缀 WIND_)优先级最高,如 WIND_TRACE_ENDPOINT
+app:
+  project: ""
+  appId: "admin"
+  name: "admin-service"
+  version: v1.0.0
+  env: dev
+
+env:
+  host: 10.0.0.5
+
+nacos:
+  addr: 10.0.0.5:8848
+  namespace: xhf
+  group: DEFAULT_GROUP
+  dataId: "zero.yaml"   # 远端只放业务配置段(server/data 等)
+  timeoutMs: 5000
+  username: nacos
+  password: nacos
+
+trace:
+  endpoint: 10.0.0.5:4317   # OTLP gRPC;留空则不启用链路/日志上报
+  sampler: 1.0
+  insecure: true
+
+log:
+  level: info

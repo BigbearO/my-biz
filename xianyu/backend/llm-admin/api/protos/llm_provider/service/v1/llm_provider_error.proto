@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package llm_provider.service.v1;
+
+import "errors/errors.proto";
+
+enum LlmProviderErrorReason {
+  option (errors.default_code) = 500;
+
+  // 400
+  BAD_REQUEST = 0 [(errors.code) = 400];           // 错误请求
+  // 404
+  NOT_FOUND = 1 [(errors.code) = 404];             // 资源不存在
+  // 409
+  CONFLICT = 2 [(errors.code) = 409];              // 冲突
+  // 500
+  INTERNAL_SERVER_ERROR = 3 [(errors.code) = 500]; // 内部服务器错误
+}
