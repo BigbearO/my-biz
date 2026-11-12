@@ -108,3 +108,27 @@ cd app/admin/service && go build -o ../../server.exe ./cmd/server
 **坑 16**:CRUD 生成的 Get/Delete 请求 id 是 `uint32`(gow 的 mysql 类型映射),雪花 int64 溢出 → proto 里手改 `int64 id`(参考项目本就是 int64)。
 
 **llm-admin 实测**:Create(雪花 id=2120537918429855744,baseUrl/apiKey 正确入库回显)→ List(protojson 输出,total=8)→ 全链路绿。注意 id 在 protojson 输出里是字符串,前端按字符串处理。
+
+## 追记(2026-11-12):7 项功能对齐全部完成
+
+| # | 功能 | 验证方式 | 结果 |
+|---|---|---|---|
+| 1 | Enable 互斥启用 | PUT /llm/model/enable/{id} → status 置 1,事务先全停 | ✅ |
+| 2 | provider_name 关联 | List/Get/Enable 返回均带 providerName=siliconflow | ✅ |
+| 3 | api_key 脱敏 | Get/List 返回 sk-******3456;Create 响应同样脱敏 | ✅ |
+| 4 | TestConnection | 按 id / 按传入配置两种方式,探活 {base_url}/v1/models + 延迟 | ✅(外网不可达时正确返回失败信息) |
+| 5 | 内部 gRPC 域 | llm.proto(LlmService)→ gRPC 直连 9000 实测 GetEnabledModel 返回完整配置(含明文 key) | ✅ |
+| 6 | List 过滤 | providerId+status 组合过滤 / display_name 模糊匹配 | ✅ |
+| 7 | 雪花迁移脚本 | sql/llm_manage_id_to_snowflake.sql(真实表已是雪花主键,脚本供新环境参考) | ✅ |
+
+**追加踩坑(模板层,已在 wind-template 提交)**:
+- **坑 14**:kratos `config.Load` 会对每个 source 调 `Watch()`,source 的 Watch 返回 error 会让整个配置加载失败——自实现 source 必须提供可用 Watcher(可永久阻塞)。
+- **坑 15**:kratos 官方 env source 不做层级映射(`WIND_SERVER_HTTP_ADDR` 停在顶层键)→ bootstrap 自实现 `newEnvSource`(WIND_段_段 → 段.段)。注意驼峰键(dataId)无法经环境变量表达。
+- **坑 16**:kratos v3 REST 默认编解码是**标准库 json**(按 Go 字段名/snake_case tag 匹配)→ 前端 camelCase 字段静默丢失。bootstrap 注册 protojson 语义、名为 `json` 的 codec(恢复 v2 行为;响应 protojson 风格,**int64 输出为字符串**,前端按字符串处理)。
+
+**本轮模板变更清单(wind-template 提交记录)**:
+1. `pkg/bootstrap/codec.go` — protojson json codec
+2. `pkg/bootstrap/envsource.go` + config.go 调整 — 层级 env 源 + 预读轻量化(消除 watcher 噪音)
+3. 示例服务 admin → sample(与生成器注入约定兼容,让出 admin 名)
+4. `.gitignore` 加 `local.yaml`(配置分层本机覆盖层)
+5. buf.yaml/buf.gen.yaml — 补 gnostic/kratos apis/pagination 依赖 + managed/disable + M 映射

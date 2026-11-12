@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package llm.service.v1;
+
+option go_package = "github.com/xianyu/llm-admin/api/gen/go/llm/service/v1;llmv1";
+
+// LlmService 内部 gRPC 服务:仅供其他后端服务消费(无 REST 路由,不暴露给网关)。
+//
+// 消费链路:对话/agent 服务经 nacos 服务发现找到本服务,
+// GetEnabledModel 取当前启用模型的完整连接配置,调用完成后 ReportUsage 回传用量。
+service LlmService {
+  // 获取当前启用的模型完整配置(含 API Key 明文,仅内网)
+  // 无启用模型时返回 NOT_FOUND
+  rpc GetEnabledModel (GetEnabledModelRequest) returns (EnabledModel);
+
+  // Token 用量回传(可选,用于成本核算)
+  rpc ReportUsage (ReportUsageRequest) returns (ReportUsageResponse);
+}
+
+message GetEnabledModelRequest {}
+
+message EnabledModel {
+  // 模型 ID
+  int64 id = 1;
+  // 供应商名称
+  string provider_name = 2;
+  // 接口地址(OpenAI 兼容)
+  string base_url = 3;
+  // API Key 明文,仅内网传输,不入日志
+  string api_key = 4;
+  // 实际模型名(如 gpt-4o / qwen-max)
+  string model_name = 5;
+  double temperature = 6;
+  int32 max_tokens = 7;
+}
+
+message ReportUsageRequest {
+  // 业务方会话/请求标识
+  string item_id = 1;
+  string model_name = 2;
+  // 提示 token 数
+  int32 prompt_tokens = 3;
+  // 补全 token 数
+  int32 completion_tokens = 4;
+}
+
+message ReportUsageResponse {
+  bool success = 1;
+}

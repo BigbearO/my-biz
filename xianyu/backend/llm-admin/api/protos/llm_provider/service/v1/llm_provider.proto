@@ -65,6 +65,14 @@ service LlmProviderService {
       body: "*"
     };
   }
+
+  // 测试连接(传 id 用已保存配置;不传 id 用 base_url+api_key)
+  rpc TestConnection (TestConnectionRequest) returns (TestConnectionReply) {
+    option (google.api.http) = {
+      post: "/llm/provider/test"
+      body: "*"
+    };
+  }
 }
 
 // 
@@ -168,4 +176,33 @@ message BatchCreateLlmProviderResponse {
 
 message CountLlmProviderResponse {
   uint64 count = 1;
+}
+
+// TestConnectionRequest 测试连接请求
+message TestConnectionRequest {
+  // 传 id 则用已保存的配置
+  int64 id = 1 [
+    json_name = "id"
+  ];
+  // 不传 id 则用传入的配置
+  string base_url = 2 [
+    json_name = "baseUrl"
+  ];
+  string api_key = 3 [
+    json_name = "apiKey"
+  ];
+}
+
+// TestConnectionReply 测试连接结果
+message TestConnectionReply {
+  bool success = 1 [
+    json_name = "success"
+  ];
+  string message = 2 [
+    json_name = "message"
+  ];
+  // 延迟(毫秒)
+  int64 latency_ms = 3 [
+    json_name = "latencyMs"
+  ];
 }

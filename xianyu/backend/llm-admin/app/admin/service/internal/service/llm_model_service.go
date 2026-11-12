@@ -1,4 +1,4 @@
-﻿package service
+package service
 
 import (
 	"context"
@@ -11,7 +11,8 @@ import (
 
 	"github.com/xianyu/llm-admin/app/admin/service/internal/data"
 
-	llmModelV1 "github.com/xianyu/llm-admin/api/gen/go/llm_model/service/v1")
+	llmModelV1 "github.com/xianyu/llm-admin/api/gen/go/llm_model/service/v1"
+)
 
 type LlmModelService struct {
 	llmModelV1.UnimplementedLlmModelServiceServer
@@ -22,17 +23,25 @@ type LlmModelService struct {
 }
 
 func NewLlmModelService(
-    bs *bootstrap.Bootstrap,
-    llmModelRepo *data.LlmModelRepo,
+	bs *bootstrap.Bootstrap,
+	llmModelRepo *data.LlmModelRepo,
 ) *LlmModelService {
 	return &LlmModelService{
-		log:  bs.Logger.With("module", "llm_model/service"),
-		llmModelRepo:  llmModelRepo,
+		log:          bs.Logger.With("module", "llm_model/service"),
+		llmModelRepo: llmModelRepo,
 	}
 }
 
-func (s *LlmModelService) List(ctx context.Context, req *paginationV1.PagingRequest) (*llmModelV1.ListLlmModelResponse, error) {
+func (s *LlmModelService) List(ctx context.Context, req *llmModelV1.ListLlmModelRequest) (*llmModelV1.ListLlmModelResponse, error) {
 	return s.llmModelRepo.List(ctx, req)
+}
+
+// Enable 启用模型(全局唯一启用,自动停用其他)。
+func (s *LlmModelService) Enable(ctx context.Context, req *llmModelV1.EnableLlmModelRequest) (*llmModelV1.LlmModel, error) {
+	if req == nil || req.GetId() <= 0 {
+		return nil, llmModelV1.ErrorBadRequest("invalid parameter")
+	}
+	return s.llmModelRepo.Enable(ctx, req.GetId())
 }
 
 func (s *LlmModelService) Get(ctx context.Context, req *llmModelV1.GetLlmModelRequest) (*llmModelV1.LlmModel, error) {
@@ -44,7 +53,7 @@ func (s *LlmModelService) Create(ctx context.Context, req *llmModelV1.CreateLlmM
 		return nil, llmModelV1.ErrorBadRequest("invalid parameter")
 	}
 
-    return s.llmModelRepo.Create(ctx, req)
+	return s.llmModelRepo.Create(ctx, req)
 }
 
 func (s *LlmModelService) Update(ctx context.Context, req *llmModelV1.UpdateLlmModelRequest) (*emptypb.Empty, error) {
@@ -58,9 +67,9 @@ func (s *LlmModelService) Update(ctx context.Context, req *llmModelV1.UpdateLlmM
 }
 
 func (s *LlmModelService) Delete(ctx context.Context, req *llmModelV1.DeleteLlmModelRequest) (*emptypb.Empty, error) {
-    if req == nil {
-        return nil, llmModelV1.ErrorBadRequest("invalid parameter")
-    }
+	if req == nil {
+		return nil, llmModelV1.ErrorBadRequest("invalid parameter")
+	}
 
 	deleted, err := s.llmModelRepo.Delete(ctx, req)
 	if err != nil {
@@ -70,4 +79,19 @@ func (s *LlmModelService) Delete(ctx context.Context, req *llmModelV1.DeleteLlmM
 		return nil, llmModelV1.ErrorNotFound("llm_model not found")
 	}
 	return &emptypb.Empty{}, nil
+}
+
+func (s *LlmModelService) Count(ctx context.Context, req *paginationV1.PagingRequest) (*llmModelV1.CountLlmModelResponse, error) {
+	count, err := s.llmModelRepo.Count(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return &llmModelV1.CountLlmModelResponse{Count: uint64(count)}, nil
+}
+
+func (s *LlmModelService) BatchCreate(ctx context.Context, req *llmModelV1.BatchCreateLlmModelRequest) (*llmModelV1.BatchCreateLlmModelResponse, error) {
+	if req == nil || len(req.GetData()) == 0 {
+		return nil, llmModelV1.ErrorBadRequest("invalid parameter")
+	}
+	return s.llmModelRepo.BatchCreate(ctx, req)
 }

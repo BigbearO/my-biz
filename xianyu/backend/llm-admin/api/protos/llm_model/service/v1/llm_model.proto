@@ -14,8 +14,8 @@ import "pagination/v1/pagination.proto";
 
 // 服务
 service LlmModelService {
-  // 查询列表
-  rpc List (pagination.PagingRequest) returns (ListLlmModelResponse) {
+  // 查询列表(支持 provider_id / display_name 模糊 / status 过滤)
+  rpc List (ListLlmModelRequest) returns (ListLlmModelResponse) {
     option (google.api.http) = {
       get: "/llm/model/list"
     };
@@ -55,6 +55,13 @@ service LlmModelService {
   rpc Delete (DeleteLlmModelRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {
       delete: "/llm/model/{id}"
+    };
+  }
+
+  // 启用模型(自动停用其他,全局唯一启用)
+  rpc Enable (EnableLlmModelRequest) returns (LlmModel) {
+    option (google.api.http) = {
+      put: "/llm/model/enable/{id}"
     };
   }
 
@@ -112,8 +119,42 @@ message LlmModel {
   optional google.protobuf.Timestamp updated_at = 9 [
     json_name = "updatedAt",
     (gnostic.openapi.v3.property) = {description: ""}
-  ]; // 
+  ]; //
 
+  // 关联查询返回(不在表里,由服务层填充)
+  optional string provider_name = 10 [
+    json_name = "providerName",
+    (gnostic.openapi.v3.property) = {description: "关联的供应商名称"}
+  ]; // 供应商名称
+
+}
+
+message ListLlmModelRequest {
+  // 分页/排序(与 pagination.PagingRequest 同构)
+  optional uint32 page = 1 [
+    json_name = "page"
+  ];
+  optional uint32 page_size = 2 [
+    json_name = "pageSize"
+  ];
+  // 过滤:供应商精确匹配
+  optional int64 provider_id = 3 [
+    json_name = "providerId"
+  ];
+  // 过滤:模型显示名称模糊匹配
+  optional string display_name = 4 [
+    json_name = "displayName"
+  ];
+  // 过滤:状态(1=启用 0=停用)
+  optional int32 status = 5 [
+    json_name = "status"
+  ];
+}
+
+message EnableLlmModelRequest {
+  int64 id = 1 [
+    json_name = "id"
+  ];
 }
 
 message ListLlmModelResponse {

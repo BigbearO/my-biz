@@ -68,6 +68,7 @@ func newApp(ctx context.Context, bs *bootstrap.Bootstrap) ([]transport.Server, f
 	// ── register:service ── 新模块服务在此行后注册(make register 工具锚点,勿删)
 	llmModelService := service.NewLlmModelService(bs, llmModelRepo)
 	llmProviderService := service.NewLlmProviderService(bs, llmProviderRepo)
+	llmService := service.NewLlmService(bs, llmModelRepo)
 
 	// ═══════════════════════ 四、传输层(internal/server) ═══════════════════════
 
@@ -77,6 +78,7 @@ func newApp(ctx context.Context, bs *bootstrap.Bootstrap) ([]transport.Server, f
 		// register:grpc-arg ── 新模块服务实参在此行后追加(make register 工具锚点,勿删)
 		llmModelService,
 		llmProviderService,
+		llmService,
 	)
 
 	restMiddlewares := server.NewRestMiddleware(bs)
