@@ -15,6 +15,9 @@ ifeq ($(VERSION), dev)
 endif
 LDFLAGS := -X main.version=$(VERSION)
 
+# 运行环境:go run 经 -e 传入;容器经 APP_ENV 注入(见 Dockerfile)。从仓库根可 make run APP_ENV=test
+APP_ENV ?= dev
+
 .PHONY: build build_only run api openapi ent test clean
 
 build: api openapi ## 生成 + 编译
@@ -24,7 +27,7 @@ build_only: ## 仅编译
 	go build -ldflags "$(LDFLAGS)" -o ./bin/$(BIN_NAME) ./cmd/$(BIN_NAME)
 
 run: api openapi ## 生成 + 运行
-	go run ./cmd/$(BIN_NAME) -conf ./configs
+	go run ./cmd/$(BIN_NAME) -conf ./configs -e "$(APP_ENV)"
 
 api: ## proto → go
 	cd $(ROOT_DIR)/api && buf generate --template buf.gen.yaml

@@ -40,17 +40,29 @@ type Bootstrap struct {
 
 // Run 应用入口:配置 → 日志 → 链路 → 注册 → initApp → 运行 → 优雅退出。
 // confDir 为本地配置目录(通常 ./configs)。
+// 运行环境由 -e <env>(优先)或 APP_ENV 环境变量指定,二者皆空默认 dev;
+// 按环境合并 <base>.<env>.yaml 差异覆盖文件(约定详见 envfile.go)。
+// -conf/-e 由本函数统一注册,服务 main 不得重复注册(否则 flag redefined panic)。
 func Run(ctx context.Context, confDir string, initApp InitAppFunc, opts ...RunOption) (err error) {
-	// -conf 命令行覆盖配置目录
+	// -conf 命令行覆盖配置目录;-e 命令行覆盖运行环境(默认值取 APP_ENV)
+	env := "" // 空 = 未显式指定
 	flag.StringVar(&confDir, "conf", confDir, "配置目录路径")
+	flag.StringVar(&env, "e", os.Getenv("APP_ENV"), "运行环境(dev|test|prod...),优先级高于 APP_ENV")
 	flag.Parse()
+	envExplicit := env != "" // -e 或 APP_ENV 任一非空 = 显式指定
+	if env == "" {
+		env = "dev" // 二者皆空 → 默认 dev(仍会应用 *.dev.yaml 覆盖文件)
+	}
+	if err := validateEnvironment(env); err != nil {
+		return err // 启动即失败,不带病运行
+	}
 
 	var ro runOptions
 	for _, o := range opts {
 		o(&ro)
 	}
 
-	cfg, closeCfg, err := loadConfig(ctx, confDir)
+	cfg, closeCfg, err := loadConfig(ctx, confDir, env, envExplicit)
 	if err != nil {
 		return err
 	}

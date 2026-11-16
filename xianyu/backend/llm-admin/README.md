@@ -15,7 +15,7 @@ make init        # 安装 protoc 插件与 buf
 make api         # proto → go(产物 api/gen/go)
 make build       # 编译全部服务
 # 运行
-cd app/admin/service && go run ./cmd/server -conf ./configs
+cd app/admin/service && go run ./cmd/server -conf ./configs -e dev   # 或 APP_ENV=dev,皆空默认 dev
 # 验证
 curl http://${env.host}:8000/helloworld/v1/greeter/wind
 ```
@@ -24,11 +24,14 @@ curl http://${env.host}:8000/helloworld/v1/greeter/wind
 `wind add service <name> -s grpc -d ent`(脚手架 CLI 生成三层骨架与锚点),或手工复制 `app/admin/service` 改名。
 
 ## 配置契约
+运行环境:`-e <env>`(优先)> `APP_ENV` 环境变量 > 默认 `dev`;env 名仅允许 `[a-z0-9_-]`。
 | 文件 | 内容 | 覆盖顺序(低→高) |
 |---|---|---|
-| `configs/bootstrap.yaml` | app / nacos / trace / log(始终本地) | 本地 < nacos(业务段) < `WIND_*` 环境变量 |
-| `configs/server.yaml` | grpc/http 监听地址 | 同上 |
-| `configs/data.yaml` | 数据源(由 nacos 下发为佳) | 同上 |
+| `configs/bootstrap.yaml` | app / nacos / trace / log(始终本地) | 基础文件 < `<base>.<env>.yaml` 差异覆盖 < nacos(业务段) < `WIND_*` 环境变量 |
+| `configs/server.yaml`(+ `server.dev.yaml` 等) | grpc/http 监听地址 | 同上 |
+| `configs/data.yaml`(+ `data.test.yaml` 等) | 数据源(由 nacos 下发为佳) | 同上 |
+
+多环境机制详见 `pkg/bootstrap/envfile.go` 顶部约定(与 wind-template 模板一致)。
 
 ## 锚点
 `wiring.go` 与 `internal/server/*` 内含 `register:*` 锚点注释(与 gow 生态逐字节一致),`wind generate` 只做锚点注入,不覆盖手写内容。

@@ -1,0 +1,6 @@
+# dev 差异覆盖:开发库;driver 等未写键沿用 data.yaml。
+data:
+  database:
+    source: "root:<you_password>@tcp(127.0.0.1:3306)/sample_dev?parseTime=true&charset=utf8mb4&loc=Asia%2FShanghai"
+  redis:
+    addr: "127.0.0.1:6379"

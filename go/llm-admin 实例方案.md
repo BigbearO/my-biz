@@ -123,3 +123,37 @@ CREATE TABLE llm_model (
 | 阶段 2 业务定制 | 3~4h |
 | 阶段 3 联调验收 | 1h |
 | **合计** | **≈ 6h** |
+
+---
+
+## 7. 配置与多环境(2026-11-15 增补)
+
+实例配置沿用模板三层(bootstrap.yaml 引导单文件 → nacos 远端业务段 → `WIND_*` 环境变量最高优先级),并新增 springboot `application-{profile}` 式多环境:不同环境用不同配置文件,差异文件只写差异。
+
+### 环境指定
+
+| 方式 | 说明 |
+|---|---|
+| `-e <env>` | 优先,如 `go run ./cmd/server -conf ./configs -e test`;env 名仅允许 `[a-z0-9_-]`,非法启动即失败 |
+| `APP_ENV` | 容器/CI 兜底(`docker run -e APP_ENV=test`;Dockerfile 已 `ARG/ENV` 注入,CMD 不写死) |
+| 默认 dev | 二者皆空时按 dev 处理,`*.dev.yaml` 覆盖自动生效 |
+
+### configs 布局(app/admin/service/configs/)
+
+```
+bootstrap.yaml        # 引导配置(app/nacos/trace/log),始终单文件,不分环境
+server.yaml / data.yaml      # 基础配置
+server.dev.yaml / data.dev.yaml    # dev 差异覆盖(日志 debug / 本机库)
+server.test.yaml / data.test.yaml  # test 差异覆盖(独立端口 18000/19000 / 测试库)
+```
+
+覆盖文件匹配 `<name>.<env>.<ext>`,只写差异键,其余键沿用基础(kratos 深合并)。
+合并优先级(低→高):**基础 yaml < 覆盖文件 < nacos dataId < WIND_\* 环境变量**。
+
+### 红线
+
+1. 覆盖文件**不写 `nacos:` 段**——配置中心挂载只认 bootstrap.yaml,写了会「配置读 A 环境、注册到 B 环境」;nacos 环境隔离用 namespace/dataId
+2. `WIND_*` 只覆盖字符串值(bool/int 字段会 unmarshal 报错)
+3. `-conf`/`-e` 由 bootstrap.Run 统一注册,main 不得重复注册
+
+> 机制原理/实现位置见模板仓 `wind-template/docs/多环境配置方案.md`(pkg/bootstrap 随模板复制);实施过程与踩坑见 `llm-admin 实施记录.md` 追记(2026-11-15)。 |

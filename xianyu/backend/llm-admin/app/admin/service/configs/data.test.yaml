@@ -1,0 +1,9 @@
+# test 差异覆盖:测试库;driver/redis 密码等未写键沿用 data.yaml。
+# 如需自动迁移改 migrate: true——注意 tx7do/go-crud 的 doAutoMigrate 目前有空指针 panic(既有问题)。
+data:
+  database:
+    source: "host=10.0.0.5 port=5432 user=root password=123456 dbname=admin_test sslmode=disable"
+    migrate: false
+  redis:
+    addr: "10.0.0.5:6379"
+    db: 1

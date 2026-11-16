@@ -1,0 +1,4 @@
+# dev 差异覆盖(-e dev / APP_ENV=dev / 默认不指定时生效):只写与 server.yaml 不同的键,深合并保留其余。
+# 注意:不要写 nacos: 段(配置中心挂载只认 bootstrap.yaml),详见 envfile.go 顶部约定。
+log:
+  level: debug

@@ -1,0 +1,8 @@
+# test 差异覆盖(-e test / APP_ENV=test 时生效):独立端口避免与 dev 冲突。
+server:
+  grpc:
+    addr: ":19000"
+  http:
+    addr: ":18000"
+log:
+  level: info

@@ -1,0 +1,6 @@
+# dev 差异覆盖:开发库直连本机;driver/redis 密码等未写键沿用 data.yaml。
+data:
+  database:
+    source: "host=127.0.0.1 port=5432 user=root password=123456 dbname=admin_dev sslmode=disable"
+  redis:
+    addr: "127.0.0.1:6379"

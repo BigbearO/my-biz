@@ -93,8 +93,9 @@ type HTTPServerConfig struct {
 }
 
 // Config 全量配置。
-// 合并顺序 file(本地兜底)→ nacos(业务段)→ env(最高优先级);
-// 约定:远端 dataId 只放业务配置段(server/data 等),app/nacos/trace/log 始终以本地 bootstrap.yaml 为准。
+// 合并顺序 file(基础 yaml + <base>.<env>.yaml 差异覆盖)→ nacos(业务段)→ WIND_* env(最高优先级);
+// 约定:远端 dataId 只放业务配置段(server/data 等),app/nacos/trace/log 始终以本地 bootstrap.yaml 为准
+// (差异覆盖文件同理不要写 nacos: 段,详见 envfile.go 顶部约定)。
 type Config struct {
 	App    AppInfo      `json:"app"`
 	Nacos  NacosConfig  `json:"nacos"`
@@ -170,16 +171,33 @@ func (t *TraceConfig) sampler() float64 {
 	return t.Sampler
 }
 
-// loadConfig 加载配置:本地 yaml 兜底 + nacos 远端覆盖(失败仅告警)+ env 最高优先级。
-// nacos 不可达不阻塞启动。返回的 close 释放全部配置资源。
-func loadConfig(ctx context.Context, confDir string) (*Config, func(), error) {
+// loadConfig 加载配置:本地基础 yaml + <base>.<env>.yaml 差异覆盖 + nacos 远端覆盖
+// (失败仅告警)+ WIND_* 环境变量最高优先级。nacos 不可达不阻塞启动。
+// env 为运行环境(dev/test/prod...,已在 Run 处校验);envExplicit 表示 -e/APP_ENV 是否
+// 显式指定(区分「显式选定」与「默认回落」,用于 app.env 归属,见函数尾部)。
+// 返回的 close 释放全部配置资源。
+func loadConfig(ctx context.Context, confDir, env string, envExplicit bool) (*Config, func(), error) {
 	// 1) 预读本地 bootstrap.yaml 的 nacos 连接段。
 	// 用轻量文件解析而非 kratos config:预读的临时 config 关闭时其 file watcher
 	// 会打 "watcher's ctx cancel" INFO 噪音日志(预读与正式加载各一次)。
+	// 注意:只认 bootstrap.yaml 这一个文件,差异覆盖文件里的 nacos: 段不影响挂载(见包注释约定)。
 	preNacos := readLocalNacosSection(filepath.Join(confDir, "bootstrap.yaml"))
 
-	// 2) 组装最终 sources:file(本地兜底)→ nacos(业务段覆盖)→ env(最高优先级)
-	sources := []config.Source{file.NewSource(confDir)}
+	// 2) 本地 sources:基础文件在前、env 覆盖文件在后,逐文件 source,
+	// 注册顺序即合并优先级(后注册覆盖先注册)。
+	basePaths, overlayPaths, err := newEnvironmentFilePaths(confDir, env)
+	if err != nil {
+		return nil, nil, err
+	}
+	sources := make([]config.Source, 0, len(basePaths)+len(overlayPaths)+2)
+	for _, p := range basePaths {
+		sources = append(sources, file.NewSource(p))
+	}
+	for _, p := range overlayPaths {
+		sources = append(sources, file.NewSource(p))
+	}
+
+	// 3) nacos(业务段覆盖)→ WIND_* 环境变量(最高优先级)
 	if preNacos != nil && preNacos.Addr != "" {
 		src, err := newNacosConfigSource(ctx, preNacos)
 		if err != nil {
@@ -199,6 +217,13 @@ func loadConfig(ctx context.Context, confDir string) (*Config, func(), error) {
 	if err := cfg.Scan(c); err != nil {
 		_ = cfg.Close()
 		return nil, nil, fmt.Errorf("解析配置失败: %w", err)
+	}
+
+	// 4) app.env 归属:仅当 -e/APP_ENV 显式指定环境时,以选定值为准(压过 bootstrap.yaml 的 app.env);
+	// 覆盖文件显式写了 app.env、或 WIND_APP_ENV 已设置时不覆盖——Scan 合并值已含其优先级。
+	// 远端 nacos 按约定不下发 app.env(见 Config 注释),故此处无需考虑远端来源。
+	if envExplicit && !overlayDefinesAppEnv(overlayPaths) && os.Getenv(EnvPrefix+"APP_ENV") == "" {
+		c.App.Env = env
 	}
 	return c, func() { _ = cfg.Close() }, nil
 }

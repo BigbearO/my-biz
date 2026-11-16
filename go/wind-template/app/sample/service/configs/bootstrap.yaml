@@ -4,6 +4,11 @@
 #   trace  OTLP(链路 + 日志转发共用端点)
 #   log    日志级别
 #   env 环境变量(前缀 WIND_)优先级最高,如 WIND_TRACE_ENDPOINT
+# 多环境:运行环境由 -e <env>(优先)或 APP_ENV 环境变量指定,二者皆空默认 dev;
+#   <base>.<env>.yaml(如 server.dev.yaml / data.test.yaml)为差异覆盖文件,只写差异键,
+#   合并优先级:WIND_* 环境变量 > nacos > 覆盖文件 > 基础文件。
+#   注意:覆盖文件不要写 nacos: 段——配置中心挂载只认本文件,写了会导致
+#   「配置读 A 环境、注册到 B 环境」的分裂;nacos 侧环境隔离请用 namespace/dataId。
 app:
   project: my-biz
   appId: sample

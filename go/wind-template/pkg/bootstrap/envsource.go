@@ -13,6 +13,8 @@ import (
 // 这里定义映射规则:WIND_<段>_<段> → 段小写、点分层级,
 // 例:WIND_SERVER_HTTP_ADDR → server.http.addr,WIND_TRACE_ENDPOINT → trace.endpoint。
 // 注意:驼峰键(dataId/timeoutMs)无法经环境变量表达,这类值请用 local.yaml 或远端配置。
+// 注意:值以原始字符串注入,Scan 到 bool/int 字段会报 "cannot unmarshal string into ...";
+// 即 WIND_* 只适合覆盖字符串值(如 DSN/地址),布尔与数字字段请用差异覆盖文件或远端配置。
 type envSource struct {
 	prefix string
 }

@@ -132,3 +132,29 @@ cd app/admin/service && go build -o ../../server.exe ./cmd/server
 3. 示例服务 admin → sample(与生成器注入约定兼容,让出 admin 名)
 4. `.gitignore` 加 `local.yaml`(配置分层本机覆盖层)
 5. buf.yaml/buf.gen.yaml — 补 gnostic/kratos apis/pagination 依赖 + managed/disable + M 映射
+
+## 追记(2026-11-15):多环境配置(-e/APP_ENV + 差异覆盖文件)
+
+**需求**:不同环境用不同配置文件,像 springboot `application-dev.yml` / `-test.yml`。
+**决策**:①按文件覆盖(`<base>.<env>.yaml` 只写差异键,深合并沿用基础);②`-e` flag 优先 + `APP_ENV` 环境变量兜底,默认 dev。
+
+**改造**(从 kratos-kit 移植,纯标准库零新依赖,全在 pkg/bootstrap 单包):
+- `envfile.go`(新):环境名校验([a-z0-9_-])、目录扫描(基础/覆盖两组,各自字典序)、覆盖文件是否定义 app.env 的轻量判定;文件头部为完整使用约定
+- `config.go`:`loadConfig` 加 `(env, envExplicit)`;source 由整目录改为**逐文件**(基础在前、覆盖在后);Scan 后 app.env 归属判定
+- `bootstrap.go`:`Run` 注册 `-e`(flag 默认值取 APP_ENV);非法环境启动即失败 exit 1
+- `envsource.go`:注释补 WIND_* 只支持字符串值
+- `configs/` 新增 server.dev / data.dev / server.test / data.test.yaml 示例;bootstrap.yaml 头注释补约定
+- `app.mk`:`APP_ENV ?= dev` + run 传 `-e`;`Dockerfile`:`ARG/ENV APP_ENV=dev`(CMD 不动,二进制原生读 APP_ENV)
+- 同日**回写 wind-template**:pkg/bootstrap 五文件整文件同步(codec.go 除外——那是上次删调试输出,不属本改造)、sample configs/app.mk/Dockerfile/README 同款、模板新增 `docs/多环境配置方案.md`(机制文档,派生项目随模板继承)
+
+**合并优先级(低→高)**:基础 yaml < `<base>.<env>.yaml` 覆盖 < nacos dataId < `WIND_*` 环境变量。
+`app.env`(OTEL 标签)归属:`WIND_APP_ENV` > 覆盖文件的 app.env > `-e`/`APP_ENV`(显式指定时) > bootstrap.yaml 的 app.env > "dev"。注意 `app.env` **不参与文件选择**,只影响 OTEL 标签。
+**红线**:覆盖文件不要写 `nacos:` 段(挂载参数只认 bootstrap.yaml,而注册客户端用 Scan 合并值 → 写了会「配置读 A 环境、注册到 B 环境」);nacos 隔离用 namespace/dataId。
+
+**坑 17**:kratos **整目录 file source 按文件名字典序合并**,`"server.dev.yaml" < "server.yaml"`(`d`<`y`)→ 基础文件后合并、反覆盖环境差异,方向正好相反。**必须逐文件 source 显式排序**(kratos 优先级 = source 注册顺序);无覆盖文件时逐文件与整目录的合并顺序/深合并语义完全一致,行为逐字节等价,老用法零影响。
+**坑 18**:`WIND_*` 只适合覆盖**字符串值**——环境变量值以原始字符串注入,Scan 到 bool/int 字段直接报 `cannot unmarshal string into Go struct field`(实测 `WIND_DATA_DATABASE_MIGRATE=false` 失败);布尔/数字差异请用覆盖文件。
+**坑 19**:tx7do/go-crud `doAutoMigrate` **空指针 panic**(`gorm@v0.0.26/client.go:312`)——任何配置 `migrate: true` 建客户端即崩;基础 data.yaml 一直 false 从未暴露。data.test.yaml 已改回 false 并注释警示,真要开 migrate 先修该库。
+
+**验证(全部实测)**:`-e Dev` 启动即失败;`-e test` 后 postgres 报 `database "admin_test" does not exist`(基础是 good_fish → 覆盖 DSN 已合并,且能到 pg 说明深合并键组合正确);`migrate:true` 实际触发迁移路径(深合并生效,顺带暴露坑 19);`WIND_DATA_DATABASE_SOURCE` 压过 test 覆盖 DSN 连到 good_fish(最高优先级保持);test 环境监听 **18000/19000** 且 HTTP 探测存活;**裸跑(无 -e 无 APP_ENV)监听 8000/9000**(默认 dev,基础端口);nacos 不可达仅告警本地兜底、注册失败退避重试;模板侧同样验证通过(dev 8000 / test 18000)。build/vet/单测全过。未实测:OTEL 环境标签(4317 不通)、watch 热更(逐文件 watcher 与整目录行为等价,机制未动)。
+
+> 项目内 README「配置契约」章节已同步(覆盖顺序补差异覆盖层);机制文档在 `wind-template/docs/多环境配置方案.md`,本仓不放重复文档。

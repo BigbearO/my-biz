@@ -1,0 +1,7 @@
+# test 差异覆盖:测试库;driver 等未写键沿用 data.yaml。
+data:
+  database:
+    source: "root:<you_password>@tcp(10.0.0.5:3306)/sample_test?parseTime=true&charset=utf8mb4&loc=Asia%2FShanghai"
+  redis:
+    addr: "10.0.0.5:6379"
+    db: 1
