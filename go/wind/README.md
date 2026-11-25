@@ -19,7 +19,7 @@ wind doctor             # 环境体检(工具链/插件版本/项目分层铁律
 ## 快速开始
 
 ```shell
-# 1. 新建项目(开发期默认用本地 wind-template 模板;开源后自动走 GitHub+gh-proxy)
+# 1. 新建项目(开发期默认用本地 kratos-template 模板;否则走 GitHub+gh-proxy 拉取)
 wind new demo
 cd demo
 

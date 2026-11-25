@@ -23,7 +23,7 @@ const (
 	// GHProxyPrefix GitHub 访问前缀(国内加速);第三方代理存在可用性波动,可整体替换。
 	GHProxyPrefix = "https://v6.gh-proxy.org/"
 
-	// DefaultProtoDir proto 源默认位置(与 wind-template 一致)。
+	// DefaultProtoDir proto 源默认位置(与 kratos-template 模板一致)。
 	DefaultProtoDir = "api/protos"
 )
 

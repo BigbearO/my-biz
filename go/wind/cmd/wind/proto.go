@@ -84,7 +84,7 @@ func writeProtoTemplate(target, module, rel string) error {
 	if module == "" {
 		module = "REPLACE_ME"
 	}
-	// 别名约定(与 wind-template 的 helloworldv1 一致):<domain 段> + <version 段>,跳过字面量 service。
+	// 别名约定(与 kratos-template 的 helloworldv1 一致):<domain 段> + <version 段>,跳过字面量 service。
 	alias := ""
 	switch {
 	case len(dirSegs) >= 3:

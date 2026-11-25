@@ -40,19 +40,20 @@ var (
 )
 
 const (
-	// GithubRepoURL wind-template 模板仓(开源后的默认远端)。
-	GithubRepoURL = "https://github.com/wind-scaffold/wind-template.git"
+	// GithubRepoURL kratos-template 模板仓(public,默认远端)。
+	// 模板内部 module 占位符仍为 TemplateModuleName,见 project.go。
+	GithubRepoURL = "https://github.com/BigbearO/kratos-template.git"
 )
 
 // defaultTemplateSource 解析默认模板源(优先级低于 --template 与 -r):
 //  1. 环境变量 WIND_TEMPLATE(本地模板目录)
-//  2. CWD 及其上级的 wind-template 目录(开发期免 clone,改模板→立刻验证)
+//  2. CWD 及其上级的 kratos-template 目录(开发期免 clone,改模板→立刻验证)
 //  3. 远端 GitHub 模板仓(统一加 gh-proxy 前缀,常量见 deps.go,可替换)
 func defaultTemplateSource() string {
 	if env := os.Getenv("WIND_TEMPLATE"); env != "" && isLocalTemplateDir(env) {
 		return env
 	}
-	for _, cand := range []string{"./wind-template", "../wind-template", "../../wind-template"} {
+	for _, cand := range []string{"./kratos-template", "../kratos-template", "../../kratos-template"} {
 		if isLocalTemplateDir(cand) {
 			if abs, err := filepath.Abs(cand); err == nil {
 				return abs
